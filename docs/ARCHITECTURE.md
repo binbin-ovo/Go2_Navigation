@@ -1,4 +1,10 @@
 # Architecture
+**Phase 3:** timestamped LiDAR/fused results now feed `tracking.MultiObjectTracker` (import
+from `tracking.multi_object_tracker`), with explicit odometry or fixed-sensor normalization,
+Kalman velocity estimation, lifecycle/motion states, CV trajectories and headless BEV. See
+[TRACKING_ARCHITECTURE](TRACKING_ARCHITECTURE.md) for the complete current interface.
+The original perception and hardware code is unchanged; the sections below describe that core.
+
 **Phase 2:** `adapters/go2` connects the real robot to the APIs below, without changing them.
 ```text
 Go2 RTP video -> adapters/go2 (decode, keep receipt time) -> RGBDetector.detect -> RGBResult
@@ -53,7 +59,7 @@ Open3D voxel downsampling creates centroids and drops intensity. Labels index pr
 points, not raw input. DBSCAN uses fixed metric radius / minimum support; sparse points
 remain unclassified, and close/touching objects may merge. No automotive density or full
 360-degree scan is assumed. Short accumulated windows must already share a frame/time
-reference and be motion compensated by the producer. No temporal tracker exists.
+reference and be motion compensated by the producer. The Phase 1 core has no temporal tracker; Phase 3 now consumes its outputs in a separate package.
 
 Association scores are fractions of visible cluster points inside each RGB box; require
 minimum support and fraction. SciPy Hungarian assignment maximizes total score one-to-one.

@@ -1,4 +1,26 @@
 # Project state — 2026-11-06
+
+## Phase 3 — temporal tracking (current branch: `phase3-tracking`)
+Implemented on integrated baseline `dc0f85b`; not merged into main. Adds validated timestamped
+3D detections, odometry/fixed-sensor normalization, planar CV Kalman tracking, Hungarian gating,
+persistent IDs/lifecycle, velocity uncertainty, motion classification, 3-second trajectories,
+raw Go2/detection replay, headless BEV/video and synthetic evaluation. No SDK communication or
+existing perception code changed; no new runtime dependencies. Phase 2 uses DDS/RTP directly,
+not a mandatory ROS 2 adapter.
+
+Verified: baseline 70 passed/1 skipped; expanded suite **127 passed/1 hardware skipped**. All
+8 reference scenarios run with zero ID switches, XY MAE .0181–.0598 m and velocity MAE
+.0496–.1164 m/s. Additional 40 noisy-seed sequences have four ID switches; this remains a known
+baseline limitation. A single real cloud produced four tentative uncertain tracks in explicitly
+fixed-sensor mode; real temporal accuracy and Phase 3 live hardware behavior remain unverified.
+Real fusion still requires calibration and verified time alignment. Covariance assumes exact
+poses; sparse/merged/partially observed clusters can fragment IDs. No locomotion or planning.
+
+Read [TRACKING_ARCHITECTURE](TRACKING_ARCHITECTURE.md), [TRACKING_EVALUATION](TRACKING_EVALUATION.md),
+and the Phase 3 handoff below/at AGENT_HANDOFF.md. Next: labelled temporal Go2 replay, motion/pose
+validation, calibration and synchronization, then replaceable learned prediction experiments.
+All Phase 1/2 sections below are historical records and retain their original validation scope.
+
 ## Main integration
 Local merge verification: **70 passed, 1 hardware test skipped** (macOS CPU).
 `main` combines Phase 1 (`359fea8`) and Phase 2 (`72585e0`). Phase 2 descends directly

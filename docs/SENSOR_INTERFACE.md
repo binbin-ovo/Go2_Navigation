@@ -1,4 +1,9 @@
 # Sensor integration contract for Claude
+**Phase 3:** tracking consumes existing results through `tracking.normalization` and explicit
+`RobotPose` transforms; see [TRACKING_ARCHITECTURE](TRACKING_ARCHITECTURE.md) for timestamps,
+frames, covariance, JSONL schema and the live-adapter contract. Camera calibration remains
+required only for real fusion, not LiDAR-only tracking. No hardware transport code changed.
+
 **Phase 2 update:** real topics are verified. `adapters/go2` implements this contract, with measured
 values in [SENSOR_VALIDATION](SENSOR_VALIDATION.md). How real data maps to each field:
 

@@ -1,4 +1,50 @@
 # Agent handoff — 2026-11-06 (Phase 2 update)
+
+## Phase 3 handoff (current)
+Changes are committed on `phase3-tracking` from main `dc0f85b`; do not merge without user approval.
+New packages: tracking, localization and visualization; core/tracking_types.py; three tracking
+scripts and configs/tracking.yaml. All original modules/tests remain intact. Validation:
+127 passed/1 hardware skipped. Reference synthetic IDs are stable; additional noisy seeds have
+four switches across forty sequences. No real temporal or live tracking accuracy is claimed.
+
+```bash
+source .venv/bin/activate
+uv pip install -r requirements.txt
+python scripts/generate_tracking_test_data.py
+python scripts/run_tracking.py --input data/sample/tracking_sequence/crossing --config configs/tracking.yaml --output data/outputs/tracking_run --video
+python scripts/evaluate_tracking.py --input data/sample/tracking_sequence --output data/outputs/tracking_eval.json
+pytest -q
+# On the recording workstation, with real bracketed odometry:
+python scripts/run_tracking.py --input data/recordings/stage_c_person --output data/outputs/tracking_person --window-s 0.3
+```
+Choose fresh output directories. Missing/stale odometry raises an error, including endpoints.
+Do not substitute identity poses. Use `--mode fixed_sensor` only with an explicit fixed-sensor
+assumption, and interpret velocities as sensor-relative. Full JSONL input, types, covariance,
+frame conventions, config meanings and output contracts: TRACKING_ARCHITECTURE.md.
+
+**Claude's exact next steps:**
+1. Keep adapter/hardware ownership. Record cloud_base and odometry with real acquisition stamps;
+   provide `go2_robot` clock and `T_odom_base` (xyzw source quaternion). No host/RTP substitution.
+2. For live normalized detections, call `from_lidar` / `from_fusion` then the persistent
+   MultiObjectTracker. Supply a RobotPose mapping the **actual detection frame** to odom at
+   that timestamp. If detections were levelled to base_link_level, use yaw+translation, not
+   a second roll/pitch rotation. Buffer/interpolate odometry upstream with validated gaps.
+3. Validate stationary world objects while translating/rotating the robot, then known moving
+   targets. Measure velocity error and ID continuity against annotated ground truth.
+4. Review the documented exact-sample-after-gap PoseBuffer issue. Phase 3 handles exact observed
+   samples in its replay wrapper; shared hardware code was not silently patched.
+5. Validate dropouts, clock discontinuities, scan de-skew assumptions, odometry drift and dynamic
+   ground height. Ground/clustering defaults still depend on standing height/scene density.
+6. Complete camera intrinsics, distortion/rectification, extrinsics and capture-time alignment
+   before associating RGB semantics with LiDAR trajectories. No synthetic calibration on real data.
+
+**Phase 4 interface:** consume TrackOutput history, timestamp/frame, velocity/covariance/status;
+replace `predict_trajectory` with a learned predictor returning timestamped positions and
+uncertainty in the same frame. Establish annotated metrics and robustness first. Robot control,
+learned networks, planners and navigation are not implemented by Phase 3.
+
+Historical handoffs below describe their original phases, not the current task status.
+
 ## Main integration handoff
 Local merge verification: **70 passed, 1 hardware test skipped** (macOS CPU).
 Work from `main`, which contains both phase commits plus the merge validation tests/docs.

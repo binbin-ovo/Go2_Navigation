@@ -1,0 +1,40 @@
+# All units SI. No camera calibration or SDK configuration is invented here.
+tracker:
+  mode: odom  # explicit fixed_sensor mode is available; never automatic fallback
+  tracking_frame: odom
+  sensor_frame: base_link
+  base_frame: base_link  # T_base_sensor must terminate in this pose child frame
+  clock_domain: null  # bind to first input, require equality thereafter
+  T_base_sensor: null
+  pose_tolerance_s: 0.05
+  timestamp_tolerance_s: 0.000001
+  process_noise: 0.04
+  measurement_noise: 0.01
+  initial_velocity_variance: 4.0
+  min_dt: 0.00001
+  max_prediction_interval: 0.5
+  max_distance: 1.5
+  mahalanobis_gate: 13.82
+  max_vertical_distance: 1.0
+  distance_weight: 0.4
+  mahalanobis_weight: 0.6
+  iou_weight: 0.0
+  min_hits: 3
+  confirmation_window_s: 1.0
+  lost_after_misses: 2
+  max_misses: 10
+  max_unobserved_s: 1.5
+  duplicate_distance: 0.02
+  birth_suppression_distance: 0.3
+  history_size: 40
+  moving_speed: 0.3
+  stationary_speed: 0.15
+  motion_min_hits: 5
+  motion_min_age_s: 0.5
+  max_velocity_std: 0.3
+  motion_sigma: 1.0
+  trajectory_horizon_s: 3.0
+  trajectory_step_s: 0.2
+visualization:
+  bounds: [-2, 10, -4, 4]
+  size: [1000, 750]

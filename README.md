@@ -1,4 +1,20 @@
 # Go2 Dynamic Perception and Navigation
+
+**Phase 3 adds offline temporal 3D tracking** on branch `phase3-tracking`: persistent IDs,
+ego-motion compensation, planar velocity/covariance, moving/stationary/uncertain states,
+constant-velocity trajectories, and headless BEV/video. This branch is not merged into main.
+```bash
+python scripts/generate_tracking_test_data.py
+python scripts/run_tracking.py --input data/sample/tracking_sequence/crossing --config configs/tracking.yaml --output data/outputs/tracking_run --video
+python scripts/evaluate_tracking.py --input data/sample/tracking_sequence --output data/outputs/tracking_eval.json
+```
+Install the package first (below); use a new output directory for each run. Real recording replay
+uses the same CLI with a Phase 2 recording directory and recorded odometry. No calibration is
+invented; real RGB–LiDAR fusion remains blocked. Phase 3 tests: 127 passed, 1 hardware skipped.
+See [tracking architecture](docs/TRACKING_ARCHITECTURE.md),
+[evaluation and limitations](docs/TRACKING_EVALUATION.md), and
+[agent handoff](docs/AGENT_HANDOFF.md). No real-world tracking accuracy is claimed.
+
 **Phase 2 adds read-only access to a real Go2 Pro:** record, replay and run live YOLO and LiDAR
 perception. Fusion on real data is blocked until calibration exists. The robot is never commanded.
 ```bash
@@ -55,6 +71,9 @@ src/go2_perception/
   lidar/                 filtering, RANSAC, DBSCAN, processor, visualization
   fusion/                calibration, projection, association, visualization
   io/                    loaders, messages, serialization, configuration, fixtures
+  tracking/              filtering, assignment, lifecycle, trajectories, replay/evaluation
+  localization/          explicit detection frame/pose normalization
+  visualization/         headless tracking BEV
   adapters/go2/          read-only DDS/RTP access, recording, replay and cloud windows
   adapters/ros2/         optional ROS integration boundary documentation
 scripts/                 offline pipelines, fixtures, Go2 recording/replay/live tools
