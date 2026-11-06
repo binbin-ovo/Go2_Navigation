@@ -1,5 +1,20 @@
 # Sensor integration contract for Claude
-No native Go2 topic names or successful physical connection are asserted here.
+**Phase 2 update:** real topics are verified. `adapters/go2` implements this contract, with measured
+values in [SENSOR_VALIDATION](SENSOR_VALIDATION.md). How real data maps to each field:
+
+| Contract field | Real Go2 source | Status |
+|---|---|---|
+| `LidarMessage.points` | `rt/utlidar/cloud_base`, XYZI metres | Verified |
+| `LidarMessage.frame_id` | `base_link`, or `base_link_level` when levelled with odometry attitude | Verified while stationary |
+| `LidarMessage.timestamp` | Frame midpoint: `header.stamp` + half of the `time` span | Declared convention |
+| `LidarMessage.clock_domain` | `go2_robot` | Not host time |
+| RGB image | H.264 RTP, decoded to BGR, 1280x720 | Verified |
+| RGB timestamp | First-packet receipt, clock `host_receipt` | Not capture time; latency unknown |
+| `RGBMessage.K` | **None exists** | Blocked; adapter calls `RGBDetector.detect` directly |
+| `Calibration` | **None exists** | Fusion blocked |
+
+`rt/utlidar/cloud` and `rt/utlidar/cloud_deskewed` violate this contract's axes and single-scan
+assumption, so `to_lidar_message` refuses them. The contract text below is unchanged from Phase 1.
 
 ## RGBMessage
 `go2_perception.io.sensor_interface.RGBMessage(image, timestamp, width, height, K,

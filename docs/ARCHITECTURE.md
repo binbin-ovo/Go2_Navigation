@@ -1,4 +1,16 @@
 # Architecture
+**Phase 2:** `adapters/go2` connects the real robot to the APIs below, without changing them.
+```text
+Go2 RTP video -> adapters/go2 (decode, keep receipt time) -> RGBDetector.detect -> RGBResult
+Go2 DDS cloud_base + odometry -> adapters/go2 (decode, level, optional window)
+    -> LidarMessage -> process_lidar -> LidarResult
+RGB + LiDAR + Calibration -> FusionProcessor   [BLOCKED on real data: no calibration]
+Recordings (JPEG/PNG, NPY, JSONL) replay through the same path without the robot or the SDK.
+```
+Only `receivers.py` and `dds_types.py` import the SDK; only `H264Decoder` imports PyAV. Core and
+perception modules remain free of transport imports. Design details and reasons are in
+[INTEGRATION_REPORT](INTEGRATION_REPORT.md). The rest of this file describes the Phase 1 core.
+
 Images → `load_image` → `RGBDetector.detect` → `RGBResult`.
 Clouds → `load_pointcloud` → `LidarProcessor.process` → `LidarResult`.
 Results + `Calibration` → `FusionProcessor.fuse` → `FusionResult`.
@@ -58,4 +70,4 @@ Heavy imports are lazy except where explicitly needed. Core has no ROS imports.
 accept their own `--config`. Run scripts from repo root. Unknown constructor keys fail
 rather than silently disappearing. Full direct pins are in pyproject.toml; the tested
 transitive environment is recorded separately. ROS adapter is intentionally documentation
-until Claude confirms topics and message formats.
+(Phase 2 uses the Unitree SDK directly because no system ROS 2 is installed; see `adapters/go2`).

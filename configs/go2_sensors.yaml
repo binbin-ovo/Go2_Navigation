@@ -1,0 +1,19 @@
+# Verified Go2 access parameters. Evidence: docs/GO2_CONNECTION.md, docs/SENSOR_VALIDATION.md.
+network:
+  iface: eno2
+  host_ip: 192.168.123.222
+  robot_ip: 192.168.123.161
+camera:
+  multicast_group: 230.1.1.1
+  port: 1720
+lidar:
+  perception_topic: rt/utlidar/cloud_base   # single frame in base_link
+  record_topics: [rt/utlidar/cloud, rt/utlidar/cloud_base, rt/utlidar/cloud_deskewed]
+# Recovered from this robot's own output: cloud_base = T_base_lidar applied to cloud, residual
+# < 1e-6 m over 320 stationary message pairs. It is firmware's constant, not an independent
+# survey. It says nothing about the camera, so camera-LiDAR calibration remains missing.
+T_base_lidar:
+  - [ 0.526113921, -0.810135803,  0.258619648, 0.282160038]
+  - [-0.838668160, -0.544642742,  0.000001581, 0.0]
+  - [ 0.140854034, -0.216896896, -0.965979233, 0.0]
+  - [0.0, 0.0, 0.0, 1.0]

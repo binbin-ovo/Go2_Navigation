@@ -1,4 +1,16 @@
 # Go2 Dynamic Perception and Navigation
+**Phase 2 adds read-only access to a real Go2 Pro:** record, replay and run live YOLO and LiDAR
+perception. Fusion on real data is blocked until calibration exists. The robot is never commanded.
+```bash
+.venv/bin/python scripts/go2_record.py --seconds 20 --name sample   # needs the robot
+.venv/bin/python scripts/go2_replay.py --recording data/recordings/sample --window-s 0.3
+.venv/bin/python scripts/go2_live.py --seconds 30 --display          # needs the robot
+.venv/bin/python scripts/go2_view_cloud.py --recording data/recordings/sample --index 100 --window-s 0.3
+```
+Setup: [GO2_CONNECTION](docs/GO2_CONNECTION.md). Evidence: [SENSOR_VALIDATION](docs/SENSOR_VALIDATION.md).
+Status: [INTEGRATION_REPORT](docs/INTEGRATION_REPORT.md). The LiDAR window image is in
+[docs/media](docs/media/go2_lidar_clusters_window0p3.png).
+
 Phase 1: offline RGB detection, geometric LiDAR processing, and preliminary calibrated
 RGB–LiDAR association. No robot connection, movement commands, training, or ROS installation
 is needed. **Real Go2 sensor fusion is not validated.**

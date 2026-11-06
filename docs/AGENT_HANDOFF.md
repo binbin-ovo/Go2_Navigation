@@ -1,4 +1,27 @@
-# Agent handoff — 2026-11-06
+# Agent handoff — 2026-11-06 (Phase 2 update)
+## What Codex should do next
+Claude's Phase 2 is on `feature/go2-sensor-integration`. Read [PROJECT_STATE](PROJECT_STATE.md), then
+[SENSOR_VALIDATION](SENSOR_VALIDATION.md). Your prioritized tasks are in
+[INTEGRATION_REPORT](INTEGRATION_REPORT.md): replay regression test, `RGBMessage.K` decision, cluster
+tuning on real frames, odometry-based ground height, false-positive handling, then tracking.
+
+**Do not** use `rt/utlidar/cloud_deskewed` as a scan, or use RTP timestamps as capture times. **Do not**
+use synthetic calibration on real data, or add any publisher, RPC client or motion command to
+`adapters/go2`. Claude keeps ownership of `adapters/go2`, `scripts/go2_*.py`, `configs/go2_*.yaml`, and
+hardware validation; coordinate before changing them. Perception modules remain yours, unchanged.
+
+Recordings are local-only and contain private home images. They are not on GitHub. Without the
+capture workstation, record your own with `scripts/go2_record.py`, or use
+`tests/fixtures/go2/real_cloud_pair.npz` (one real LiDAR frame pair).
+
+Start here on the workstation:
+```bash
+.venv/bin/python -m pytest -q
+.venv/bin/python scripts/go2_replay.py --recording data/recordings/stage_c_person --window-s 0.3 --output data/outputs/replay
+```
+Hardware work still pending from Claude and the user: link-drop test, calibration, motion validation.
+
+# Phase 1 handoff record (Codex to Claude)
 ## Purpose and ownership
 Build an offline RGB + LiDAR perception foundation for future Go2 dynamic navigation.
 Codex implemented repository architecture, detectors/processors, geometric fusion, CLIs,

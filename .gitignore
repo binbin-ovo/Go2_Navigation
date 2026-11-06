@@ -10,3 +10,7 @@ data/sample/*
 data/outputs/*
 !data/outputs/README.md
 .DS_Store
+# Local Go2 work: recordings, captures and the separately cloned SDK
+data/recordings/
+output/
+third_party/

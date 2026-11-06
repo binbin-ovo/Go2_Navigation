@@ -1,4 +1,30 @@
 # Project state — 2026-11-06
+## Latest verified state: Phase 2 hardware integration
+Branch `feature/go2-sensor-integration`, based on `codex/phase1-perception`. **Read-only** access to a
+real Go2 Pro over Ethernet works; no movement or control functionality exists.
+
+**Verified on the real robot (stationary):** DDS and multicast streams; RGB 1280x720 at 14.3 Hz;
+LiDAR single frames at 15.4 Hz; IMU 251 Hz; odometry 150 Hz; recording and offline replay; unmodified
+YOLO and LiDAR processors on real data; live inference at about 13 Hz RGB and 14 Hz LiDAR; correct
+person detection in one scene. Linux/CUDA is verified. Tests: **68 passed, 1 hardware test skipped
+offline, and that test passes live.**
+
+**Blocked:** RGB-LiDAR fusion, for lack of camera calibration and verified synchronization.
+**Unverified:** link-drop recovery, all behaviour under robot motion, LiDAR model (probably L2;
+inferred only), detection accuracy against labels, runs longer than 106 s.
+
+**Facts a new agent must not miss:**
+- `rt/utlidar/cloud_deskewed` is a rolling 10,000-point buffer plus the newest frame, not a scan.
+- One `cloud_base` frame covers only about 190 deg of azimuth; use the 0.3 s compensated window.
+- `cloud_base` contains nothing within 0.3 m XY and is heavily thinned at close range.
+- The robot clock is about 273 days behind the host; RTP timestamps are not capture times.
+
+Evidence and commands: [GO2_CONNECTION](GO2_CONNECTION.md), [SENSOR_VALIDATION](SENSOR_VALIDATION.md),
+[INTEGRATION_REPORT](INTEGRATION_REPORT.md). Next steps: [AGENT_HANDOFF](AGENT_HANDOFF.md).
+
+The Phase 1 record below stays accurate for its own scope, except where a note supersedes it.
+
+# Phase 1 record
 ## Phase
 Phase 1 offline foundation implemented on branch `codex/phase1-perception`.
 Synthetic validation and separate real RGB/cloud smoke tests completed. Live Go2 and
@@ -26,7 +52,7 @@ See [pyproject](../pyproject.toml), [macOS environment lock](../requirements-mac
 and [model hash](EXPERIMENTS.md). No training was performed.
 
 ## Unverified and limitations
-- Linux/CUDA and live Go2 streams not tested; no actual topic names or sensor parameters known.
+- *(Superseded by Phase 2: Linux/CUDA, live streams and topic names are now verified.)* Linux/CUDA and live Go2 streams not tested; no actual topic names or sensor parameters known.
 - Real calibration unavailable; example intrinsics/extrinsics are synthetic only.
 - Raw distorted images are rejected; upstream rectification and matching K required.
 - Ground requires gravity-aligned coordinates and known approximate height; seed points

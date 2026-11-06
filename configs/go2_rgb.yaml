@@ -1,0 +1,6 @@
+# configs/rgb.yaml, using this workstation's verified CUDA GPU.
+model: yolov8n.pt
+device: "0"
+confidence: 0.25
+nms_iou: 0.45
+image_size: 640
