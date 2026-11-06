@@ -1,0 +1,5 @@
+model: yolov8n.pt
+device: cpu
+confidence: 0.25
+nms_iou: 0.45
+image_size: 640

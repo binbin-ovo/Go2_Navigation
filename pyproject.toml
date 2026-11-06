@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools==75.8.0"]
+build-backend = "setuptools.build_meta"
+[project]
+name = "go2-dynamic-perception"
+version = "0.1.0"
+description = "Offline RGB and LiDAR perception for future Go2 integration"
+requires-python = ">=3.10,<3.13"
+dependencies = ["numpy==1.26.4", "scipy==1.15.2", "opencv-python==4.11.0.86", "open3d==0.19.0", "PyYAML==6.0.2", "torch==2.6.0", "torchvision==0.21.0", "ultralytics==8.3.100"]
+[project.optional-dependencies]
+test = ["pytest==8.3.5"]
+[tool.setuptools.packages.find]
+where = ["src"]
+[tool.pytest.ini_options]
+testpaths = ["tests"]

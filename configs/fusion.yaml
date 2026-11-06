@@ -1,0 +1,4 @@
+sync_tolerance_s: 0.05
+min_points: 3
+min_fraction: 0.5
+require_timestamps: true
