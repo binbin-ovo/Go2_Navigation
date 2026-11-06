@@ -14,3 +14,7 @@ data/outputs/*
 data/recordings/
 output/
 third_party/
+
+# Local wheel/build artifacts
+build/
+dist/

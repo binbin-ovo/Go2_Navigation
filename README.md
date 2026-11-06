@@ -33,7 +33,8 @@ YOLO downloads `yolov8n.pt` on first use; pre-cache it for disconnected operatio
 command uses hand-authored synthetic detections to test geometry, **not YOLO accuracy**.
 Omit `--detections` to run YOLO on the supplied image; use matching measured calibration
 and synchronized point-cloud data for real inputs. CPU defaults; RGB supports `--device 0`
-for CUDA and `--model /path/to/yolov8n.pt`. No CUDA hardware validation is claimed.
+for CUDA and `--model /path/to/yolov8n.pt`. Phase 2 records Linux/CUDA validation on the hardware workstation; see
+[GO2_CONNECTION](docs/GO2_CONNECTION.md).
 
 ## Capabilities
 - COCO YOLO detection, typed results, BGR image/path/batch input, JSON and labeled images.
@@ -54,16 +55,18 @@ src/go2_perception/
   lidar/                 filtering, RANSAC, DBSCAN, processor, visualization
   fusion/                calibration, projection, association, visualization
   io/                    loaders, messages, serialization, configuration, fixtures
-  adapters/ros2/         verified integration boundary documentation
-scripts/                 RGB, LiDAR, fusion CLIs and deterministic fixture generator
-tests/                   geometry, LiDAR, fusion, I/O and RGB wrapper tests
+  adapters/go2/          read-only DDS/RTP access, recording, replay and cloud windows
+  adapters/ros2/         optional ROS integration boundary documentation
+scripts/                 offline pipelines, fixtures, Go2 recording/replay/live tools
+tests/                   core/adapter/replay tests and opt-in hardware checks
 data/sample/             generated/downloaded ignored inputs
 data/outputs/            generated ignored outputs
+data/recordings/         private local recordings (ignored)
 docs/                    architecture, setup, sensor contract, experiments, handoff
 ```
 The existing repository is used directly rather than adding a nested repository. Small
-processor, serialization and fixture modules were added for reuse. No empty transport
-bridge is supplied before real Go2 messages are verified.
+processor, serialization and fixture modules were added for reuse. No placeholder
+ROS bridge is supplied; the verified Go2 integration uses the optional SDK adapter.
 
 Start integration with [SENSOR_INTERFACE](docs/SENSOR_INTERFACE.md),
 [AGENT_HANDOFF](docs/AGENT_HANDOFF.md), and [ARCHITECTURE](docs/ARCHITECTURE.md).

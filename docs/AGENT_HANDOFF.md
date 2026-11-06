@@ -1,8 +1,17 @@
 # Agent handoff — 2026-11-06 (Phase 2 update)
+## Main integration handoff
+Local merge verification: **70 passed, 1 hardware test skipped** (macOS CPU).
+Work from `main`, which contains both phase commits plus the merge validation tests/docs.
+`tests/test_go2_replay.py` now exercises the real committed cloud through recording and
+the replay CLI, with and without a window. Its stationary identity poses are synthetic
+test scaffolding, not measured motion evidence. See [MERGE_VALIDATION](MERGE_VALIDATION.md).
+Adapter/hardware ownership remains unchanged. Current priority: measured calibration and
+synchronization, then labelled clustering and motion validation.
+
 ## What Codex should do next
 Claude's Phase 2 is on `feature/go2-sensor-integration`. Read [PROJECT_STATE](PROJECT_STATE.md), then
-[SENSOR_VALIDATION](SENSOR_VALIDATION.md). Your prioritized tasks are in
-[INTEGRATION_REPORT](INTEGRATION_REPORT.md): replay regression test, `RGBMessage.K` decision, cluster
+[SENSOR_VALIDATION](SENSOR_VALIDATION.md). The original Phase 2 priorities are in
+[INTEGRATION_REPORT](INTEGRATION_REPORT.md): replay regression test (now added for the committed fixture), `RGBMessage.K` decision, cluster
 tuning on real frames, odometry-based ground height, false-positive handling, then tracking.
 
 **Do not** use `rt/utlidar/cloud_deskewed` as a scan, or use RTP timestamps as capture times. **Do not**
@@ -21,7 +30,7 @@ Start here on the workstation:
 ```
 Hardware work still pending from Claude and the user: link-drop test, calibration, motion validation.
 
-# Phase 1 handoff record (Codex to Claude)
+# Phase 1 handoff record (historical; superseded by Phase 2 above)
 ## Purpose and ownership
 Build an offline RGB + LiDAR perception foundation for future Go2 dynamic navigation.
 Codex implemented repository architecture, detectors/processors, geometric fusion, CLIs,

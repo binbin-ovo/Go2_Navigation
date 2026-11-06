@@ -1,4 +1,13 @@
 # Project state — 2026-11-06
+## Main integration
+Local merge verification: **70 passed, 1 hardware test skipped** (macOS CPU).
+`main` combines Phase 1 (`359fea8`) and Phase 2 (`72585e0`). Phase 2 descends directly
+from Phase 1, so both histories and all source changes are preserved without conflict.
+The merge adds offline recording-to-CLI regression tests and reconciles status/setup docs;
+Claude-owned adapter source, hardware scripts and Go2 configurations are unchanged.
+See [MERGE_VALIDATION](MERGE_VALIDATION.md) for local verification, separate from the
+hardware-workstation results below. Real calibrated fusion remains blocked.
+
 ## Latest verified state: Phase 2 hardware integration
 Branch `feature/go2-sensor-integration`, based on `codex/phase1-perception`. **Read-only** access to a
 real Go2 Pro over Ethernet works; no movement or control functionality exists.
@@ -22,7 +31,8 @@ inferred only), detection accuracy against labels, runs longer than 106 s.
 Evidence and commands: [GO2_CONNECTION](GO2_CONNECTION.md), [SENSOR_VALIDATION](SENSOR_VALIDATION.md),
 [INTEGRATION_REPORT](INTEGRATION_REPORT.md). Next steps: [AGENT_HANDOFF](AGENT_HANDOFF.md).
 
-The Phase 1 record below stays accurate for its own scope, except where a note supersedes it.
+The Phase 1 record below is historical. Phase 2 supersedes its live-access, Linux/CUDA,
+and temporal-window limitations; its old next-task list is not the current backlog.
 
 # Phase 1 record
 ## Phase
