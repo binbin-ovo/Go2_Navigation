@@ -1,0 +1,5 @@
+# Paths relative to repository root. Individual CLIs accept --config overrides.
+rgb: configs/rgb.yaml
+lidar: configs/lidar.yaml
+fusion: configs/fusion.yaml
+calibration: configs/synthetic_calibration.yaml
