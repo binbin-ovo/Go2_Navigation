@@ -1,0 +1,59 @@
+# Experimental opt-in profile; baseline tracking.yaml is unchanged.
+tracker:
+  mode: odom
+  tracking_frame: odom
+  sensor_frame: base_link
+  base_frame: base_link
+  clock_domain: null
+  T_base_sensor: null
+  pose_tolerance_s: 0.05
+  timestamp_tolerance_s: 1.0e-06
+  process_noise: 0.04
+  measurement_noise: 0.01
+  initial_velocity_variance: 4.0
+  min_dt: 1.0e-05
+  max_prediction_interval: 0.5
+  max_distance: 1.5
+  mahalanobis_gate: 13.82
+  max_vertical_distance: 1.0
+  distance_weight: 0.4
+  mahalanobis_weight: 0.6
+  iou_weight: 0.0
+  min_hits: 3
+  confirmation_window_s: 1.0
+  lost_after_misses: 2
+  max_misses: 10
+  max_unobserved_s: 1.5
+  duplicate_distance: 0.02
+  birth_suppression_distance: 0.3
+  history_size: 40
+  moving_speed: 0.3
+  stationary_speed: 0.25
+  motion_min_hits: 5
+  motion_min_age_s: 0.5
+  max_velocity_std: 0.3
+  motion_sigma: 1.0
+  trajectory_horizon_s: 3.0
+  trajectory_step_s: 0.2
+  confirmed_time_expiry: true
+  adaptive_gate_max_distance: 2.5
+  fragment_recovery: true
+  fragment_min_hits: 5
+  fragment_margin: 0.1
+  fragment_min_iou: 0.6
+  fragment_max_extent: 1.5
+  motion_dwell_s: 0.25
+pose_alignment:
+  max_wait_s: 0.2
+  start_hold_s: 0.0
+  start_hold_justification: null
+  reset_after_gap_s: 0.5
+visualization:
+  bounds:
+  - -2
+  - 10
+  - -4
+  - 4
+  size:
+  - 1000
+  - 750

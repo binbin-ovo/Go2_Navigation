@@ -34,11 +34,24 @@ def associate(tracks, detections, config):
             mahal = t.filter.mahalanobis(
                 d.position[:2], d.measurement_covariance[:2, :2]
             )
-            if distance > config.max_distance or mahal > config.mahalanobis_gate:
+            radius = config.max_distance
+            if config.adaptive_gate_max_distance:
+                innovation_cov = t.filter.P[:2, :2] + d.measurement_covariance[:2, :2]
+                radius = max(
+                    radius,
+                    min(
+                        config.adaptive_gate_max_distance,
+                        np.sqrt(
+                            config.mahalanobis_gate
+                            * np.linalg.eigvalsh(innovation_cov).max()
+                        ),
+                    ),
+                )
+            if distance > radius or mahal > config.mahalanobis_gate:
                 continue
             low, high = t.box()
             costs[i, j] = (
-                config.distance_weight * distance / config.max_distance
+                config.distance_weight * distance / radius
                 + config.mahalanobis_weight * mahal / config.mahalanobis_gate
                 + config.iou_weight * (1 - box_iou(low, high, d.bbox_min, d.bbox_max))
             ) / total_weight

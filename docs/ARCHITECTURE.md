@@ -1,4 +1,9 @@
 # Architecture
+
+Phase 3.6 adds opt-in robustness within the existing tracker, preserving all sensor/perception
+interfaces. See [TRACKING_ARCHITECTURE](TRACKING_ARCHITECTURE.md) for data flow and
+[TRACKING_ROBUSTNESS](TRACKING_ROBUSTNESS.md) for the profile, benchmark and limitations.
+
 **Phase 3:** timestamped LiDAR/fused results now feed `tracking.MultiObjectTracker` (import
 from `tracking.multi_object_tracker`), with explicit odometry or fixed-sensor normalization,
 Kalman velocity estimation, lifecycle/motion states, CV trajectories and headless BEV. See

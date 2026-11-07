@@ -1,5 +1,8 @@
 # Go2 Dynamic Perception and Navigation
 
+Phase 3.6 adds an opt-in tracking robustness profile and reproducible before/after benchmarks.
+See [tracking robustness](docs/TRACKING_ROBUSTNESS.md) for verified results and remaining limitations.
+
 **macOS:** the Go2 is read natively from an Apple Silicon Mac with the Phase 2 adapter
 (`.venv-go2`, Python 3.10). Setup: [MAC_CONNECTION](docs/MAC_CONNECTION.md); real tracking
 results: [PHASE3_REAL_VALIDATION](docs/PHASE3_REAL_VALIDATION.md). Tests: 135 passed, 1 hardware skipped.

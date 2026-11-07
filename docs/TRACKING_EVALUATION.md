@@ -1,6 +1,24 @@
 # Phase 3 evaluation — 2026-11-06
+
+## Phase 3.6 evaluation update (2026-11-07)
+Current robustness branch is based on macOS validation `ecfaae3`, not the older main below.
+Baseline source suite: 135 passed/1 hardware skipped; new suite: **161 passed/1 skipped in 12.04 s**.
+All 26 new regressions and existing adapter/perception tests pass. Forty controlled scenarios
+(seeds 36, 7, 13, 42) compare the Git baseline with the opt-in profile on identical detections.
+ID switches total 61→7; seed 42 still fails complete split recovery. Dwell worsens brief-stop
+recall. These tests use a .5 m planar matching gate, unlike the historical 1 m evaluation below.
+See [TRACKING_ROBUSTNESS](TRACKING_ROBUSTNESS.md) for protocol, per-case tables, real local replay,
+latency caveats and reproduction; [aggregate synthetic JSON](TRACKING_ROBUSTNESS_METRICS.json)
+includes every metric and input digest. No new live robot tests were performed. Historical
+results below and Claude's PHASE3_REAL_VALIDATION remain available without replacement.
+
 Branch `phase3-tracking`, based on integrated `main` at `dc0f85b`. No training, movement
 commands, new runtime dependencies, or hardware revalidation was performed.
+
+Local A1/A2/B/C replay completed on 3,924 pose-valid frames. Created IDs fall from
+514/464/624/699 to 261/243/333/334, but ROI competition and latency increase. These are
+unannotated proxies, not real tracking accuracy. See the aggregate real report linked in
+TRACKING_ROBUSTNESS; no private sensor samples are committed.
 
 ## Tests and environment
 macOS ARM64, Python 3.12.11; original pinned dependency versions unchanged, including

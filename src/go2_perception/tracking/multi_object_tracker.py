@@ -7,6 +7,7 @@ from .config import TrackerConfig
 from .kalman_filter import ConstantVelocityFilter
 from .association import associate, deduplicate, box_iou
 from .motion_classifier import classify_motion
+from .fragments import recover_fragments
 from .trajectory import predict_trajectory
 
 
@@ -28,6 +29,9 @@ class _Track:
         self.confirmed = c.min_hits <= 1
         self.status = "Confirmed" if self.confirmed else "Tentative"
         self.motion = "UNCERTAIN"
+        self.stable_motion = "UNCERTAIN"
+        self.motion_candidate = "UNCERTAIN"
+        self.motion_candidate_since = t
         self.history = deque(maxlen=c.history_size)
         self.observe_properties(d)
 
@@ -64,6 +68,9 @@ class MultiObjectTracker:
         self._clock = self.config.clock_domain
         self.deleted_ids = []
         self.suppressed_duplicates = 0
+        self.created_ids = []
+        self.reactivated_ids = []
+        self.fragment_groups = []
 
     def reset(self):
         """Drop every track before an unobservable interval. IDs keep increasing, never reused."""
@@ -108,6 +115,8 @@ class MultiObjectTracker:
         observations = deduplicate(normalized, c.duplicate_distance)
         self.suppressed_duplicates = len(normalized) - len(observations)
         self.deleted_ids = []
+        self.created_ids = []
+        self.reactivated_ids = []
         active = []
         for t in self._tracks:
             if timestamp - t.last_observation > c.max_unobserved_s:
@@ -119,9 +128,14 @@ class MultiObjectTracker:
         if self._timestamp is not None:
             for t in self._tracks:
                 t.filter.predict(timestamp - self._timestamp)
+        observations, self.fragment_groups = recover_fragments(
+            self._tracks, observations, c
+        )
         matches, missed, new = associate(self._tracks, observations, c)
         for i, j in matches:
             t, d = self._tracks[i], observations[j]
+            if t.status == "Lost" and t.confirmed:
+                self.reactivated_ids.append(t.track_id)
             t.filter.update(d.position[:2], d.measurement_covariance[:2, :2])
             t.observe_properties(d)
             t.hits += 1
@@ -137,7 +151,9 @@ class MultiObjectTracker:
             t = self._tracks[i]
             t.misses += 1
             t.hit_streak = 0
-            if t.misses > c.max_misses:
+            if t.misses > c.max_misses and not (
+                c.confirmed_time_expiry and t.confirmed
+            ):
                 t.status = "Deleted"
                 self.deleted_ids.append(t.track_id)
             elif t.misses >= c.lost_after_misses:
@@ -161,6 +177,7 @@ class MultiObjectTracker:
                 self.suppressed_duplicates += 1
                 continue
             self._tracks.append(_Track(self._next_id, observations[j], timestamp, c))
+            self.created_ids.append(self._next_id)
             self._next_id += 1
         self._timestamp, self._clock = timestamp, domain
         output = []
@@ -174,11 +191,23 @@ class MultiObjectTracker:
                     age,
                     t.misses,
                     c,
-                    t.motion,
+                    t.stable_motion if c.motion_dwell_s else t.motion,
                 )
                 if t.confirmed
                 else "UNCERTAIN"
             )
+            if c.motion_dwell_s:
+                candidate = t.motion
+                if candidate != t.motion_candidate or t.misses:
+                    t.motion_candidate_since = timestamp
+                    t.motion_candidate = candidate
+                if (
+                    candidate == "UNCERTAIN"
+                    or timestamp - t.motion_candidate_since < c.motion_dwell_s
+                ):
+                    t.motion = "UNCERTAIN"
+                else:
+                    t.stable_motion = candidate
             p = np.r_[t.filter.state[:2], t.z]
             t.history.append(
                 dict(timestamp=timestamp, position=p.tolist(), observed=t.misses == 0)

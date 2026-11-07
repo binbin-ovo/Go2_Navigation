@@ -1,5 +1,24 @@
 # Project state — 2026-11-07
 
+## Phase 3.6 robustness (current: `phase3-tracking-robustness`)
+Based on latest macOS validation `ecfaae3`; main is unchanged. Opt-in profile adds time-based
+confirmed-track expiry, capped covariance gating, mature-box fragment recovery and motion dwell.
+Legacy defaults, raw perception, Go2 adapters, pose gating and public TrackOutput remain intact.
+Verified source tests: **161 passed, 1 hardware skipped** (baseline 135/1). Forty deterministic
+benchmark cases give 61→7 ID switches; four remaining switches are intentional pose resets,
+three are split-recovery failures on seed 42. Nearby objects stay separate. Brief-stop recall
+regresses with dwell, so this is an experimental profile, not a new default.
+See [TRACKING_ROBUSTNESS](TRACKING_ROBUSTNESS.md) for the quantitative comparisons, local
+real-recording results, exact commands and limitations. Dependencies are unchanged. No new live
+robot validation or calibrated fusion. Next: label A2/B/C identity/visibility, validate two-person
+separation and slow motion, then create quality-filtered forecasting targets. Historical sections
+below describe their original branches and validation dates, not the current implementation.
+
+Local A1/A2/B/C replay completed on 3,924 pose-valid frames. Created IDs fall from
+514/464/624/699 to 261/243/333/334, but ROI competition and latency increase. These are
+unannotated proxies, not real tracking accuracy. See the aggregate real report linked in
+TRACKING_ROBUSTNESS; no private sensor samples are committed.
+
 ## macOS hardware integration (branch `feature/macos-go2-phase3-validation`)
 Based on `phase3-tracking` (8c35a39); not merged into main. **Verified on a real Go2 from an Apple
 Silicon Mac:** native read-only access with the unchanged Phase 2 adapter over `en9`

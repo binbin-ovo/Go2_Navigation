@@ -1,5 +1,25 @@
 # Phase 3 tracking architecture
 
+## Phase 3.6 extension (2026-11-07)
+The existing pipeline and public signatures below remain unchanged. Optional robustness controls
+are documented with units/defaults in [TRACKING_ROBUSTNESS](TRACKING_ROBUSTNESS.md).
+Data flow now optionally performs historical-box fragment recovery after pose normalization,
+deduplication and prediction, before gated Hungarian association. Raw LiDAR detections are not
+rewritten. Recovery needs a mature full-box prior, exclusive ownership, compatible classes and
+union IoU; competing identities veto it. Measurement covariance is not reduced by fragment count.
+
+Confirmed tracks may use elapsed-time expiry, while tentatives retain the frame cap. Lost-track
+reactivation is ordinary gated matching, with no appearance-based re-identification. Adaptive
+distance gating uses innovation covariance but retains a finite cap and Mahalanobis/vertical/
+class rejection. Candidate motion dwell emits UNCERTAIN during transitions or misses. Existing
+pose-gap reset overrides coasting, and no trajectory is emitted for a missed observation.
+
+`TrackerConfig` defaults preserve baseline behavior; `tracking_robustness.yaml` explicitly enables
+the experiment. `TrackOutput` is unchanged; CLI JSON rows add raw_detection_count, created_ids,
+reactivated_ids and fragment_groups. RGB, LiDAR, SDK adapters, calibration, BEV and CV trajectory
+interfaces are retained. Benchmarks isolate baseline/current source with identical cached inputs;
+aggregate JSON is shareable, private frame caches remain ignored.
+
 Phase 3 adds a transport-independent tracker after Phase 1 perception. It does not change
 Claude's SDK communication, original perception internals, or Phase 2 live scripts. The actual
 Phase 2 transport is Unitree DDS + RTP (not a mandatory ROS 2 integration).

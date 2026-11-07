@@ -1,0 +1,3882 @@
+{
+  "36": {
+    "baseline_commit": "ecfaae38984a598a9839b17582c31be42532972d",
+    "seed": 36,
+    "real_data": false,
+    "input_sha256": {
+      "brief_stop": "c1d43656279196d2cef2e2b64c19b282b6f99354904d499f761077c389a6939f",
+      "crossing": "a232d5c7153a72c15adf6ca2056276df2bdb64249762cf213ae201c1359c9281",
+      "fragmentation": "3489ea10749fd87f4a673ebe8fb9d1084c09eb694582236d365e8cde3a19aea7",
+      "irregular": "d414abd605b16bebd4b4fc7a068bdb40232525f899194fc2de99c9b480403b67",
+      "nearby_objects": "93680b6e80df8cc41895224819440949daf8a3e78c5bdffb423c37d383d26583",
+      "occlusion": "a2fdab912163d4631f80578c32a935c3368a8b4f645a457f387587d16497948a",
+      "odometry_gap": "64c83081e2296075bc9c4386361a857d4624adec880af304034ac4d76db98baf",
+      "outliers": "5e65bcbd079a2ec1097f6e01f4b564c376a3c26bd344941a80bf6e1132af00bd",
+      "rotation_wrap": "a9631a6dfe943911a56a841c9bf9f21a20707fed3b5afffcffa480d3795fa7d7",
+      "stationary_noise": "ca088f7a31a6d08e3b605306e64bbdf663c1f15b3ed620d7fa13b0bea9f0850e"
+    },
+    "profile": {
+      "tracker": {
+        "mode": "odom",
+        "tracking_frame": "odom",
+        "sensor_frame": "base_link",
+        "base_frame": "base_link",
+        "clock_domain": null,
+        "T_base_sensor": null,
+        "pose_tolerance_s": 0.05,
+        "timestamp_tolerance_s": 1e-06,
+        "process_noise": 0.04,
+        "measurement_noise": 0.01,
+        "initial_velocity_variance": 4.0,
+        "min_dt": 1e-05,
+        "max_prediction_interval": 0.5,
+        "max_distance": 1.5,
+        "mahalanobis_gate": 13.82,
+        "max_vertical_distance": 1.0,
+        "distance_weight": 0.4,
+        "mahalanobis_weight": 0.6,
+        "iou_weight": 0.0,
+        "min_hits": 3,
+        "confirmation_window_s": 1.0,
+        "lost_after_misses": 2,
+        "max_misses": 10,
+        "max_unobserved_s": 1.5,
+        "duplicate_distance": 0.02,
+        "birth_suppression_distance": 0.3,
+        "history_size": 40,
+        "moving_speed": 0.3,
+        "stationary_speed": 0.25,
+        "motion_min_hits": 5,
+        "motion_min_age_s": 0.5,
+        "max_velocity_std": 0.3,
+        "motion_sigma": 1.0,
+        "trajectory_horizon_s": 3.0,
+        "trajectory_step_s": 0.2,
+        "confirmed_time_expiry": true,
+        "adaptive_gate_max_distance": 2.5,
+        "fragment_recovery": true,
+        "fragment_min_hits": 5,
+        "fragment_margin": 0.1,
+        "fragment_min_iou": 0.6,
+        "fragment_max_extent": 1.5,
+        "motion_dwell_s": 0.25
+      },
+      "pose_alignment": {
+        "max_wait_s": 0.2,
+        "start_hold_s": 0.0,
+        "start_hold_justification": null,
+        "reset_after_gap_s": 0.5
+      },
+      "visualization": {
+        "bounds": [
+          -2,
+          10,
+          -4,
+          4
+        ],
+        "size": [
+          1000,
+          750
+        ]
+      }
+    },
+    "results": {
+      "baseline": {
+        "brief_stop": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 1.9306266075000167,
+          "tracking_throughput_hz": 517.9665483295643,
+          "position_mae_m": 0.01716976462530096,
+          "velocity_mae_mps": 0.06696812106923847,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 18,
+            "MOVING": 59,
+            "STATIONARY": 21
+          },
+          "confirmed_speed_p95": 0.6242111911252275,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 51,
+              "fp": 8,
+              "fn": 16,
+              "precision": 0.864406779661017,
+              "recall": 0.7611940298507462
+            },
+            "STATIONARY": {
+              "tp": 16,
+              "fp": 5,
+              "fn": 15,
+              "precision": 0.7619047619047619,
+              "recall": 0.5161290322580645
+            }
+          }
+        },
+        "crossing": {
+          "frames": 80,
+          "tracking_latency_ms_mean": 4.963411972858012,
+          "tracking_throughput_hz": 201.47430950088636,
+          "position_mae_m": 0.016240229918222455,
+          "velocity_mae_mps": 0.04727170486931461,
+          "track_continuity": 0.975,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.2,
+          "initialized_objects": 2,
+          "ground_truth_objects": 2,
+          "idf1": 0.9873417721518988,
+          "matched_gt_frames": 156,
+          "total_gt_frames": 160,
+          "confirmed_prediction_frames": 156,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 6,
+            "MOVING": 150
+          },
+          "confirmed_speed_p95": 0.7475240739888862,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 150,
+              "fp": 0,
+              "fn": 6,
+              "precision": 1.0,
+              "recall": 0.9615384615384616
+            },
+            "STATIONARY": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            }
+          }
+        },
+        "fragmentation": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 2.6800458040088415,
+          "tracking_throughput_hz": 373.1279512104566,
+          "position_mae_m": 0.0728947923464845,
+          "velocity_mae_mps": 0.024438418576307037,
+          "track_continuity": 0.98,
+          "id_switches": 11,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.697508896797153,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 181,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 60,
+            "STATIONARY": 121
+          },
+          "confirmed_speed_p95": 0.17418053463506136,
+          "duplicate_track_frames": 83,
+          "identity_fragmentation": 1,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 63,
+              "fp": 0,
+              "fn": 35,
+              "precision": 1.0,
+              "recall": 0.6428571428571429
+            }
+          }
+        },
+        "irregular": {
+          "frames": 80,
+          "tracking_latency_ms_mean": 3.679961006855592,
+          "tracking_throughput_hz": 271.742009803106,
+          "position_mae_m": 0.017927476604413524,
+          "velocity_mae_mps": 0.05067186510131784,
+          "track_continuity": 0.975,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.2010417792743773,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.9873417721518988,
+          "matched_gt_frames": 78,
+          "total_gt_frames": 80,
+          "confirmed_prediction_frames": 78,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 2,
+            "MOVING": 76
+          },
+          "confirmed_speed_p95": 0.66721173719201,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 76,
+              "fp": 0,
+              "fn": 2,
+              "precision": 1.0,
+              "recall": 0.9743589743589743
+            },
+            "STATIONARY": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            }
+          }
+        },
+        "nearby_objects": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 4.763562842272222,
+          "tracking_throughput_hz": 209.92690410755648,
+          "position_mae_m": 0.0087186251155015,
+          "velocity_mae_mps": 0.018645427535769105,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 2,
+          "ground_truth_objects": 2,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 196,
+          "total_gt_frames": 200,
+          "confirmed_prediction_frames": 196,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 36,
+            "STATIONARY": 160
+          },
+          "confirmed_speed_p95": 0.07181563489000031,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 160,
+              "fp": 0,
+              "fn": 36,
+              "precision": 1.0,
+              "recall": 0.8163265306122449
+            }
+          }
+        },
+        "occlusion": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 1.9243670674040914,
+          "tracking_throughput_hz": 519.6513788551617,
+          "position_mae_m": 0.010559986927437677,
+          "velocity_mae_mps": 0.032164250186926785,
+          "track_continuity": 0.81,
+          "id_switches": 1,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.574585635359116,
+          "matched_gt_frames": 81,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 81,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 13,
+            "MOVING": 68
+          },
+          "confirmed_speed_p95": 0.6296582742460411,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 1,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 68,
+              "fp": 0,
+              "fn": 13,
+              "precision": 1.0,
+              "recall": 0.8395061728395061
+            },
+            "STATIONARY": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            }
+          }
+        },
+        "odometry_gap": {
+          "frames": 88,
+          "tracking_latency_ms_mean": 1.0944966925308108,
+          "tracking_throughput_hz": 913.6619661112858,
+          "position_mae_m": 0.008901070829562499,
+          "velocity_mae_mps": 0.0301265220821832,
+          "track_continuity": 0.9545454545454546,
+          "id_switches": 1,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.6511627906976745,
+          "matched_gt_frames": 84,
+          "total_gt_frames": 88,
+          "confirmed_prediction_frames": 84,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 31,
+            "STATIONARY": 53
+          },
+          "confirmed_speed_p95": 0.20229255112103608,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 1,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 53,
+              "fp": 0,
+              "fn": 31,
+              "precision": 1.0,
+              "recall": 0.6309523809523809
+            }
+          }
+        },
+        "outliers": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 3.0307662254199386,
+          "tracking_throughput_hz": 329.9495657608635,
+          "position_mae_m": 0.008486224378780225,
+          "velocity_mae_mps": 0.017881513230613644,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 9,
+          "ever_tentative_tracks": 9,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 18,
+            "STATIONARY": 80
+          },
+          "confirmed_speed_p95": 0.059697364529587786,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 80,
+              "fp": 0,
+              "fn": 18,
+              "precision": 1.0,
+              "recall": 0.8163265306122449
+            }
+          }
+        },
+        "rotation_wrap": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 2.389843752607703,
+          "tracking_throughput_hz": 418.4373973858498,
+          "position_mae_m": 0.00953474380054982,
+          "velocity_mae_mps": 0.022665509688605246,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 15,
+            "STATIONARY": 83
+          },
+          "confirmed_speed_p95": 0.07511937693371513,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 83,
+              "fp": 0,
+              "fn": 15,
+              "precision": 1.0,
+              "recall": 0.8469387755102041
+            }
+          }
+        },
+        "stationary_noise": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 1.6468266258016229,
+          "tracking_throughput_hz": 607.228462506326,
+          "position_mae_m": 0.01719829392811348,
+          "velocity_mae_mps": 0.03743001777457679,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 40,
+            "STATIONARY": 58
+          },
+          "confirmed_speed_p95": 0.11212495875867148,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 58,
+              "fp": 0,
+              "fn": 40,
+              "precision": 1.0,
+              "recall": 0.5918367346938775
+            }
+          }
+        }
+      },
+      "improved": {
+        "brief_stop": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 1.27961000893265,
+          "tracking_throughput_hz": 781.4881042030307,
+          "position_mae_m": 0.01716976462530096,
+          "velocity_mae_mps": 0.06696812106923847,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 29,
+            "MOVING": 49,
+            "STATIONARY": 20
+          },
+          "confirmed_speed_p95": 0.6242111911252275,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 43,
+              "fp": 6,
+              "fn": 24,
+              "precision": 0.8775510204081632,
+              "recall": 0.6417910447761194
+            },
+            "STATIONARY": {
+              "tp": 15,
+              "fp": 5,
+              "fn": 16,
+              "precision": 0.75,
+              "recall": 0.4838709677419355
+            }
+          }
+        },
+        "crossing": {
+          "frames": 80,
+          "tracking_latency_ms_mean": 3.249665576731786,
+          "tracking_throughput_hz": 307.723972325087,
+          "position_mae_m": 0.016240229918222455,
+          "velocity_mae_mps": 0.04727170486931461,
+          "track_continuity": 0.975,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.2,
+          "initialized_objects": 2,
+          "ground_truth_objects": 2,
+          "idf1": 0.9873417721518988,
+          "matched_gt_frames": 156,
+          "total_gt_frames": 160,
+          "confirmed_prediction_frames": 156,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 12,
+            "MOVING": 144
+          },
+          "confirmed_speed_p95": 0.7475240739888862,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 144,
+              "fp": 0,
+              "fn": 12,
+              "precision": 1.0,
+              "recall": 0.9230769230769231
+            },
+            "STATIONARY": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            }
+          }
+        },
+        "fragmentation": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 2.9148050118237734,
+          "tracking_throughput_hz": 343.0761220539781,
+          "position_mae_m": 0.00926969345815701,
+          "velocity_mae_mps": 0.01878288096587139,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 85,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 10,
+            "STATIONARY": 88
+          },
+          "confirmed_speed_p95": 0.05641350493075172,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 88,
+              "fp": 0,
+              "fn": 10,
+              "precision": 1.0,
+              "recall": 0.8979591836734694
+            }
+          }
+        },
+        "irregular": {
+          "frames": 80,
+          "tracking_latency_ms_mean": 2.480288071092218,
+          "tracking_throughput_hz": 403.17897410990673,
+          "position_mae_m": 0.017927476604413524,
+          "velocity_mae_mps": 0.05067186510131784,
+          "track_continuity": 0.975,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.2010417792743773,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.9873417721518988,
+          "matched_gt_frames": 78,
+          "total_gt_frames": 80,
+          "confirmed_prediction_frames": 78,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 4,
+            "MOVING": 74
+          },
+          "confirmed_speed_p95": 0.66721173719201,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 74,
+              "fp": 0,
+              "fn": 4,
+              "precision": 1.0,
+              "recall": 0.9487179487179487
+            },
+            "STATIONARY": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            }
+          }
+        },
+        "nearby_objects": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 4.669390809722245,
+          "tracking_throughput_hz": 214.16069906118744,
+          "position_mae_m": 0.0087186251155015,
+          "velocity_mae_mps": 0.018645427535769105,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 2,
+          "ground_truth_objects": 2,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 196,
+          "total_gt_frames": 200,
+          "confirmed_prediction_frames": 196,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 25,
+            "STATIONARY": 171
+          },
+          "confirmed_speed_p95": 0.07181563489000031,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 171,
+              "fp": 0,
+              "fn": 25,
+              "precision": 1.0,
+              "recall": 0.8724489795918368
+            }
+          }
+        },
+        "occlusion": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 2.1474303770810366,
+          "tracking_throughput_hz": 465.6728388835041,
+          "position_mae_m": 0.010102200468925737,
+          "velocity_mae_mps": 0.02304621566456776,
+          "track_continuity": 0.83,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.907103825136612,
+          "matched_gt_frames": 83,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 83,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 1,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 15,
+            "MOVING": 68
+          },
+          "confirmed_speed_p95": 0.6299132726050409,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 68,
+              "fp": 0,
+              "fn": 15,
+              "precision": 1.0,
+              "recall": 0.8192771084337349
+            },
+            "STATIONARY": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            }
+          }
+        },
+        "odometry_gap": {
+          "frames": 88,
+          "tracking_latency_ms_mean": 1.4833210893398658,
+          "tracking_throughput_hz": 674.1628681656767,
+          "position_mae_m": 0.008901070829562499,
+          "velocity_mae_mps": 0.0301265220821832,
+          "track_continuity": 0.9545454545454546,
+          "id_switches": 1,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.6511627906976745,
+          "matched_gt_frames": 84,
+          "total_gt_frames": 88,
+          "confirmed_prediction_frames": 84,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 24,
+            "STATIONARY": 60
+          },
+          "confirmed_speed_p95": 0.20229255112103608,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 1,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 60,
+              "fp": 0,
+              "fn": 24,
+              "precision": 1.0,
+              "recall": 0.7142857142857143
+            }
+          }
+        },
+        "outliers": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 2.5490616634488106,
+          "tracking_throughput_hz": 392.3012198328021,
+          "position_mae_m": 0.008486224378780225,
+          "velocity_mae_mps": 0.017881513230613644,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 9,
+          "ever_tentative_tracks": 9,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 10,
+            "STATIONARY": 88
+          },
+          "confirmed_speed_p95": 0.059697364529587786,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 88,
+              "fp": 0,
+              "fn": 10,
+              "precision": 1.0,
+              "recall": 0.8979591836734694
+            }
+          }
+        },
+        "rotation_wrap": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 2.1693159034475684,
+          "tracking_throughput_hz": 460.97481625924456,
+          "position_mae_m": 0.00953474380054982,
+          "velocity_mae_mps": 0.022665509688605246,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 11,
+            "STATIONARY": 87
+          },
+          "confirmed_speed_p95": 0.07511937693371513,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 87,
+              "fp": 0,
+              "fn": 11,
+              "precision": 1.0,
+              "recall": 0.8877551020408163
+            }
+          }
+        },
+        "stationary_noise": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 1.862875851802528,
+          "tracking_throughput_hz": 536.804424745962,
+          "position_mae_m": 0.01719829392811348,
+          "velocity_mae_mps": 0.03743001777457679,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 16,
+            "STATIONARY": 82
+          },
+          "confirmed_speed_p95": 0.11212495875867148,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 82,
+              "fp": 0,
+              "fn": 16,
+              "precision": 1.0,
+              "recall": 0.8367346938775511
+            }
+          }
+        }
+      }
+    }
+  },
+  "7": {
+    "baseline_commit": "ecfaae38984a598a9839b17582c31be42532972d",
+    "seed": 7,
+    "real_data": false,
+    "input_sha256": {
+      "brief_stop": "70c5dda84e2361c7280a4b4152480a57167c26f9b235eebb5bb090526a08675b",
+      "crossing": "82264bd3ade0e2e48d3f154af8f50a2becbec1c76229f084d4ba62587cdda7d4",
+      "fragmentation": "de7ea083e7ca8a08ccec844172c3ec22a71c9b9084c0d7cc71c03da2a01184d7",
+      "irregular": "b189bbfa7bf66922440d1c54419eca2629b2511fce8e3030a1d5cd85870f40a7",
+      "nearby_objects": "b702bab0976e0d19a9e3f8ffd3ca5acef1e76cef93af8977ac25bfd79e6d1d55",
+      "occlusion": "17d8133105d15f703aed755bb2db77ed81d079dbf901fb2c3ad79a3238db7789",
+      "odometry_gap": "ef12bfedf34b43924347840e65ec533a2faea3a718b27e4880a6aab24f5ef45f",
+      "outliers": "acf286bfdc68fea76aeb5eeb99150091039de69bb79c6a4cec8ad374e5619acf",
+      "rotation_wrap": "74f8f1a7614e95e594979b0e60af5bd4359904c4b3aaae624f70e892f5d88634",
+      "stationary_noise": "14df1dd05f87d2bf587b4ac8c7b885ff6856423357a79374e449a7c2ee1c7641"
+    },
+    "profile": {
+      "tracker": {
+        "mode": "odom",
+        "tracking_frame": "odom",
+        "sensor_frame": "base_link",
+        "base_frame": "base_link",
+        "clock_domain": null,
+        "T_base_sensor": null,
+        "pose_tolerance_s": 0.05,
+        "timestamp_tolerance_s": 1e-06,
+        "process_noise": 0.04,
+        "measurement_noise": 0.01,
+        "initial_velocity_variance": 4.0,
+        "min_dt": 1e-05,
+        "max_prediction_interval": 0.5,
+        "max_distance": 1.5,
+        "mahalanobis_gate": 13.82,
+        "max_vertical_distance": 1.0,
+        "distance_weight": 0.4,
+        "mahalanobis_weight": 0.6,
+        "iou_weight": 0.0,
+        "min_hits": 3,
+        "confirmation_window_s": 1.0,
+        "lost_after_misses": 2,
+        "max_misses": 10,
+        "max_unobserved_s": 1.5,
+        "duplicate_distance": 0.02,
+        "birth_suppression_distance": 0.3,
+        "history_size": 40,
+        "moving_speed": 0.3,
+        "stationary_speed": 0.25,
+        "motion_min_hits": 5,
+        "motion_min_age_s": 0.5,
+        "max_velocity_std": 0.3,
+        "motion_sigma": 1.0,
+        "trajectory_horizon_s": 3.0,
+        "trajectory_step_s": 0.2,
+        "confirmed_time_expiry": true,
+        "adaptive_gate_max_distance": 2.5,
+        "fragment_recovery": true,
+        "fragment_min_hits": 5,
+        "fragment_margin": 0.1,
+        "fragment_min_iou": 0.6,
+        "fragment_max_extent": 1.5,
+        "motion_dwell_s": 0.25
+      },
+      "pose_alignment": {
+        "max_wait_s": 0.2,
+        "start_hold_s": 0.0,
+        "start_hold_justification": null,
+        "reset_after_gap_s": 0.5
+      },
+      "visualization": {
+        "bounds": [
+          -2,
+          10,
+          -4,
+          4
+        ],
+        "size": [
+          1000,
+          750
+        ]
+      }
+    },
+    "results": {
+      "baseline": {
+        "brief_stop": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 3.3049733052030206,
+          "tracking_throughput_hz": 302.57430473816527,
+          "position_mae_m": 0.017051943479368486,
+          "velocity_mae_mps": 0.06892767989307844,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 20,
+            "MOVING": 58,
+            "STATIONARY": 20
+          },
+          "confirmed_speed_p95": 0.6490125384106201,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 51,
+              "fp": 7,
+              "fn": 16,
+              "precision": 0.8793103448275862,
+              "recall": 0.7611940298507462
+            },
+            "STATIONARY": {
+              "tp": 15,
+              "fp": 5,
+              "fn": 16,
+              "precision": 0.75,
+              "recall": 0.4838709677419355
+            }
+          }
+        },
+        "crossing": {
+          "frames": 80,
+          "tracking_latency_ms_mean": 5.674255691701546,
+          "tracking_throughput_hz": 176.2345679033242,
+          "position_mae_m": 0.01879813627324176,
+          "velocity_mae_mps": 0.04849089848506134,
+          "track_continuity": 0.975,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.2,
+          "initialized_objects": 2,
+          "ground_truth_objects": 2,
+          "idf1": 0.9873417721518988,
+          "matched_gt_frames": 156,
+          "total_gt_frames": 160,
+          "confirmed_prediction_frames": 156,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 6,
+            "MOVING": 150
+          },
+          "confirmed_speed_p95": 0.7430767875866462,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 150,
+              "fp": 0,
+              "fn": 6,
+              "precision": 1.0,
+              "recall": 0.9615384615384616
+            },
+            "STATIONARY": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            }
+          }
+        },
+        "fragmentation": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 3.5358796594664454,
+          "tracking_throughput_hz": 282.81505489666387,
+          "position_mae_m": 0.07289639639483801,
+          "velocity_mae_mps": 0.026607452029149437,
+          "track_continuity": 0.98,
+          "id_switches": 7,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.697508896797153,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 181,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 62,
+            "STATIONARY": 119
+          },
+          "confirmed_speed_p95": 0.16373305859760884,
+          "duplicate_track_frames": 83,
+          "identity_fragmentation": 1,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 65,
+              "fp": 0,
+              "fn": 33,
+              "precision": 1.0,
+              "recall": 0.6632653061224489
+            }
+          }
+        },
+        "irregular": {
+          "frames": 80,
+          "tracking_latency_ms_mean": 10.580991668393835,
+          "tracking_throughput_hz": 94.50910002954356,
+          "position_mae_m": 0.01904227283563589,
+          "velocity_mae_mps": 0.04799228978725012,
+          "track_continuity": 0.975,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.33312329746039393,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.9873417721518988,
+          "matched_gt_frames": 78,
+          "total_gt_frames": 80,
+          "confirmed_prediction_frames": 78,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 2,
+            "MOVING": 76
+          },
+          "confirmed_speed_p95": 0.6559669005828661,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 76,
+              "fp": 0,
+              "fn": 2,
+              "precision": 1.0,
+              "recall": 0.9743589743589743
+            },
+            "STATIONARY": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            }
+          }
+        },
+        "nearby_objects": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 8.615598725154996,
+          "tracking_throughput_hz": 116.0685440328478,
+          "position_mae_m": 0.008451743793065045,
+          "velocity_mae_mps": 0.01797256305774848,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 2,
+          "ground_truth_objects": 2,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 196,
+          "total_gt_frames": 200,
+          "confirmed_prediction_frames": 196,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 34,
+            "STATIONARY": 162
+          },
+          "confirmed_speed_p95": 0.06354631738601944,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 162,
+              "fp": 0,
+              "fn": 34,
+              "precision": 1.0,
+              "recall": 0.826530612244898
+            }
+          }
+        },
+        "occlusion": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 3.379226610995829,
+          "tracking_throughput_hz": 295.92569990602334,
+          "position_mae_m": 0.010020927418508855,
+          "velocity_mae_mps": 0.03314390082787388,
+          "track_continuity": 0.81,
+          "id_switches": 1,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.574585635359116,
+          "matched_gt_frames": 81,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 81,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 13,
+            "MOVING": 68
+          },
+          "confirmed_speed_p95": 0.6204548855157054,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 1,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 68,
+              "fp": 0,
+              "fn": 13,
+              "precision": 1.0,
+              "recall": 0.8395061728395061
+            },
+            "STATIONARY": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            }
+          }
+        },
+        "odometry_gap": {
+          "frames": 88,
+          "tracking_latency_ms_mean": 3.8155089502900164,
+          "tracking_throughput_hz": 262.08823332048274,
+          "position_mae_m": 0.011226369065999178,
+          "velocity_mae_mps": 0.028985213845024355,
+          "track_continuity": 0.9545454545454546,
+          "id_switches": 1,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.6511627906976745,
+          "matched_gt_frames": 84,
+          "total_gt_frames": 88,
+          "confirmed_prediction_frames": 84,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 31,
+            "STATIONARY": 53
+          },
+          "confirmed_speed_p95": 0.12012367765940186,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 1,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 53,
+              "fp": 0,
+              "fn": 31,
+              "precision": 1.0,
+              "recall": 0.6309523809523809
+            }
+          }
+        },
+        "outliers": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 5.298100812360644,
+          "tracking_throughput_hz": 188.7468803286957,
+          "position_mae_m": 0.010984304822188588,
+          "velocity_mae_mps": 0.026569367404004934,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 9,
+          "ever_tentative_tracks": 9,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 14,
+            "STATIONARY": 84
+          },
+          "confirmed_speed_p95": 0.10419653560643333,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 84,
+              "fp": 0,
+              "fn": 14,
+              "precision": 1.0,
+              "recall": 0.8571428571428571
+            }
+          }
+        },
+        "rotation_wrap": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 5.802719625644386,
+          "tracking_throughput_hz": 172.33298599860424,
+          "position_mae_m": 0.008123935022564477,
+          "velocity_mae_mps": 0.017835493605936965,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 18,
+            "STATIONARY": 80
+          },
+          "confirmed_speed_p95": 0.0881686407883148,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 80,
+              "fp": 0,
+              "fn": 18,
+              "precision": 1.0,
+              "recall": 0.8163265306122449
+            }
+          }
+        },
+        "stationary_noise": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 3.6142854066565633,
+          "tracking_throughput_hz": 276.6798654467804,
+          "position_mae_m": 0.014198271152916017,
+          "velocity_mae_mps": 0.040899126092013495,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 21,
+            "STATIONARY": 77
+          },
+          "confirmed_speed_p95": 0.1397798225921079,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 77,
+              "fp": 0,
+              "fn": 21,
+              "precision": 1.0,
+              "recall": 0.7857142857142857
+            }
+          }
+        }
+      },
+      "improved": {
+        "brief_stop": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 4.841039190068841,
+          "tracking_throughput_hz": 206.5672184706647,
+          "position_mae_m": 0.017051943479368486,
+          "velocity_mae_mps": 0.06892767989307844,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 30,
+            "MOVING": 48,
+            "STATIONARY": 20
+          },
+          "confirmed_speed_p95": 0.6490125384106201,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 43,
+              "fp": 5,
+              "fn": 24,
+              "precision": 0.8958333333333334,
+              "recall": 0.6417910447761194
+            },
+            "STATIONARY": {
+              "tp": 15,
+              "fp": 5,
+              "fn": 16,
+              "precision": 0.75,
+              "recall": 0.4838709677419355
+            }
+          }
+        },
+        "crossing": {
+          "frames": 80,
+          "tracking_latency_ms_mean": 10.317728680092841,
+          "tracking_throughput_hz": 96.92055596784715,
+          "position_mae_m": 0.01879813627324176,
+          "velocity_mae_mps": 0.04849089848506134,
+          "track_continuity": 0.975,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.2,
+          "initialized_objects": 2,
+          "ground_truth_objects": 2,
+          "idf1": 0.9873417721518988,
+          "matched_gt_frames": 156,
+          "total_gt_frames": 160,
+          "confirmed_prediction_frames": 156,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 12,
+            "MOVING": 144
+          },
+          "confirmed_speed_p95": 0.7430767875866462,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 144,
+              "fp": 0,
+              "fn": 12,
+              "precision": 1.0,
+              "recall": 0.9230769230769231
+            },
+            "STATIONARY": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            }
+          }
+        },
+        "fragmentation": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 5.969028761610389,
+          "tracking_throughput_hz": 167.53144270831245,
+          "position_mae_m": 0.011519994828748052,
+          "velocity_mae_mps": 0.019633302520024,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 85,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 11,
+            "STATIONARY": 87
+          },
+          "confirmed_speed_p95": 0.07380443401669069,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 87,
+              "fp": 0,
+              "fn": 11,
+              "precision": 1.0,
+              "recall": 0.8877551020408163
+            }
+          }
+        },
+        "irregular": {
+          "frames": 80,
+          "tracking_latency_ms_mean": 5.321176600409672,
+          "tracking_throughput_hz": 187.92836154376292,
+          "position_mae_m": 0.01904227283563589,
+          "velocity_mae_mps": 0.04799228978725012,
+          "track_continuity": 0.975,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.33312329746039393,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.9873417721518988,
+          "matched_gt_frames": 78,
+          "total_gt_frames": 80,
+          "confirmed_prediction_frames": 78,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 4,
+            "MOVING": 74
+          },
+          "confirmed_speed_p95": 0.6559669005828661,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 74,
+              "fp": 0,
+              "fn": 4,
+              "precision": 1.0,
+              "recall": 0.9487179487179487
+            },
+            "STATIONARY": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            }
+          }
+        },
+        "nearby_objects": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 8.554604169912636,
+          "tracking_throughput_hz": 116.896115838661,
+          "position_mae_m": 0.008451743793065045,
+          "velocity_mae_mps": 0.01797256305774848,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 2,
+          "ground_truth_objects": 2,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 196,
+          "total_gt_frames": 200,
+          "confirmed_prediction_frames": 196,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 21,
+            "STATIONARY": 175
+          },
+          "confirmed_speed_p95": 0.06354631738601944,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 175,
+              "fp": 0,
+              "fn": 21,
+              "precision": 1.0,
+              "recall": 0.8928571428571429
+            }
+          }
+        },
+        "occlusion": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 4.330617198720574,
+          "tracking_throughput_hz": 230.91396771237072,
+          "position_mae_m": 0.009198248526062845,
+          "velocity_mae_mps": 0.025091240711923844,
+          "track_continuity": 0.83,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.907103825136612,
+          "matched_gt_frames": 83,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 83,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 1,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 15,
+            "MOVING": 68
+          },
+          "confirmed_speed_p95": 0.6210516184696822,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 68,
+              "fp": 0,
+              "fn": 15,
+              "precision": 1.0,
+              "recall": 0.8192771084337349
+            },
+            "STATIONARY": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            }
+          }
+        },
+        "odometry_gap": {
+          "frames": 88,
+          "tracking_latency_ms_mean": 4.742014719257978,
+          "tracking_throughput_hz": 210.88083002755383,
+          "position_mae_m": 0.011226369065999178,
+          "velocity_mae_mps": 0.028985213845024355,
+          "track_continuity": 0.9545454545454546,
+          "id_switches": 1,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.6511627906976745,
+          "matched_gt_frames": 84,
+          "total_gt_frames": 88,
+          "confirmed_prediction_frames": 84,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 22,
+            "STATIONARY": 62
+          },
+          "confirmed_speed_p95": 0.12012367765940186,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 1,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 62,
+              "fp": 0,
+              "fn": 22,
+              "precision": 1.0,
+              "recall": 0.7380952380952381
+            }
+          }
+        },
+        "outliers": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 5.809594485908747,
+          "tracking_throughput_hz": 172.12905348652373,
+          "position_mae_m": 0.010984304822188588,
+          "velocity_mae_mps": 0.026569367404004934,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 9,
+          "ever_tentative_tracks": 9,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 12,
+            "STATIONARY": 86
+          },
+          "confirmed_speed_p95": 0.10419653560643333,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 86,
+              "fp": 0,
+              "fn": 12,
+              "precision": 1.0,
+              "recall": 0.8775510204081632
+            }
+          }
+        },
+        "rotation_wrap": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 4.881804226897657,
+          "tracking_throughput_hz": 204.84229877351945,
+          "position_mae_m": 0.008123935022564477,
+          "velocity_mae_mps": 0.017835493605936965,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 12,
+            "STATIONARY": 86
+          },
+          "confirmed_speed_p95": 0.0881686407883148,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 86,
+              "fp": 0,
+              "fn": 12,
+              "precision": 1.0,
+              "recall": 0.8775510204081632
+            }
+          }
+        },
+        "stationary_noise": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 4.988264152780175,
+          "tracking_throughput_hz": 200.4705383219645,
+          "position_mae_m": 0.014198271152916017,
+          "velocity_mae_mps": 0.040899126092013495,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 13,
+            "STATIONARY": 85
+          },
+          "confirmed_speed_p95": 0.1397798225921079,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 85,
+              "fp": 0,
+              "fn": 13,
+              "precision": 1.0,
+              "recall": 0.8673469387755102
+            }
+          }
+        }
+      }
+    }
+  },
+  "13": {
+    "baseline_commit": "ecfaae38984a598a9839b17582c31be42532972d",
+    "seed": 13,
+    "real_data": false,
+    "input_sha256": {
+      "brief_stop": "f8b40ef0311a5d5a8c84cfb7c31fa3292b90c166c2af8ce287a1c5d546b2a457",
+      "crossing": "e72012b925945ba10952365948cd931f0b569303d899eaefc6e2530c7f3ac8c5",
+      "fragmentation": "ce6cb69cc4874bfd3fc2ce6b72206c4228650716d5374664acba7929e5cee4ff",
+      "irregular": "8b0daef7d00302bf17123e7011f4720b87a5ff8d4a0d513f06e30168d19689b7",
+      "nearby_objects": "f213908a854c9ae1233d2e1d501824855fcb31ee9acddab55e9226183f0fdc9a",
+      "occlusion": "654c267f4955f6b6caa50e953be9bf5c42a446787265286fc8e6f48a441469ca",
+      "odometry_gap": "2c1c34a01f9f97aeb2df69189cef861cecd5cc221a8517bb9187964b6496cfdd",
+      "outliers": "d50898a69d215f8c273a2bb8223af086ad00cd388c97268e72b320284e618f9b",
+      "rotation_wrap": "d4aadbd7a31040625e79e887cf0c3e8d8b629ad7e933d3086dc4bc2a1a1aac57",
+      "stationary_noise": "8db04c648ed1a086f67b37414a2705ebeff7f14bbd8605fb7281ac0bd1cdd47c"
+    },
+    "profile": {
+      "tracker": {
+        "mode": "odom",
+        "tracking_frame": "odom",
+        "sensor_frame": "base_link",
+        "base_frame": "base_link",
+        "clock_domain": null,
+        "T_base_sensor": null,
+        "pose_tolerance_s": 0.05,
+        "timestamp_tolerance_s": 1e-06,
+        "process_noise": 0.04,
+        "measurement_noise": 0.01,
+        "initial_velocity_variance": 4.0,
+        "min_dt": 1e-05,
+        "max_prediction_interval": 0.5,
+        "max_distance": 1.5,
+        "mahalanobis_gate": 13.82,
+        "max_vertical_distance": 1.0,
+        "distance_weight": 0.4,
+        "mahalanobis_weight": 0.6,
+        "iou_weight": 0.0,
+        "min_hits": 3,
+        "confirmation_window_s": 1.0,
+        "lost_after_misses": 2,
+        "max_misses": 10,
+        "max_unobserved_s": 1.5,
+        "duplicate_distance": 0.02,
+        "birth_suppression_distance": 0.3,
+        "history_size": 40,
+        "moving_speed": 0.3,
+        "stationary_speed": 0.25,
+        "motion_min_hits": 5,
+        "motion_min_age_s": 0.5,
+        "max_velocity_std": 0.3,
+        "motion_sigma": 1.0,
+        "trajectory_horizon_s": 3.0,
+        "trajectory_step_s": 0.2,
+        "confirmed_time_expiry": true,
+        "adaptive_gate_max_distance": 2.5,
+        "fragment_recovery": true,
+        "fragment_min_hits": 5,
+        "fragment_margin": 0.1,
+        "fragment_min_iou": 0.6,
+        "fragment_max_extent": 1.5,
+        "motion_dwell_s": 0.25
+      },
+      "pose_alignment": {
+        "max_wait_s": 0.2,
+        "start_hold_s": 0.0,
+        "start_hold_justification": null,
+        "reset_after_gap_s": 0.5
+      },
+      "visualization": {
+        "bounds": [
+          -2,
+          10,
+          -4,
+          4
+        ],
+        "size": [
+          1000,
+          750
+        ]
+      }
+    },
+    "results": {
+      "baseline": {
+        "brief_stop": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 1.6257958998903632,
+          "tracking_throughput_hz": 615.0833570606469,
+          "position_mae_m": 0.0198828748198021,
+          "velocity_mae_mps": 0.07099267573545452,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 22,
+            "MOVING": 58,
+            "STATIONARY": 18
+          },
+          "confirmed_speed_p95": 0.6438287274846254,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 50,
+              "fp": 8,
+              "fn": 17,
+              "precision": 0.8620689655172413,
+              "recall": 0.746268656716418
+            },
+            "STATIONARY": {
+              "tp": 13,
+              "fp": 5,
+              "fn": 18,
+              "precision": 0.7222222222222222,
+              "recall": 0.41935483870967744
+            }
+          }
+        },
+        "crossing": {
+          "frames": 80,
+          "tracking_latency_ms_mean": 6.913378654280677,
+          "tracking_throughput_hz": 144.6470748974255,
+          "position_mae_m": 0.018098280790133734,
+          "velocity_mae_mps": 0.0558114219849743,
+          "track_continuity": 0.975,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.2,
+          "initialized_objects": 2,
+          "ground_truth_objects": 2,
+          "idf1": 0.9873417721518988,
+          "matched_gt_frames": 156,
+          "total_gt_frames": 160,
+          "confirmed_prediction_frames": 156,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 6,
+            "MOVING": 150
+          },
+          "confirmed_speed_p95": 0.7585114580853582,
+          "duplicate_track_frames": 1,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 150,
+              "fp": 0,
+              "fn": 6,
+              "precision": 1.0,
+              "recall": 0.9615384615384616
+            },
+            "STATIONARY": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            }
+          }
+        },
+        "fragmentation": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 5.452220453880727,
+          "tracking_throughput_hz": 183.4115125128937,
+          "position_mae_m": 0.07362738544589531,
+          "velocity_mae_mps": 0.03179634399163113,
+          "track_continuity": 0.98,
+          "id_switches": 16,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.697508896797153,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 181,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 57,
+            "STATIONARY": 124
+          },
+          "confirmed_speed_p95": 0.19487419234632586,
+          "duplicate_track_frames": 83,
+          "identity_fragmentation": 1,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 62,
+              "fp": 0,
+              "fn": 36,
+              "precision": 1.0,
+              "recall": 0.6326530612244898
+            }
+          }
+        },
+        "irregular": {
+          "frames": 80,
+          "tracking_latency_ms_mean": 4.363203083630651,
+          "tracking_throughput_hz": 229.18942364880553,
+          "position_mae_m": 0.018686361227483104,
+          "velocity_mae_mps": 0.049594959937071824,
+          "track_continuity": 0.975,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.3608140142728104,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.9873417721518988,
+          "matched_gt_frames": 78,
+          "total_gt_frames": 80,
+          "confirmed_prediction_frames": 78,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 2,
+            "MOVING": 76
+          },
+          "confirmed_speed_p95": 0.6783253575360957,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 76,
+              "fp": 0,
+              "fn": 2,
+              "precision": 1.0,
+              "recall": 0.9743589743589743
+            },
+            "STATIONARY": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            }
+          }
+        },
+        "nearby_objects": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 7.665764624252915,
+          "tracking_throughput_hz": 130.45013107188342,
+          "position_mae_m": 0.009524747007544016,
+          "velocity_mae_mps": 0.018479378241035512,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 2,
+          "ground_truth_objects": 2,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 196,
+          "total_gt_frames": 200,
+          "confirmed_prediction_frames": 196,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 36,
+            "STATIONARY": 160
+          },
+          "confirmed_speed_p95": 0.06923430004280484,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 160,
+              "fp": 0,
+              "fn": 36,
+              "precision": 1.0,
+              "recall": 0.8163265306122449
+            }
+          }
+        },
+        "occlusion": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 4.910441651009023,
+          "tracking_throughput_hz": 203.64766981693282,
+          "position_mae_m": 0.009064969224673975,
+          "velocity_mae_mps": 0.02461527593156586,
+          "track_continuity": 0.81,
+          "id_switches": 1,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.574585635359116,
+          "matched_gt_frames": 81,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 81,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 13,
+            "MOVING": 68
+          },
+          "confirmed_speed_p95": 0.6147911564951624,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 1,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 68,
+              "fp": 0,
+              "fn": 13,
+              "precision": 1.0,
+              "recall": 0.8395061728395061
+            },
+            "STATIONARY": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            }
+          }
+        },
+        "odometry_gap": {
+          "frames": 88,
+          "tracking_latency_ms_mean": 5.1297793397679925,
+          "tracking_throughput_hz": 194.94015897479667,
+          "position_mae_m": 0.010482207868887147,
+          "velocity_mae_mps": 0.029017890402093377,
+          "track_continuity": 0.9545454545454546,
+          "id_switches": 1,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.6511627906976745,
+          "matched_gt_frames": 84,
+          "total_gt_frames": 88,
+          "confirmed_prediction_frames": 84,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 33,
+            "STATIONARY": 51
+          },
+          "confirmed_speed_p95": 0.11217034750930598,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 1,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 51,
+              "fp": 0,
+              "fn": 33,
+              "precision": 1.0,
+              "recall": 0.6071428571428571
+            }
+          }
+        },
+        "outliers": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 7.518598712049425,
+          "tracking_throughput_hz": 133.0035074750544,
+          "position_mae_m": 0.008566952208359917,
+          "velocity_mae_mps": 0.019803142113048327,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 9,
+          "ever_tentative_tracks": 9,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 18,
+            "STATIONARY": 80
+          },
+          "confirmed_speed_p95": 0.0680709026360768,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 80,
+              "fp": 0,
+              "fn": 18,
+              "precision": 1.0,
+              "recall": 0.8163265306122449
+            }
+          }
+        },
+        "rotation_wrap": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 6.387770441360772,
+          "tracking_throughput_hz": 156.54914483541967,
+          "position_mae_m": 0.009623902005437992,
+          "velocity_mae_mps": 0.023187698816264035,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 13,
+            "STATIONARY": 85
+          },
+          "confirmed_speed_p95": 0.16490051088697794,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 85,
+              "fp": 0,
+              "fn": 13,
+              "precision": 1.0,
+              "recall": 0.8673469387755102
+            }
+          }
+        },
+        "stationary_noise": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 4.3118613585829735,
+          "tracking_throughput_hz": 231.91840294434573,
+          "position_mae_m": 0.014842532290818175,
+          "velocity_mae_mps": 0.035785923199168165,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 61,
+            "STATIONARY": 37
+          },
+          "confirmed_speed_p95": 0.17958011546374186,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 37,
+              "fp": 0,
+              "fn": 61,
+              "precision": 1.0,
+              "recall": 0.37755102040816324
+            }
+          }
+        }
+      },
+      "improved": {
+        "brief_stop": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 1.3290878711268306,
+          "tracking_throughput_hz": 752.3957006335311,
+          "position_mae_m": 0.0198828748198021,
+          "velocity_mae_mps": 0.07099267573545452,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 30,
+            "MOVING": 48,
+            "STATIONARY": 20
+          },
+          "confirmed_speed_p95": 0.6438287274846254,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 42,
+              "fp": 6,
+              "fn": 25,
+              "precision": 0.875,
+              "recall": 0.6268656716417911
+            },
+            "STATIONARY": {
+              "tp": 15,
+              "fp": 5,
+              "fn": 16,
+              "precision": 0.75,
+              "recall": 0.4838709677419355
+            }
+          }
+        },
+        "crossing": {
+          "frames": 80,
+          "tracking_latency_ms_mean": 8.218016161117703,
+          "tracking_throughput_hz": 121.6838687579307,
+          "position_mae_m": 0.018098280790133734,
+          "velocity_mae_mps": 0.0558114219849743,
+          "track_continuity": 0.975,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.2,
+          "initialized_objects": 2,
+          "ground_truth_objects": 2,
+          "idf1": 0.9873417721518988,
+          "matched_gt_frames": 156,
+          "total_gt_frames": 160,
+          "confirmed_prediction_frames": 156,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 12,
+            "MOVING": 144
+          },
+          "confirmed_speed_p95": 0.7585114580853582,
+          "duplicate_track_frames": 1,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 144,
+              "fp": 0,
+              "fn": 12,
+              "precision": 1.0,
+              "recall": 0.9230769230769231
+            },
+            "STATIONARY": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            }
+          }
+        },
+        "fragmentation": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 4.699651710689068,
+          "tracking_throughput_hz": 212.7817254469223,
+          "position_mae_m": 0.009139407377120195,
+          "velocity_mae_mps": 0.023740772609013396,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 85,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 11,
+            "STATIONARY": 87
+          },
+          "confirmed_speed_p95": 0.12553766405486005,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 87,
+              "fp": 0,
+              "fn": 11,
+              "precision": 1.0,
+              "recall": 0.8877551020408163
+            }
+          }
+        },
+        "irregular": {
+          "frames": 80,
+          "tracking_latency_ms_mean": 1.5283473767340183,
+          "tracking_throughput_hz": 654.301512354434,
+          "position_mae_m": 0.018686361227483104,
+          "velocity_mae_mps": 0.049594959937071824,
+          "track_continuity": 0.975,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.3608140142728104,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.9873417721518988,
+          "matched_gt_frames": 78,
+          "total_gt_frames": 80,
+          "confirmed_prediction_frames": 78,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 4,
+            "MOVING": 74
+          },
+          "confirmed_speed_p95": 0.6783253575360957,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 74,
+              "fp": 0,
+              "fn": 4,
+              "precision": 1.0,
+              "recall": 0.9487179487179487
+            },
+            "STATIONARY": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            }
+          }
+        },
+        "nearby_objects": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 4.542123661376536,
+          "tracking_throughput_hz": 220.16133301332005,
+          "position_mae_m": 0.009524747007544016,
+          "velocity_mae_mps": 0.018479378241035512,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 2,
+          "ground_truth_objects": 2,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 196,
+          "total_gt_frames": 200,
+          "confirmed_prediction_frames": 196,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 22,
+            "STATIONARY": 174
+          },
+          "confirmed_speed_p95": 0.06923430004280484,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 174,
+              "fp": 0,
+              "fn": 22,
+              "precision": 1.0,
+              "recall": 0.8877551020408163
+            }
+          }
+        },
+        "occlusion": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 2.3012704169377685,
+          "tracking_throughput_hz": 434.5425868423886,
+          "position_mae_m": 0.008570655326993106,
+          "velocity_mae_mps": 0.016863817666202045,
+          "track_continuity": 0.83,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.907103825136612,
+          "matched_gt_frames": 83,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 83,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 1,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 15,
+            "MOVING": 68
+          },
+          "confirmed_speed_p95": 0.6201686268077328,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 68,
+              "fp": 0,
+              "fn": 15,
+              "precision": 1.0,
+              "recall": 0.8192771084337349
+            },
+            "STATIONARY": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            }
+          }
+        },
+        "odometry_gap": {
+          "frames": 88,
+          "tracking_latency_ms_mean": 1.709118390201845,
+          "tracking_throughput_hz": 585.0969749859757,
+          "position_mae_m": 0.010482207868887147,
+          "velocity_mae_mps": 0.029017890402093377,
+          "track_continuity": 0.9545454545454546,
+          "id_switches": 1,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.6511627906976745,
+          "matched_gt_frames": 84,
+          "total_gt_frames": 88,
+          "confirmed_prediction_frames": 84,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 22,
+            "STATIONARY": 62
+          },
+          "confirmed_speed_p95": 0.11217034750930598,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 1,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 62,
+              "fp": 0,
+              "fn": 22,
+              "precision": 1.0,
+              "recall": 0.7380952380952381
+            }
+          }
+        },
+        "outliers": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 2.735735815949738,
+          "tracking_throughput_hz": 365.53237128009744,
+          "position_mae_m": 0.008566952208359917,
+          "velocity_mae_mps": 0.019803142113048327,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 9,
+          "ever_tentative_tracks": 9,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 10,
+            "STATIONARY": 88
+          },
+          "confirmed_speed_p95": 0.0680709026360768,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 88,
+              "fp": 0,
+              "fn": 10,
+              "precision": 1.0,
+              "recall": 0.8979591836734694
+            }
+          }
+        },
+        "rotation_wrap": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 2.494648387655616,
+          "tracking_throughput_hz": 400.85809485150145,
+          "position_mae_m": 0.009623902005437992,
+          "velocity_mae_mps": 0.023187698816264035,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 13,
+            "STATIONARY": 85
+          },
+          "confirmed_speed_p95": 0.16490051088697794,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 85,
+              "fp": 0,
+              "fn": 13,
+              "precision": 1.0,
+              "recall": 0.8673469387755102
+            }
+          }
+        },
+        "stationary_noise": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 1.9750191504135728,
+          "tracking_throughput_hz": 506.32420439599184,
+          "position_mae_m": 0.014842532290818175,
+          "velocity_mae_mps": 0.035785923199168165,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 12,
+            "STATIONARY": 86
+          },
+          "confirmed_speed_p95": 0.17958011546374186,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 86,
+              "fp": 0,
+              "fn": 12,
+              "precision": 1.0,
+              "recall": 0.8775510204081632
+            }
+          }
+        }
+      }
+    }
+  },
+  "42": {
+    "baseline_commit": "ecfaae38984a598a9839b17582c31be42532972d",
+    "seed": 42,
+    "real_data": false,
+    "input_sha256": {
+      "brief_stop": "3e2376c8c6a97bb52fc1848a7d98e34face0fb14a264e0cb9c5f719ed9021c75",
+      "crossing": "4bddf9abd892c1fce4a63796c541904042876fee5f352daefc6f26abb3018df1",
+      "fragmentation": "4856b5ef2661aab7946b3582ff4c5f7d6240527f4ae3eb889ca8c629396c03c1",
+      "irregular": "eb370a8c459f939c0a784a17b29c66d98f8fa1882e4df5579120972994814b1f",
+      "nearby_objects": "971068b1c2d29d8622f11f60bd24eb99ac1c030392da2d8af2cf641194a199be",
+      "occlusion": "8f2bf0b1b10c85875bb51cccafb3b1d04067a722e6c6dd8834bf223e4be1b8e0",
+      "odometry_gap": "6c253a71c8d898d100bcd83919b9e2ad39aec2b58212429532b7b0678dab7f5c",
+      "outliers": "24981ed9796884cf607b6c5c1366f6c08b19508301bb2efc635038d152ff81cf",
+      "rotation_wrap": "59eb838a2ea31079ae06c5e043fd43d64b257761b3cb715f7db420aa0eb75619",
+      "stationary_noise": "fa487564cfc7a06667e66c05bf29c70ce9fe2992aa72a309cc9c29fbde72115d"
+    },
+    "profile": {
+      "tracker": {
+        "mode": "odom",
+        "tracking_frame": "odom",
+        "sensor_frame": "base_link",
+        "base_frame": "base_link",
+        "clock_domain": null,
+        "T_base_sensor": null,
+        "pose_tolerance_s": 0.05,
+        "timestamp_tolerance_s": 1e-06,
+        "process_noise": 0.04,
+        "measurement_noise": 0.01,
+        "initial_velocity_variance": 4.0,
+        "min_dt": 1e-05,
+        "max_prediction_interval": 0.5,
+        "max_distance": 1.5,
+        "mahalanobis_gate": 13.82,
+        "max_vertical_distance": 1.0,
+        "distance_weight": 0.4,
+        "mahalanobis_weight": 0.6,
+        "iou_weight": 0.0,
+        "min_hits": 3,
+        "confirmation_window_s": 1.0,
+        "lost_after_misses": 2,
+        "max_misses": 10,
+        "max_unobserved_s": 1.5,
+        "duplicate_distance": 0.02,
+        "birth_suppression_distance": 0.3,
+        "history_size": 40,
+        "moving_speed": 0.3,
+        "stationary_speed": 0.25,
+        "motion_min_hits": 5,
+        "motion_min_age_s": 0.5,
+        "max_velocity_std": 0.3,
+        "motion_sigma": 1.0,
+        "trajectory_horizon_s": 3.0,
+        "trajectory_step_s": 0.2,
+        "confirmed_time_expiry": true,
+        "adaptive_gate_max_distance": 2.5,
+        "fragment_recovery": true,
+        "fragment_min_hits": 5,
+        "fragment_margin": 0.1,
+        "fragment_min_iou": 0.6,
+        "fragment_max_extent": 1.5,
+        "motion_dwell_s": 0.25
+      },
+      "pose_alignment": {
+        "max_wait_s": 0.2,
+        "start_hold_s": 0.0,
+        "start_hold_justification": null,
+        "reset_after_gap_s": 0.5
+      },
+      "visualization": {
+        "bounds": [
+          -2,
+          10,
+          -4,
+          4
+        ],
+        "size": [
+          1000,
+          750
+        ]
+      }
+    },
+    "results": {
+      "baseline": {
+        "brief_stop": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 0.8795267483219504,
+          "tracking_throughput_hz": 1136.9750856445248,
+          "position_mae_m": 0.018440863438144505,
+          "velocity_mae_mps": 0.06860191062960476,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 23,
+            "MOVING": 57,
+            "STATIONARY": 18
+          },
+          "confirmed_speed_p95": 0.6504380211264277,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 49,
+              "fp": 8,
+              "fn": 18,
+              "precision": 0.8596491228070176,
+              "recall": 0.7313432835820896
+            },
+            "STATIONARY": {
+              "tp": 13,
+              "fp": 5,
+              "fn": 18,
+              "precision": 0.7222222222222222,
+              "recall": 0.41935483870967744
+            }
+          }
+        },
+        "crossing": {
+          "frames": 80,
+          "tracking_latency_ms_mean": 4.269852704601362,
+          "tracking_throughput_hz": 234.20011629964668,
+          "position_mae_m": 0.015386175955886613,
+          "velocity_mae_mps": 0.04448309181447957,
+          "track_continuity": 0.975,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.2,
+          "initialized_objects": 2,
+          "ground_truth_objects": 2,
+          "idf1": 0.9873417721518988,
+          "matched_gt_frames": 156,
+          "total_gt_frames": 160,
+          "confirmed_prediction_frames": 156,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 6,
+            "MOVING": 150
+          },
+          "confirmed_speed_p95": 0.7474488285757568,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 150,
+              "fp": 0,
+              "fn": 6,
+              "precision": 1.0,
+              "recall": 0.9615384615384616
+            },
+            "STATIONARY": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            }
+          }
+        },
+        "fragmentation": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 3.197571230120957,
+          "tracking_throughput_hz": 312.73736471608555,
+          "position_mae_m": 0.07386666858933048,
+          "velocity_mae_mps": 0.025212899719679775,
+          "track_continuity": 0.98,
+          "id_switches": 19,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.697508896797153,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 181,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 62,
+            "STATIONARY": 119
+          },
+          "confirmed_speed_p95": 0.21475151063373038,
+          "duplicate_track_frames": 83,
+          "identity_fragmentation": 1,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 64,
+              "fp": 0,
+              "fn": 34,
+              "precision": 1.0,
+              "recall": 0.6530612244897959
+            }
+          }
+        },
+        "irregular": {
+          "frames": 80,
+          "tracking_latency_ms_mean": 1.7091474495828152,
+          "tracking_throughput_hz": 585.0870270110922,
+          "position_mae_m": 0.015786449759970865,
+          "velocity_mae_mps": 0.04457024924093204,
+          "track_continuity": 0.975,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.2897968283631222,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.9873417721518988,
+          "matched_gt_frames": 78,
+          "total_gt_frames": 80,
+          "confirmed_prediction_frames": 78,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 2,
+            "MOVING": 76
+          },
+          "confirmed_speed_p95": 0.6618296850963675,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 76,
+              "fp": 0,
+              "fn": 2,
+              "precision": 1.0,
+              "recall": 0.9743589743589743
+            },
+            "STATIONARY": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            }
+          }
+        },
+        "nearby_objects": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 3.207736639305949,
+          "tracking_throughput_hz": 311.74629105971985,
+          "position_mae_m": 0.009275673483516565,
+          "velocity_mae_mps": 0.019309664197475433,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 2,
+          "ground_truth_objects": 2,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 196,
+          "total_gt_frames": 200,
+          "confirmed_prediction_frames": 196,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 34,
+            "STATIONARY": 162
+          },
+          "confirmed_speed_p95": 0.08365985146397692,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 162,
+              "fp": 0,
+              "fn": 34,
+              "precision": 1.0,
+              "recall": 0.826530612244898
+            }
+          }
+        },
+        "occlusion": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 1.87691330909729,
+          "tracking_throughput_hz": 532.7896579735772,
+          "position_mae_m": 0.00794148373251037,
+          "velocity_mae_mps": 0.028789962641585364,
+          "track_continuity": 0.81,
+          "id_switches": 1,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.574585635359116,
+          "matched_gt_frames": 81,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 81,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 13,
+            "MOVING": 68
+          },
+          "confirmed_speed_p95": 0.6166895006378824,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 1,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 68,
+              "fp": 0,
+              "fn": 13,
+              "precision": 1.0,
+              "recall": 0.8395061728395061
+            },
+            "STATIONARY": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            }
+          }
+        },
+        "odometry_gap": {
+          "frames": 88,
+          "tracking_latency_ms_mean": 1.3427144995975224,
+          "tracking_throughput_hz": 744.759962225588,
+          "position_mae_m": 0.01085734713840684,
+          "velocity_mae_mps": 0.029431074922334755,
+          "track_continuity": 0.9545454545454546,
+          "id_switches": 1,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.6511627906976745,
+          "matched_gt_frames": 84,
+          "total_gt_frames": 88,
+          "confirmed_prediction_frames": 84,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 40,
+            "STATIONARY": 44
+          },
+          "confirmed_speed_p95": 0.23239976307577961,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 1,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 44,
+              "fp": 0,
+              "fn": 40,
+              "precision": 1.0,
+              "recall": 0.5238095238095238
+            }
+          }
+        },
+        "outliers": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 1.9867016840726137,
+          "tracking_throughput_hz": 503.34683260048524,
+          "position_mae_m": 0.00924151248302955,
+          "velocity_mae_mps": 0.018994155864177128,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 9,
+          "ever_tentative_tracks": 9,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 14,
+            "STATIONARY": 84
+          },
+          "confirmed_speed_p95": 0.08205585302018792,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 84,
+              "fp": 0,
+              "fn": 14,
+              "precision": 1.0,
+              "recall": 0.8571428571428571
+            }
+          }
+        },
+        "rotation_wrap": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 2.168395477347076,
+          "tracking_throughput_hz": 461.17048778548934,
+          "position_mae_m": 0.010919738194877081,
+          "velocity_mae_mps": 0.02148836408164952,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 16,
+            "STATIONARY": 82
+          },
+          "confirmed_speed_p95": 0.06764379259305194,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 82,
+              "fp": 0,
+              "fn": 16,
+              "precision": 1.0,
+              "recall": 0.8367346938775511
+            }
+          }
+        },
+        "stationary_noise": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 1.9766913168132305,
+          "tracking_throughput_hz": 505.89588343625326,
+          "position_mae_m": 0.01729283715366689,
+          "velocity_mae_mps": 0.037587898465701465,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 16,
+            "STATIONARY": 82
+          },
+          "confirmed_speed_p95": 0.18368955960672587,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 82,
+              "fp": 0,
+              "fn": 16,
+              "precision": 1.0,
+              "recall": 0.8367346938775511
+            }
+          }
+        }
+      },
+      "improved": {
+        "brief_stop": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 1.073099561035633,
+          "tracking_throughput_hz": 931.8799823521633,
+          "position_mae_m": 0.018440863438144505,
+          "velocity_mae_mps": 0.06860191062960476,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 32,
+            "MOVING": 47,
+            "STATIONARY": 19
+          },
+          "confirmed_speed_p95": 0.6504380211264277,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 41,
+              "fp": 6,
+              "fn": 26,
+              "precision": 0.8723404255319149,
+              "recall": 0.6119402985074627
+            },
+            "STATIONARY": {
+              "tp": 14,
+              "fp": 5,
+              "fn": 17,
+              "precision": 0.7368421052631579,
+              "recall": 0.45161290322580644
+            }
+          }
+        },
+        "crossing": {
+          "frames": 80,
+          "tracking_latency_ms_mean": 3.6333156109321862,
+          "tracking_throughput_hz": 275.2307002978565,
+          "position_mae_m": 0.015386175955886613,
+          "velocity_mae_mps": 0.04448309181447957,
+          "track_continuity": 0.975,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.2,
+          "initialized_objects": 2,
+          "ground_truth_objects": 2,
+          "idf1": 0.9873417721518988,
+          "matched_gt_frames": 156,
+          "total_gt_frames": 160,
+          "confirmed_prediction_frames": 156,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 12,
+            "MOVING": 144
+          },
+          "confirmed_speed_p95": 0.7474488285757568,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 144,
+              "fp": 0,
+              "fn": 12,
+              "precision": 1.0,
+              "recall": 0.9230769230769231
+            },
+            "STATIONARY": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            }
+          }
+        },
+        "fragmentation": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 2.6327828969806433,
+          "tracking_throughput_hz": 379.8262291762951,
+          "position_mae_m": 0.020735630018054948,
+          "velocity_mae_mps": 0.025645050828836367,
+          "track_continuity": 0.98,
+          "id_switches": 3,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.9158878504672897,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 114,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 67,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 37,
+            "STATIONARY": 77
+          },
+          "confirmed_speed_p95": 0.22838641962046402,
+          "duplicate_track_frames": 16,
+          "identity_fragmentation": 1,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 74,
+              "fp": 0,
+              "fn": 24,
+              "precision": 1.0,
+              "recall": 0.7551020408163265
+            }
+          }
+        },
+        "irregular": {
+          "frames": 80,
+          "tracking_latency_ms_mean": 2.353044325718656,
+          "tracking_throughput_hz": 424.98136948380034,
+          "position_mae_m": 0.015786449759970865,
+          "velocity_mae_mps": 0.04457024924093204,
+          "track_continuity": 0.975,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.2897968283631222,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.9873417721518988,
+          "matched_gt_frames": 78,
+          "total_gt_frames": 80,
+          "confirmed_prediction_frames": 78,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 4,
+            "MOVING": 74
+          },
+          "confirmed_speed_p95": 0.6618296850963675,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 74,
+              "fp": 0,
+              "fn": 4,
+              "precision": 1.0,
+              "recall": 0.9487179487179487
+            },
+            "STATIONARY": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            }
+          }
+        },
+        "nearby_objects": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 3.3781075244769454,
+          "tracking_throughput_hz": 296.023733038171,
+          "position_mae_m": 0.009275673483516565,
+          "velocity_mae_mps": 0.019309664197475433,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 2,
+          "ground_truth_objects": 2,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 196,
+          "total_gt_frames": 200,
+          "confirmed_prediction_frames": 196,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 24,
+            "STATIONARY": 172
+          },
+          "confirmed_speed_p95": 0.08365985146397692,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 172,
+              "fp": 0,
+              "fn": 24,
+              "precision": 1.0,
+              "recall": 0.8775510204081632
+            }
+          }
+        },
+        "occlusion": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 1.919432021677494,
+          "tracking_throughput_hz": 520.9874529060147,
+          "position_mae_m": 0.008540575031053956,
+          "velocity_mae_mps": 0.020943371923768102,
+          "track_continuity": 0.83,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.907103825136612,
+          "matched_gt_frames": 83,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 83,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 1,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 15,
+            "MOVING": 68
+          },
+          "confirmed_speed_p95": 0.6252064614502562,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 68,
+              "fp": 0,
+              "fn": 15,
+              "precision": 1.0,
+              "recall": 0.8192771084337349
+            },
+            "STATIONARY": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            }
+          }
+        },
+        "odometry_gap": {
+          "frames": 88,
+          "tracking_latency_ms_mean": 2.147707426708869,
+          "tracking_throughput_hz": 465.6127680912258,
+          "position_mae_m": 0.01085734713840684,
+          "velocity_mae_mps": 0.029431074922334755,
+          "track_continuity": 0.9545454545454546,
+          "id_switches": 1,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.6511627906976745,
+          "matched_gt_frames": 84,
+          "total_gt_frames": 88,
+          "confirmed_prediction_frames": 84,
+          "created_tracks": 2,
+          "ever_tentative_tracks": 2,
+          "ever_confirmed_tracks": 2,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 23,
+            "STATIONARY": 61
+          },
+          "confirmed_speed_p95": 0.23239976307577961,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 1,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 61,
+              "fp": 0,
+              "fn": 23,
+              "precision": 1.0,
+              "recall": 0.7261904761904762
+            }
+          }
+        },
+        "outliers": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 2.5237637013196945,
+          "tracking_throughput_hz": 396.23360914379293,
+          "position_mae_m": 0.00924151248302955,
+          "velocity_mae_mps": 0.018994155864177128,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 9,
+          "ever_tentative_tracks": 9,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 11,
+            "STATIONARY": 87
+          },
+          "confirmed_speed_p95": 0.08205585302018792,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 87,
+              "fp": 0,
+              "fn": 11,
+              "precision": 1.0,
+              "recall": 0.8877551020408163
+            }
+          }
+        },
+        "rotation_wrap": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 2.549725379794836,
+          "tracking_throughput_hz": 392.19910031270314,
+          "position_mae_m": 0.010919738194877081,
+          "velocity_mae_mps": 0.02148836408164952,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 10,
+            "STATIONARY": 88
+          },
+          "confirmed_speed_p95": 0.06764379259305194,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 88,
+              "fp": 0,
+              "fn": 10,
+              "precision": 1.0,
+              "recall": 0.8979591836734694
+            }
+          }
+        },
+        "stationary_noise": {
+          "frames": 100,
+          "tracking_latency_ms_mean": 2.079369993880391,
+          "tracking_throughput_hz": 480.91489390681363,
+          "position_mae_m": 0.01729283715366689,
+          "velocity_mae_mps": 0.037587898465701465,
+          "track_continuity": 0.98,
+          "id_switches": 0,
+          "initialization_delay_s_mean": 0.13,
+          "initialized_objects": 1,
+          "ground_truth_objects": 1,
+          "idf1": 0.98989898989899,
+          "matched_gt_frames": 98,
+          "total_gt_frames": 100,
+          "confirmed_prediction_frames": 98,
+          "created_tracks": 1,
+          "ever_tentative_tracks": 1,
+          "ever_confirmed_tracks": 1,
+          "reactivation_events": 0,
+          "fragment_groups": 0,
+          "confirmed_motion_counts": {
+            "UNCERTAIN": 13,
+            "STATIONARY": 85
+          },
+          "confirmed_speed_p95": 0.18368955960672587,
+          "duplicate_track_frames": 0,
+          "identity_fragmentation": 0,
+          "motion_metrics": {
+            "MOVING": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "precision": null,
+              "recall": null
+            },
+            "STATIONARY": {
+              "tp": 85,
+              "fp": 0,
+              "fn": 13,
+              "precision": 1.0,
+              "recall": 0.8673469387755102
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,6 +1,37 @@
 # Agent handoff — 2026-11-07 (macOS update)
 
-## macOS validation handoff (current)
+## Phase 3.6 robustness handoff (current)
+Branch `phase3-tracking-robustness` starts at `feature/macos-go2-phase3-validation` / `ecfaae3`.
+Do not merge main without approval. Read [TRACKING_ROBUSTNESS](TRACKING_ROBUSTNESS.md) first,
+then [TRACKING_ARCHITECTURE](TRACKING_ARCHITECTURE.md) and Claude's unchanged
+[PHASE3_REAL_VALIDATION](PHASE3_REAL_VALIDATION.md). The previous macOS handoff below is historical.
+
+Codex added opt-in `configs/tracking_robustness.yaml`, conservative historical-box fragment
+recovery, time expiry for confirmed tracks, adaptive gating, motion dwell, lifecycle diagnostics,
+26 regressions and `scripts/benchmark_tracking_robustness.py`. No sensor/hardware code changed.
+`PYTHONPATH=src .venv/bin/python -m pytest -q`: **161 passed, 1 hardware skipped**.
+Always set PYTHONPATH on this Mac to avoid the old installed package; `.venv-go2` can be used
+instead. Install instructions and pinned dependencies remain in SETUP.md.
+
+Use the exact synthetic/private-replay commands and aggregate comparisons in TRACKING_ROBUSTNESS.
+Private cache and per-frame results live under ignored `data/outputs/robustness/`; no recordings
+are needed for the synthetic benchmark. Seed 42 still has three split-object switches; brief-stop
+classification recall regresses. Baseline defaults are deliberately unchanged.
+
+Claude owns physical sensor access, timing/calibration validation and labelled real evaluation.
+Next: annotate A2/B/C locally, inspect recovery/association failures with raw proposals, run D
+(two nearby people), measure slow-motion/stop transitions and pose drift. Keep private sensor
+files out of Git. Preserve pose-gate skips/resets. Integration continues through Detection3D,
+RobotPose and the unchanged tracker.update signature; no detector internals need modification.
+Phase 4 dataset tooling can use current outputs, but do not treat unstable IDs as reliable learned
+forecasting targets. Hardware live validation and calibrated RGB semantic fusion remain outstanding.
+
+Local A1/A2/B/C replay completed on 3,924 pose-valid frames. Created IDs fall from
+514/464/624/699 to 261/243/333/334, but ROI competition and latency increase. These are
+unannotated proxies, not real tracking accuracy. See the aggregate real report linked in
+TRACKING_ROBUSTNESS; no private sensor samples are committed.
+
+## macOS validation handoff (historical baseline)
 Branch `feature/macos-go2-phase3-validation`; do not merge without user approval. The Mac reads the
 Go2 natively; setup, rates and pitfalls are in [MAC_CONNECTION](MAC_CONNECTION.md). Use
 `.venv-go2` for hardware and `--iface en9` (the config default is Linux `eno2`). Real tracking

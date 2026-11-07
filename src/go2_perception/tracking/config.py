@@ -43,6 +43,16 @@ class TrackerConfig:
     trajectory_horizon_s: float = 3.0
     trajectory_step_s: float = 0.2
 
+    # Opt-in Phase 3.6 controls; legacy defaults remain reproducible.
+    confirmed_time_expiry: bool = False
+    adaptive_gate_max_distance: float = 0.0
+    fragment_recovery: bool = False
+    fragment_min_hits: int = 5
+    fragment_margin: float = 0.05
+    fragment_min_iou: float = 0.6
+    fragment_max_extent: float = 1.5
+    motion_dwell_s: float = 0.0
+
     def __post_init__(self):
         if (
             self.mode not in ("odom", "fixed_sensor")
@@ -59,6 +69,9 @@ class TrackerConfig:
             "process_noise",
             "duplicate_distance",
             "birth_suppression_distance",
+            "adaptive_gate_max_distance",
+            "fragment_margin",
+            "motion_dwell_s",
             "distance_weight",
             "mahalanobis_weight",
             "iou_weight",
@@ -67,6 +80,7 @@ class TrackerConfig:
         )
         positive = (
             "confirmation_window_s",
+            "fragment_max_extent",
             "measurement_noise",
             "initial_velocity_variance",
             "min_dt",
@@ -91,6 +105,7 @@ class TrackerConfig:
             "max_misses",
             "history_size",
             "motion_min_hits",
+            "fragment_min_hits",
         ):
             value = getattr(self, key)
             if not isinstance(value, int) or isinstance(value, bool) or value < 1:
@@ -109,3 +124,15 @@ class TrackerConfig:
             raise ValueError("Zero association weights")
         if self.T_base_sensor is not None:
             validate_transform(self.T_base_sensor)
+
+        if not 0 < self.fragment_min_iou <= 1:
+            raise ValueError("Invalid fragment_min_iou")
+        if not isinstance(self.fragment_recovery, bool) or not isinstance(
+            self.confirmed_time_expiry, bool
+        ):
+            raise ValueError("Robustness flags must be boolean")
+        if (
+            self.adaptive_gate_max_distance
+            and self.adaptive_gate_max_distance < self.max_distance
+        ):
+            raise ValueError("Adaptive cap must be at least max_distance")

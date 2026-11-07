@@ -84,6 +84,10 @@ def run(args):
                     reset_ended_ids=reset_ids,
                     pose_outage_s=frame.pose_outage_s,
                     suppressed_duplicates=tracker.suppressed_duplicates,
+                    raw_detection_count=len(frame.detections),
+                    created_ids=tracker.created_ids,
+                    reactivated_ids=tracker.reactivated_ids,
+                    fragment_groups=tracker.fragment_groups,
                     latency_ms=latency,
                 )
                 stream.write(json.dumps(jsonable(row), allow_nan=False) + "\n")
