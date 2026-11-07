@@ -9,11 +9,11 @@ LiDAR/BEV images in `docs/media` are committed.
 | A1: stationary robot, stationary obstacle | **Done** (`test_a1`, 60 s): one ID for 60 s, 4-5 cm jitter; rarely labelled STATIONARY |
 | A2: stationary robot, person near obstacle | **Done** (`test_a2`, 50 s): YOLO detects the person; LiDAR fragments the person into ~16 short IDs |
 | B: stationary robot, moving person | **Done** (`test_b`, 65 s): 96% coverage, speed roughly right, 3/4/10 IDs per pass |
-| C: moving robot, stationary obstacle | Not attempted (needs human-controlled motion; odometry under motion unverified) |
+| C: moving robot, stationary obstacle | **Done** (`test_c`, 80 s, human-driven): box fixed in odom to 6-9 cm through ±23° turns and 0.5 m walks; IDs still fragment |
 | D: two objects crossing | Not recorded (needs a second person) |
 | 10 s smoke run | Static kitchen, no designated object (section below) |
 
-All runs: robot standing still (odometry extent < 3 mm), `--window-s 0.3`, default
+A1, A2, B: robot standing still (odometry extent < 3 mm); C: human-driven (below), `--window-s 0.3`, default
 `configs/tracking.yaml` and `configs/go2_lidar.yaml`, Mac `.venv-go2`. Ground truth is limited to a
 tape-measured box position and, for B, a reference trajectory from background-subtracted raw
 points; there are no labelled boxes or IDs. Positions are in `base_link` (body centre, x forward,
@@ -109,7 +109,30 @@ Overall 96% coverage and 19 IDs for one person. While walking, 55-73% of track-f
 The cases (2.5, 0) were re-identified once per pass (main IDs #21, #101, #337, #505; 16 IDs in
 total, 81% coverage): the person standing 0.3-0.6 m in front occludes or merges with them.
 
-## Findings across A1, A2 and B
+## Test C: robot moved by hand, cases static (`test_c`)
+The user drove the robot with the remote at low speed; nothing was sent from the Mac. Motion from
+`robot_odom`: yaw to -24 deg, back, to +21 deg, back; forward about 0.47 m; further turns
+(-11 to -21 deg) and sideways steps; end 0.33 m from the start at -1.9 deg. Pitch/roll stayed
+within ±3 deg; one odometry gap > 30 ms (30.7 ms). The operator stood behind the robot.
+| Quantity | Result |
+|---|---|
+| Frames input / tracked / skipped | 1,231 / 1,230 / 1 (`before_first_odometry`), no tracker resets |
+| Box apparent motion **in the robot frame** (what an uncompensated tracker would see) | x 1.89-2.53 m, **y -0.98 to +1.23 m** |
+| Box front cluster in **odom**, robot still / rotating / translating | std (0.085, 0.067) / (0.059, 0.062) / (0.061, 0.066) m |
+| Box speed, robot still / rotating / translating | median 0.068 / 0.071 / 0.056 m/s; p95 0.63 / 0.28 / 0.28 m/s |
+| MOVING labels on the box while the robot rotated or translated | **0** (of 163 frames) |
+| Box odom drift, first 5 s to last 5 s | 0.11 m (mostly y) over 80 s |
+| Box identity | 22 IDs and 30 changes in 955 covered frames; longest runs: #79 (6-16 s, through -23 deg), #179 (18-34 s, through +21 deg), #430 (44-72 s) |
+
+**Ego-motion compensation works on real data at this scale:** a 2.2 m lateral sweep in the robot
+frame becomes a 6-9 cm spread in odom, and robot motion does not create false velocity or MOVING
+labels. The 0.11 m drift may be odometry drift or the visible box face changing with viewpoint;
+the two cannot be separated without external ground truth. Identity, not geometry, fails: the box
+is re-identified roughly every 5-15 s, often during turns, and a second fragment about 0.35 m behind
+its front face (#280, #420) appears intermittently. Odometry accuracy itself was not measured
+independently (no motion capture or tape check of the end pose).
+
+## Findings across A1, A2, B and C
 1. A solid static object, unoccluded, is tracked with one stable ID and centimetre jitter.
 2. A walking person is followed (96% coverage) and speed magnitude is roughly right (median
    error 0.25-0.40 m/s against a noisy reference), so **nonzero, sensor-relative velocities are
@@ -117,15 +140,17 @@ total, 81% coverage): the person standing 0.3-0.6 m in front occludes or merges 
 3. Identity is the main weakness: people fragment into many short IDs (sparse leg clusters,
    split/merge), and occlusion or proximity re-identifies nearby static objects.
 4. Motion states are dominated by UNCERTAIN because of the classifier thresholds above.
+5. Ego-motion compensation holds under real human-driven turns (±23 deg) and short walks: the
+   static box stays within 6-9 cm in odom and gets no MOVING labels (Test C).
 Suggested Codex work, on these recordings: cluster association for people (leg merging, eps/min
 points), longer coasting before deletion, occlusion-aware matching, classifier thresholds tied to
 the actual velocity covariance. Do not tune on these alone without labels.
 
-Evidence (local): `data/outputs/mac/test_{a1,a2,b}_tracking/` (tracks.jsonl, frames/, tracking.avi,
+Evidence (local): `data/outputs/mac/test_{a1,a2,b,c}_tracking/` (tracks.jsonl, frames/, tracking.avi,
 summary.json, skipped_frames.jsonl, `box_track_stats.json`, `person_stats.json`,
-`person_eval.txt`, `raw_foreground_traj.npy`), `data/outputs/mac/test_*_replay/` (YOLO), logs
+`person_eval.txt`, `raw_foreground_traj.npy`, `ego_eval.txt`), `data/outputs/mac/test_*_replay/` (YOLO), logs
 `data/outputs/mac/*.log`. Committed BEV frames: [A1](media/mac_test_a1_bev.png),
-[A2](media/mac_test_a2_bev.png), [B](media/mac_test_b_bev.png).
+[A2](media/mac_test_a2_bev.png), [B](media/mac_test_b_bev.png), [C, robot turned](media/mac_test_c_bev_turned.png).
 
 ## Perception on the 10 s smoke recording (`go2_replay.py`, unmodified processors)
 - YOLO (yolov8n, `--device mps`): 110/110 frames; refrigerator, oven, microwave correct; a
@@ -145,5 +170,4 @@ summary.json, skipped_frames.jsonl, `box_track_stats.json`, `person_stats.json`,
 Real RGB-LiDAR tracking is therefore **not** claimed; all tracking here is LiDAR-only.
 
 ## Next
-Test D needs two people; Test C needs human-driven robot motion and is the first real check of
-ego-motion compensation. Labelled IDs/positions (even hand-annotated BEV) are needed before tuning.
+Test D needs two people. Test C could be repeated with a taped end position to check odometry drift. Labelled IDs/positions (even hand-annotated BEV) are needed before tuning.

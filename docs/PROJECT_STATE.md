@@ -13,8 +13,9 @@ Real tracking, robot static (A1/A2/B, 50-65 s each): an unoccluded box keeps one
 (4-5 cm jitter); a walking person is covered 96% with roughly correct speed (0.77-0.89 vs about
 0.65-0.80 m/s reference), but people fragment into many IDs (19 for one person in B), nearby
 static objects are re-identified when occluded, and STATIONARY is rarely assigned because of
-classifier thresholds. Clutter in a 10 s static run gave false speeds up to 7.8 m/s. Ego-motion
-compensation is not exercised (Test C) and Test D is not recorded. No
+classifier thresholds. Clutter in a 10 s static run gave false speeds up to 7.8 m/s. **Test C (human-driven
+turns ±23 deg, 0.5 m walk):** the static box stays within 6-9 cm in odom with no MOVING labels, so
+ego-motion compensation works on real data; its ID still changes every 5-15 s. Test D not recorded. No
 calibration exists, so RGB and LiDAR remain separate. macOS lacks the ICMP clock offset.
 Evidence: [MAC_CONNECTION](MAC_CONNECTION.md), [PHASE3_REAL_VALIDATION](PHASE3_REAL_VALIDATION.md).
 

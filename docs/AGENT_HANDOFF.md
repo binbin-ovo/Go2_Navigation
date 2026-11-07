@@ -15,11 +15,12 @@ Pose gating: `configs/tracking.yaml` `pose_alignment`; skipped frames in `skippe
 
 **Next for Codex** (evidence: PHASE3_REAL_VALIDATION, recordings `test_a1`, `test_a2`, `test_b` on
 the Mac): (1) person identity: one walking person became 19 IDs; examine leg clustering and
-coasting; (2) occlusion: a static box is re-identified each time a person stands in front;
+coasting; (2) occlusion and viewpoint: a static box is re-identified each time a person stands in front,
+and every 5-15 s while the robot turns (Test C, 22 IDs) even though its odom position holds to 6-9 cm;
 (3) motion classifier: steady velocity sigma about 0.14 m/s makes STATIONARY need speed under about
 0.01 m/s; (4) clutter fragments on walls give false MOVING. Keep synthetic metrics intact and get
 labels before tuning. **Next for Claude/user:**
-Test A with a measured object, Tests B and D, odometry under human-controlled motion (Test C), Mac
+Test D (two people), a Test C repeat with a taped end pose for odometry drift, Mac
 interface override for `go2_live.py`/hardware test, camera calibration.
 
 ## Phase 3 handoff (2026-11-06)
