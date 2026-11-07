@@ -166,6 +166,9 @@ by about 9–12 ms. The profile remains experimental. Aggregate reports, includi
 motion counts and ROI speed percentiles: [TRACKING_ROBUSTNESS_REAL_PROXIES.json](TRACKING_ROBUSTNESS_REAL_PROXIES.json).
 No camera image, raw point, pose, timestamp sequence or per-object trajectory is in this report.
 
+A fuller real-data comparison (box and person continuity, flicker, duplicates, motion labels,
+ablations and serial timing) is in [TRACKING_REAL_COMPARISON](TRACKING_REAL_COMPARISON.md).
+
 ## Reproduction and Claude handoff
 
 From the repository root (explicit PYTHONPATH also works around the documented macOS stale

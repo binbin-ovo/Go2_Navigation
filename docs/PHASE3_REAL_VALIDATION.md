@@ -152,6 +152,42 @@ summary.json, skipped_frames.jsonl, `box_track_stats.json`, `person_stats.json`,
 `data/outputs/mac/*.log`. Committed BEV frames: [A1](media/mac_test_a1_bev.png),
 [A2](media/mac_test_a2_bev.png), [B](media/mac_test_b_bev.png), [C, robot turned](media/mac_test_c_bev_turned.png).
 
+## Original vs improved tracker on these recordings (added 2026-11-07)
+The sections above describe the original tracker, and their numbers are unchanged. The improved
+opt-in profile (`a4496a3` with `configs/tracking_robustness.yaml`) was replayed on identical
+cached inputs. A fresh baseline replay matched the original outputs above in every frame (3,924
+of 3,924). Full report: [TRACKING_REAL_COMPARISON](TRACKING_REAL_COMPARISON.md). There are no
+annotations; all values are proxies.
+
+| | A1 | A2 | B | C |
+|---|---|---|---|---|
+| Created IDs | 514 → 261 | 464 → 243 | 624 → 333 | 699 → 334 |
+| Box dominant-ID share | 0.99 → 0.99 | **0.50 → 0.96** | **0.31 → 0.49** | **0.33 → 0.59** |
+| Box ID changes (returns to an old ID) | 4 (2) → 6 (3) | 15 (5) → 28 (17) | 13 (1) → 14 (5) | 30 (9) → 30 (22) |
+| Duplicate-pair frames | 365 → 483 | 277 → 383 | 380 → 504 | 682 → 832 |
+| Reactivations > 1 m away | 77 → 99 | 62 → 114 | 96 → 163 | 88 → 93 |
+| Box MOVING frames | 5 → 0 | 18 → 0 | 50 → 2 | 39 → 2 |
+| `tracker.update` mean | 23.8 → 33.0 ms | 23.4 → 32.9 ms | 23.8 → 33.0 ms | 29.3 → 40.7 ms |
+
+**Better.**
+- The box keeps its main ID through the person's visits (A2), the first two occlusion passes (B)
+  and the ±23° turns (C).
+- False MOVING labels on static structure almost disappear: A1 confirmed MOVING frames
+  1,550 → 127.
+
+**Worse.**
+- More duplicate and flickering tracks, and more long-range reactivations.
+- Person identity is not improved (B: 19 → 20 IDs).
+- Walking-person MOVING recall falls from 62% to 39%.
+- About 40% more tracker time.
+
+**Unchanged.**
+- Velocity estimates: static box speed about 0.07 m/s, σ about 0.14 m/s.
+- Ego-motion compensation: 0 MOVING labels while the robot moves; box odom spread unchanged.
+
+Comparison BEVs: [A1](media/compare_test_a1_bev.png), [A2](media/compare_test_a2_bev.png),
+[B](media/compare_test_b_bev.png), [C](media/compare_test_c_bev.png).
+
 ## Perception on the 10 s smoke recording (`go2_replay.py`, unmodified processors)
 - YOLO (yolov8n, `--device mps`): 110/110 frames; refrigerator, oven, microwave correct; a
   dishwasher labelled `refrigerator` (0.57), the known false-positive class. 10.4 ms median.

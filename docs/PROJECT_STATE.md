@@ -14,10 +14,22 @@ robot validation or calibrated fusion. Next: label A2/B/C identity/visibility, v
 separation and slow motion, then create quality-filtered forecasting targets. Historical sections
 below describe their original branches and validation dates, not the current implementation.
 
-Local A1/A2/B/C replay completed on 3,924 pose-valid frames. Created IDs fall from
-514/464/624/699 to 261/243/333/334, but ROI competition and latency increase. These are
-unannotated proxies, not real tracking accuracy. See the aggregate real report linked in
-TRACKING_ROBUSTNESS; no private sensor samples are committed.
+**Real-data comparison (Claude, Mac, offline replay).** The improved profile was compared with
+the original on identical inputs from A1/A2/B/C (3,924 frames); see
+[TRACKING_REAL_COMPARISON](TRACKING_REAL_COMPARISON.md).
+- **Checks:** the baseline replay matched the original Phase 3 outputs in every frame, and the
+  working code with default `tracking.yaml` is bit-identical to `ecfaae3`.
+- **Better:**
+  - Box main-ID share after occlusion and turns: A2 0.50 → 0.96, B 0.31 → 0.49, C 0.33 → 0.59.
+  - False MOVING on static structure nearly gone (A1 1,550 → 127 frames).
+- **Worse:**
+  - Duplicate-pair frames +22–38%, and more ID flicker (C box returns 9 → 22).
+  - More long-range reactivations.
+  - Person IDs unchanged (B 19 → 20).
+  - Walking MOVING recall 62% → 39%.
+  - Tracker time +40%.
+- **Verdict:** ready to merge as an opt-in profile, not ready to become the default.
+  No annotations exist; all values are proxies.
 
 ## macOS hardware integration (branch `feature/macos-go2-phase3-validation`)
 Based on `phase3-tracking` (8c35a39); not merged into main. **Verified on a real Go2 from an Apple

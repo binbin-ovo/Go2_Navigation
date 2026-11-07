@@ -26,10 +26,23 @@ RobotPose and the unchanged tracker.update signature; no detector internals need
 Phase 4 dataset tooling can use current outputs, but do not treat unstable IDs as reliable learned
 forecasting targets. Hardware live validation and calibrated RGB semantic fusion remain outstanding.
 
-Local A1/A2/B/C replay completed on 3,924 pose-valid frames. Created IDs fall from
-514/464/624/699 to 261/243/333/334, but ROI competition and latency increase. These are
-unannotated proxies, not real tracking accuracy. See the aggregate real report linked in
-TRACKING_ROBUSTNESS; no private sensor samples are committed.
+**Real-data comparison done (Claude):** [TRACKING_REAL_COMPARISON](TRACKING_REAL_COMPARISON.md),
+harness `scripts/compare_tracking_real.py`, local outputs in `data/outputs/mac/tracker_comparison/`.
+The default path is bit-identical to `ecfaae3`; the improved profile is ready as opt-in, not as
+default. Ablations attribute the effects:
+- **Time expiry** gives the box-continuity gain, but also the extra duplicates and flicker.
+- **The 2.5 m adaptive gate** causes most reactivations more than 1 m from the last observation.
+- **Dwell plus the 0.25 m/s threshold** removes false MOVING labels, but also cuts walking MOVING
+  recall from 62% to 39%.
+
+Next for Codex:
+1. Suppress or merge a Lost track that overlaps a Confirmed track.
+2. Bound the reactivation radius by elapsed time × a plausible speed.
+3. Re-tune dwell for walking people.
+4. Rerun `compare_tracking_real.py --reuse-cache --serial`. It needs the local recordings, so it
+   runs on the Mac.
+
+Next for Claude/user: hand-label box and person IDs on A2/B/C so these proxies can be checked.
 
 ## macOS validation handoff (historical baseline)
 Branch `feature/macos-go2-phase3-validation`; do not merge without user approval. The Mac reads the
