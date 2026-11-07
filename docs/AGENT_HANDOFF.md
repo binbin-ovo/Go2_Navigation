@@ -13,10 +13,12 @@ results and gaps: [PHASE3_REAL_VALIDATION](PHASE3_REAL_VALIDATION.md).
 ```
 Pose gating: `configs/tracking.yaml` `pose_alignment`; skipped frames in `skipped_frames.jsonl`.
 
-**Next for Codex:** (1) reduce false motion on static scenes: cluster split/merge on walls
-(98 IDs in 10 s, 46 ever MOVING) — e.g. extent/persistence filtering or association on
-geometry, tuned on labelled Go2 sequences, without breaking synthetic metrics; (2) evaluate Tests
-B and D once recorded; (3) consider velocity-variance-aware motion gating. **Next for Claude/user:**
+**Next for Codex** (evidence: PHASE3_REAL_VALIDATION, recordings `test_a1`, `test_a2`, `test_b` on
+the Mac): (1) person identity: one walking person became 19 IDs; examine leg clustering and
+coasting; (2) occlusion: a static box is re-identified each time a person stands in front;
+(3) motion classifier: steady velocity sigma about 0.14 m/s makes STATIONARY need speed under about
+0.01 m/s; (4) clutter fragments on walls give false MOVING. Keep synthetic metrics intact and get
+labels before tuning. **Next for Claude/user:**
 Test A with a measured object, Tests B and D, odometry under human-controlled motion (Test C), Mac
 interface override for `go2_live.py`/hardware test, camera calibration.
 

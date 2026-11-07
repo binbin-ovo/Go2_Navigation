@@ -9,10 +9,12 @@ frames. Phase 3 replay now gates frames on odometry (`tracking/pose_gate.py`): f
 first odometry sample or inside gaps are skipped with reasons, never extrapolated or filled;
 long gaps end all tracks. Tests: **135 passed, 1 hardware skipped** (both venvs).
 
-Real tracking (preliminary Test A, 10 s, static robot and room): 155 of 156 frames tracked, 1
-skipped (`before_first_odometry`). Odom-frame velocities are produced, but the static scene still
-yields 98 IDs, 6.8% MOVING track-frames and false speeds up to 7.8 m/s from fragmenting wall
-clusters; ego-motion compensation is not exercised. Tests B-D are not yet recorded. No
+Real tracking, robot static (A1/A2/B, 50-65 s each): an unoccluded box keeps one ID for 60 s
+(4-5 cm jitter); a walking person is covered 96% with roughly correct speed (0.77-0.89 vs about
+0.65-0.80 m/s reference), but people fragment into many IDs (19 for one person in B), nearby
+static objects are re-identified when occluded, and STATIONARY is rarely assigned because of
+classifier thresholds. Clutter in a 10 s static run gave false speeds up to 7.8 m/s. Ego-motion
+compensation is not exercised (Test C) and Test D is not recorded. No
 calibration exists, so RGB and LiDAR remain separate. macOS lacks the ICMP clock offset.
 Evidence: [MAC_CONNECTION](MAC_CONNECTION.md), [PHASE3_REAL_VALIDATION](PHASE3_REAL_VALIDATION.md).
 

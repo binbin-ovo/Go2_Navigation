@@ -44,6 +44,7 @@ Run in order; stop at the first failure.
 ```bash
 ifconfig en9 | grep -E "status|inet "        # status: active, inet 192.168.123.222
 ping -c 3 192.168.123.161                    # first try right after addressing may fail (ARP)
+export PYTHONPATH=src:third_party/unitree_sdk2_python
 .venv-go2/bin/python scripts/go2_discover.py --iface en9 --seconds 10   # 95 publications
 .venv-go2/bin/python scripts/go2_probe.py --iface en9 --seconds 15      # live rates
 .venv-go2/bin/python scripts/go2_record.py --iface en9 --seconds 10 --name mac_smoke_01
@@ -81,7 +82,9 @@ pairing would need the offset plus the unknown camera latency.
 ## Problems encountered
 - **Hidden `.pth` files:** the new venv's `.pth` files carried the macOS `hidden` flag, which
   `site.py` skips, so editable installs (project and SDK) silently failed to import from
-  scripts. Fixed with `chflags nohidden`. Re-check after any reinstall.
+  scripts. `chflags nohidden` fixes it only temporarily: the flag reappeared within minutes
+  (cause unknown, possibly a Desktop folder sync or provenance service). **Reliable workaround:**
+  `export PYTHONPATH=src:third_party/unitree_sdk2_python` before running any script.
 - **Old `.venv` runs a stale package copy:** it contains a non-editable `go2_perception` in
   site-packages, so its tests import old code, not `src/`. Use `PYTHONPATH=src` or reinstall
   editable; it was not modified here.
