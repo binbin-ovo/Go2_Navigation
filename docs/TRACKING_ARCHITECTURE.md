@@ -144,8 +144,18 @@ rows count as misses. Invalid measurements fail visibly, not silently disappeari
 Raw Phase 2 directories (`manifest.schema=go2-recording-v1`) reuse RecordingReader,
 LidarProcessor and to_lidar_message. Only `cloud_base` is accepted. Load recorded odometry
 and interpolate translation/quaternion using existing PoseBuffer with bracket gaps <=.1 s.
-Exact observed pose samples do not require interpolation. Missing bracketing pose is an error,
-including at recording endpoints; fixed mode is a deliberate alternative for stationary data.
+Exact observed pose samples do not require interpolation. In odom mode `tracking/pose_gate.py`
+replays odometry and LiDAR in robot-stamp order: a frame waits until odometry at or after its
+midpoint exists, then is posed by bracketing interpolation or **skipped with a reason**
+(`before_first_odometry`, `odometry_gap`, `after_last_odometry`, `no_odometry`, live-only
+`odometry_wait_timeout`). Nothing is extrapolated backward unless `pose_alignment.start_hold_s`
+is set together with a written `start_hold_justification`. Skips go to `skipped_frames.jsonl`
+and `summary.json.pose_alignment`; the raw recording is untouched. When posed frames resume
+after a skipped `odometry_gap` longer than `reset_after_gap_s` (0.5 s), the tracker ends every
+track (`reset_before`, `reset_ended_ids` in the JSONL) rather than bridging an unobserved
+interval; IDs are never reused. Interior short gaps are skipped, never filled with a held pose.
+A recording with no posable frame at all is still an error; fixed mode is a deliberate
+alternative for stationary data.
 
 Raw points are levelled once using interpolated attitude for ground segmentation. Their output
 frame is `base_link_level`; the subsequent transform to odom is **yaw + translation only**.

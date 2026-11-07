@@ -35,6 +35,12 @@ tracker:
   motion_sigma: 1.0
   trajectory_horizon_s: 3.0
   trajectory_step_s: 0.2
+# Raw Go2 recordings in odom mode: LiDAR frames wait for bracketing odometry, else are skipped.
+pose_alignment:
+  max_wait_s: 0.2  # live only: longest wait for odometry after a frame arrives
+  start_hold_s: 0.0  # 0 = never pose frames earlier than the first odometry sample
+  start_hold_justification: null  # mandatory text whenever start_hold_s > 0
+  reset_after_gap_s: 0.5  # odometry outage longer than this ends all tracks
 visualization:
   bounds: [-2, 10, -4, 4]
   size: [1000, 750]

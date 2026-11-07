@@ -1,4 +1,20 @@
-# Project state — 2026-11-06
+# Project state — 2026-11-07
+
+## macOS hardware integration (branch `feature/macos-go2-phase3-validation`)
+Based on `phase3-tracking` (8c35a39); not merged into main. **Verified on a real Go2 from an Apple
+Silicon Mac:** native read-only access with the unchanged Phase 2 adapter over `en9`
+(Python 3.10 `.venv-go2`, Cyclone DDS wheel, SDK 814556d): RGB 14.3 Hz 1280x720, LiDAR about
+15.4 Hz, IMU 259 Hz, odometry 153 Hz, robot state; recording, YOLO (MPS) and LiDAR replay on real
+frames. Phase 3 replay now gates frames on odometry (`tracking/pose_gate.py`): frames before the
+first odometry sample or inside gaps are skipped with reasons, never extrapolated or filled;
+long gaps end all tracks. Tests: **135 passed, 1 hardware skipped** (both venvs).
+
+Real tracking (preliminary Test A, 10 s, static robot and room): 155 of 156 frames tracked, 1
+skipped (`before_first_odometry`). Odom-frame velocities are produced, but the static scene still
+yields 98 IDs, 6.8% MOVING track-frames and false speeds up to 7.8 m/s from fragmenting wall
+clusters; ego-motion compensation is not exercised. Tests B-D are not yet recorded. No
+calibration exists, so RGB and LiDAR remain separate. macOS lacks the ICMP clock offset.
+Evidence: [MAC_CONNECTION](MAC_CONNECTION.md), [PHASE3_REAL_VALIDATION](PHASE3_REAL_VALIDATION.md).
 
 ## Phase 3 — temporal tracking (current branch: `phase3-tracking`)
 Implemented on integrated baseline `dc0f85b`; not merged into main. Adds validated timestamped

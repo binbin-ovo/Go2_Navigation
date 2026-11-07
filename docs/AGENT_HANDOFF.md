@@ -1,6 +1,27 @@
-# Agent handoff — 2026-11-06 (Phase 2 update)
+# Agent handoff — 2026-11-07 (macOS update)
 
-## Phase 3 handoff (current)
+## macOS validation handoff (current)
+Branch `feature/macos-go2-phase3-validation`; do not merge without user approval. The Mac reads the
+Go2 natively; setup, rates and pitfalls are in [MAC_CONNECTION](MAC_CONNECTION.md). Use
+`.venv-go2` for hardware and `--iface en9` (the config default is Linux `eno2`). Real tracking
+results and gaps: [PHASE3_REAL_VALIDATION](PHASE3_REAL_VALIDATION.md).
+
+```bash
+.venv-go2/bin/python scripts/go2_record.py --iface en9 --seconds 60 --name test_a
+.venv-go2/bin/python scripts/run_tracking.py --input data/recordings/test_a --output data/outputs/mac/test_a --window-s 0.3 --video
+.venv-go2/bin/python -m pytest -q
+```
+Pose gating: `configs/tracking.yaml` `pose_alignment`; skipped frames in `skipped_frames.jsonl`.
+
+**Next for Codex:** (1) reduce false motion on static scenes: cluster split/merge on walls
+(98 IDs in 10 s, 46 ever MOVING) — e.g. extent/persistence filtering or association on
+geometry, tuned on labelled Go2 sequences, without breaking synthetic metrics; (2) evaluate Tests
+B and D once recorded; (3) consider velocity-variance-aware motion gating. **Next for Claude/user:**
+Test A with a measured object, Tests B and D, odometry under human-controlled motion (Test C), Mac
+interface override for `go2_live.py`/hardware test, camera calibration.
+
+## Phase 3 handoff (2026-11-06)
+
 Changes are committed on `phase3-tracking` from main `dc0f85b`; do not merge without user approval.
 New packages: tracking, localization and visualization; core/tracking_types.py; three tracking
 scripts and configs/tracking.yaml. All original modules/tests remain intact. Validation:
@@ -17,7 +38,8 @@ pytest -q
 # On the recording workstation, with real bracketed odometry:
 python scripts/run_tracking.py --input data/recordings/stage_c_person --output data/outputs/tracking_person --window-s 0.3
 ```
-Choose fresh output directories. Missing/stale odometry raises an error, including endpoints.
+Choose fresh output directories. *(2026-11-07: unposed frames are now skipped with a reason and
+reported; a recording with no posable frame still raises. See TRACKING_ARCHITECTURE.md.)*
 Do not substitute identity poses. Use `--mode fixed_sensor` only with an explicit fixed-sensor
 assumption, and interpret velocities as sensor-relative. Full JSONL input, types, covariance,
 frame conventions, config meanings and output contracts: TRACKING_ARCHITECTURE.md.

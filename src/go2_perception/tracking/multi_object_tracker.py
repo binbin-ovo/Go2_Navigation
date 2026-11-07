@@ -65,6 +65,12 @@ class MultiObjectTracker:
         self.deleted_ids = []
         self.suppressed_duplicates = 0
 
+    def reset(self):
+        """Drop every track before an unobservable interval. IDs keep increasing, never reused."""
+        ended = [t.track_id for t in self._tracks]
+        self._tracks = []  # the timestamp is kept so out-of-order updates still fail
+        return ended
+
     def update(
         self,
         detections,

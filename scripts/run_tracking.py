@@ -9,6 +9,7 @@ from go2_perception.io.config import load_config
 from go2_perception.io.serialization import jsonable, save_json
 from go2_perception.tracking.config import TrackerConfig
 from go2_perception.tracking.multi_object_tracker import MultiObjectTracker
+from go2_perception.tracking.pose_gate import PoseAlignmentConfig
 from go2_perception.tracking.replay import load_detection_sequence, recording_frames
 from go2_perception.visualization.bev_tracking import save_bev
 
@@ -26,9 +27,16 @@ def run(args):
     )
     start = perf_counter()
     duplicates = 0
+    pose_report = None
     if schema == "go2-recording-v1":
+        pose_report = {}
         frames = recording_frames(
-            path, c, load_config(args.lidar_config), args.window_s
+            path,
+            c,
+            load_config(args.lidar_config),
+            args.window_s,
+            PoseAlignmentConfig(**config.get("pose_alignment", {})),
+            pose_report,
         )
     else:
         if args.window_s:
@@ -46,6 +54,7 @@ def run(args):
         with (out / "tracks.jsonl").open("w") as stream:
             for index, frame in enumerate(frames):
                 t0 = perf_counter()
+                reset_ids = tracker.reset() if frame.reset_before else []
                 tracks = tracker.update(
                     frame.detections,
                     frame.timestamp,
@@ -71,6 +80,9 @@ def run(args):
                     clock_domain=frame.clock_domain,
                     tracks=tracks,
                     deleted_ids=tracker.deleted_ids,
+                    reset_before=frame.reset_before,
+                    reset_ended_ids=reset_ids,
+                    pose_outage_s=frame.pose_outage_s,
                     suppressed_duplicates=tracker.suppressed_duplicates,
                     latency_ms=latency,
                 )
@@ -101,9 +113,27 @@ def run(args):
         if writer is not None:
             writer.release()
     elapsed = perf_counter() - start
+    pose = None
+    if pose_report:
+        skipped = pose_report["skipped"]
+        reasons = {}
+        for s in skipped:
+            reasons[s.reason] = reasons.get(s.reason, 0) + 1
+        with (out / "skipped_frames.jsonl").open("w") as stream:
+            for s in skipped:
+                stream.write(json.dumps(dict(timestamp=s.timestamp, reason=s.reason)) + "\n")
+        pose = dict(
+            frames_input=pose_report["frames_input"],
+            frames_skipped=len(skipped),
+            skipped_by_reason=reasons,
+            start_hold_frames=pose_report["start_hold_frames"],
+            tracker_resets=pose_report["resets"],
+            raw_recording_modified=False,
+        )
     report = dict(
         frames=count,
         duplicate_frames_skipped=duplicates,
+        pose_alignment=pose,
         wall_s=elapsed,
         end_to_end_throughput_hz=count / elapsed,
         tracking_latency_ms_mean=sum(times) / len(times) if times else None,

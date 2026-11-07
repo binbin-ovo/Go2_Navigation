@@ -11,6 +11,7 @@ from go2_perception.adapters.go2.recording import RecordingReader
 from go2_perception.adapters.go2.pointcloud import to_lidar_message, quaternion_matrix
 from go2_perception.lidar.processor import LidarProcessor
 from .normalization import from_lidar
+from .pose_gate import ODOMETRY_GAP, PoseAlignmentConfig, PoseGate
 
 
 @dataclass
@@ -21,6 +22,8 @@ class TrackingFrame:
     detections: list[Detection3D]
     robot_pose: RobotPose | None = None
     ground_truth: list | None = None
+    reset_before: bool = False  # odometry outage: tracks must not bridge it
+    pose_outage_s: float | None = None  # gap to the previous posed frame when reset
 
 
 def frame_from_dict(row):
@@ -93,31 +96,59 @@ class RecordedPoses:
         return self.exact[t].copy() if t in self.exact else self.buffer.lookup(t)
 
 
-def recording_frames(path, config, lidar_config, window_s=0):
+def recording_frames(path, config, lidar_config, window_s=0, alignment=None, report=None):
+    """Yield tracked frames of a raw recording. ``report`` (a dict) receives skip details.
+
+    In odometry mode, frames that cannot be posed from bracketing odometry are skipped with
+    a reason (see ``pose_gate``); the recording itself is never modified.
+    """
     reader = RecordingReader(path)
     frames = reader.lidar_frames("rt/utlidar/cloud_base")
     if not frames:
         raise ValueError("No cloud_base frames in recording")
-    poses = RecordedPoses(
-        reader.state("rt/utlidar/robot_odom"), 2 * config.pose_tolerance_s
-    )
-    window = SlidingWindowAccumulator(poses, window_s) if window_s else None
-    if window and config.mode != "odom":
+    if window_s and config.mode != "odom":
         raise ValueError("Windows require odometry mode")
     processor = LidarProcessor(**lidar_config)
     # Sort by declared acquisition midpoint (not host receipt or file name).
     frames = sorted((r.load() for r in frames), key=lambda f: f.acquisition_midpoint)
-    last = None
-    for frame in frames:
-        t = frame.acquisition_midpoint
-        if last is not None and t <= last:
+    for previous, frame in zip(frames, frames[1:]):
+        if frame.acquisition_midpoint <= previous.acquisition_midpoint:
             raise ValueError("Duplicate/nonmonotonic LiDAR midpoint")
-        last = t
-        robot_pose = None
-        if config.mode == "odom":
-            matrix = poses.lookup(t)
-            if matrix is None:
-                raise ValueError(f"No valid bracketing odometry for LiDAR at {t}")
+    if report is not None:
+        report.update(frames_input=len(frames), skipped=[], start_hold_frames=0, resets=[])
+    if config.mode != "odom":
+        for frame in frames:
+            message = to_lidar_message(frame)
+            yield _tracking_frame(processor, frame.acquisition_midpoint, message, None)
+        return
+
+    alignment = alignment or PoseAlignmentConfig()
+    records = reader.state("rt/utlidar/robot_odom")
+    poses = RecordedPoses(records, 2 * config.pose_tolerance_s)
+    gate = PoseGate(poses, alignment)
+    if report is not None:
+        report["skipped"] = gate.skipped
+    window = SlidingWindowAccumulator(gate, window_s) if window_s else None
+    # Replay arrival order by robot stamp; odometry at the same stamp precedes the frame.
+    events = sorted(
+        [(r["stamp"], 0, None) for r in records]
+        + [(f.acquisition_midpoint, 1, f) for f in frames],
+        key=lambda e: e[:2],
+    )
+    state = dict(last=None, emitted=0, gap_skips=0)
+
+    def emit(resolved):
+        for t, frame, matrix in resolved:
+            gap_skips = sum(s.reason == ODOMETRY_GAP for s in gate.skipped)
+            outage = None if state["last"] is None else t - state["last"]
+            reset = (
+                gap_skips > state["gap_skips"]
+                and outage is not None
+                and outage > alignment.reset_after_gap_s
+            )
+            state.update(last=t, gap_skips=gap_skips)
+            if reset and report is not None:
+                report["resets"].append(dict(timestamp=t, pose_outage_s=outage))
             if window:
                 if not window.add(frame.xyz, t):
                     raise ValueError("Cannot accumulate cloud without pose")
@@ -132,14 +163,37 @@ def recording_frames(path, config, lidar_config, window_s=0):
             level = matrix.copy()
             level[:3, :3] = Rotation.from_euler("z", yaw).as_matrix()
             robot_pose = RobotPose(t, level, "odom", "base_link_level", "go2_robot")
+            state["emitted"] += 1
+            yield _tracking_frame(
+                processor, t, message, robot_pose, reset, outage if reset else None
+            )
+
+    for t, kind, frame in events:
+        if kind == 0:
+            gate.note_pose(t)
         else:
-            message = to_lidar_message(frame)
-        result = processor.process(
-            message.points,
-            timestamp=t,
-            frame_id=message.frame_id,
-            clock_domain=message.clock_domain,
-        )
-        yield TrackingFrame(
-            t, message.frame_id, message.clock_domain, from_lidar(result), robot_pose
-        )
+            gate.push(t, frame)
+        yield from emit(gate.release())
+    yield from emit(gate.release(final=True))
+    if report is not None:
+        report["start_hold_frames"] = gate.held
+    if not state["emitted"]:
+        raise ValueError("No LiDAR frame had valid bracketing odometry")
+
+
+def _tracking_frame(processor, t, message, robot_pose, reset=False, outage=None):
+    result = processor.process(
+        message.points,
+        timestamp=t,
+        frame_id=message.frame_id,
+        clock_domain=message.clock_domain,
+    )
+    return TrackingFrame(
+        t,
+        message.frame_id,
+        message.clock_domain,
+        from_lidar(result),
+        robot_pose,
+        reset_before=reset,
+        pose_outage_s=outage,
+    )

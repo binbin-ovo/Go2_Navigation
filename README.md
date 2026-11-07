@@ -1,5 +1,9 @@
 # Go2 Dynamic Perception and Navigation
 
+**macOS:** the Go2 is read natively from an Apple Silicon Mac with the Phase 2 adapter
+(`.venv-go2`, Python 3.10). Setup: [MAC_CONNECTION](docs/MAC_CONNECTION.md); real tracking
+results: [PHASE3_REAL_VALIDATION](docs/PHASE3_REAL_VALIDATION.md). Tests: 135 passed, 1 hardware skipped.
+
 **Phase 3 adds offline temporal 3D tracking** on branch `phase3-tracking`: persistent IDs,
 ego-motion compensation, planar velocity/covariance, moving/stationary/uncertain states,
 constant-velocity trajectories, and headless BEV/video. This branch is not merged into main.
