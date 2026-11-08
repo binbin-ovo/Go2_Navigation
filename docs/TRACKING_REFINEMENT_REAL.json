@@ -1,0 +1,1366 @@
+{
+  "run": {
+    "baseline_commit": "ecfaae38984a598a9839b17582c31be42532972d",
+    "working_commit": "de043d1cc9b19bfce76b4e34f8324916ac4a2e18",
+    "working_tree_dirty": true,
+    "variants": {
+      "baseline": [
+        "baseline",
+        "configs/tracking.yaml",
+        {}
+      ],
+      "current_default": [
+        "working",
+        "configs/tracking.yaml",
+        {}
+      ],
+      "improved": [
+        "working",
+        "configs/tracking_robustness.yaml",
+        {}
+      ],
+      "refined": [
+        "working",
+        "configs/tracking_refinement.yaml",
+        {}
+      ]
+    },
+    "input_sha256": {
+      "test_a1": "27f22574b9504169995702ba84c05b8abeb7627401848ac6cd1e54852251918f",
+      "test_a2": "ffd41ea790455134826f2fd4474e98b2fa2ce32c8499949944bbe43d149e9881",
+      "test_b": "fc016cd9e053793e5b0b45fce94b52d8dd4f402f3bd21b1fd7299fc5e20641eb",
+      "test_c": "869cb271b8e68e4fdf84a4de574c1c1e8c7f02709879ae5847a5367240065241"
+    }
+  },
+  "recordings": {
+    "test_a1": {
+      "baseline": {
+        "scene": {
+          "created_ids": 514,
+          "confirmed_ids": 471,
+          "confirmed_ids_lasting_5s": 112,
+          "confirmed_lifetime_median_s": 2.14,
+          "confirmed_tracks_per_frame": 21.43,
+          "lost_tracks_per_frame": 11.94,
+          "duplicate_pair_frames": 365,
+          "duplicate_pairs": 448,
+          "observed_duplicate_pair_frames": 114,
+          "confirmed_states": {
+            "U": 17789,
+            "M": 1550,
+            "S": 458
+          },
+          "ids_ever_moving": 231,
+          "fragment_groups": 0,
+          "implausible_jumps": 97,
+          "reactivations": 2151,
+          "reactivations_over_1m": 77,
+          "tracker_ms_mean": 20.79,
+          "tracker_ms_p95": 25.95
+        },
+        "box": {
+          "observed_coverage": 0.819,
+          "observed_dominant_id_share": 0.992,
+          "frames": 924,
+          "coverage": 0.904,
+          "unique_ids": 3,
+          "id_changes": 4,
+          "returns_to_previous_id": 2,
+          "dominant_id_share": 0.993,
+          "longest_run_s": 4.9,
+          "runs_over_1s": 21,
+          "competing_frames": 6,
+          "position_std_m": [
+            0.04,
+            0.049
+          ],
+          "speed_median": 0.069,
+          "speed_p95": 0.165,
+          "velocity_std_median": 0.139,
+          "states": {
+            "U": 778,
+            "S": 52,
+            "M": 5
+          }
+        },
+        "historical_match": {
+          "frames_identical": 924,
+          "frames": 924,
+          "max_position_diff_m": 4.999970416497135e-05
+        }
+      },
+      "current_default": {
+        "scene": {
+          "created_ids": 514,
+          "confirmed_ids": 471,
+          "confirmed_ids_lasting_5s": 112,
+          "confirmed_lifetime_median_s": 2.14,
+          "confirmed_tracks_per_frame": 21.43,
+          "lost_tracks_per_frame": 11.94,
+          "duplicate_pair_frames": 365,
+          "duplicate_pairs": 448,
+          "observed_duplicate_pair_frames": 114,
+          "confirmed_states": {
+            "U": 17789,
+            "M": 1550,
+            "S": 458
+          },
+          "ids_ever_moving": 231,
+          "fragment_groups": 0,
+          "implausible_jumps": 97,
+          "reactivations": 2151,
+          "reactivations_over_1m": 77,
+          "tracker_ms_mean": 20.88,
+          "tracker_ms_p95": 25.82
+        },
+        "box": {
+          "observed_coverage": 0.819,
+          "observed_dominant_id_share": 0.992,
+          "frames": 924,
+          "coverage": 0.904,
+          "unique_ids": 3,
+          "id_changes": 4,
+          "returns_to_previous_id": 2,
+          "dominant_id_share": 0.993,
+          "longest_run_s": 4.9,
+          "runs_over_1s": 21,
+          "competing_frames": 6,
+          "position_std_m": [
+            0.04,
+            0.049
+          ],
+          "speed_median": 0.069,
+          "speed_p95": 0.165,
+          "velocity_std_median": 0.139,
+          "states": {
+            "U": 778,
+            "S": 52,
+            "M": 5
+          }
+        }
+      },
+      "improved": {
+        "scene": {
+          "created_ids": 261,
+          "confirmed_ids": 240,
+          "confirmed_ids_lasting_5s": 109,
+          "confirmed_lifetime_median_s": 4.12,
+          "confirmed_tracks_per_frame": 22.34,
+          "lost_tracks_per_frame": 18.64,
+          "duplicate_pair_frames": 483,
+          "duplicate_pairs": 687,
+          "observed_duplicate_pair_frames": 141,
+          "confirmed_states": {
+            "U": 17185,
+            "M": 127,
+            "S": 3327
+          },
+          "ids_ever_moving": 36,
+          "fragment_groups": 48,
+          "implausible_jumps": 85,
+          "reactivations": 2661,
+          "reactivations_over_1m": 99,
+          "tracker_ms_mean": 29.09,
+          "tracker_ms_p95": 35.78
+        },
+        "box": {
+          "observed_coverage": 0.818,
+          "observed_dominant_id_share": 0.993,
+          "frames": 924,
+          "coverage": 0.903,
+          "unique_ids": 4,
+          "id_changes": 6,
+          "returns_to_previous_id": 3,
+          "dominant_id_share": 0.995,
+          "longest_run_s": 5.7,
+          "runs_over_1s": 20,
+          "competing_frames": 7,
+          "position_std_m": [
+            0.039,
+            0.048
+          ],
+          "speed_median": 0.07,
+          "speed_p95": 0.159,
+          "velocity_std_median": 0.139,
+          "states": {
+            "U": 388,
+            "S": 446
+          }
+        }
+      },
+      "refined": {
+        "scene": {
+          "created_ids": 248,
+          "confirmed_ids": 219,
+          "confirmed_ids_lasting_5s": 120,
+          "confirmed_lifetime_median_s": 5.85,
+          "confirmed_tracks_per_frame": 18.19,
+          "lost_tracks_per_frame": 23.18,
+          "duplicate_pair_frames": 139,
+          "duplicate_pairs": 155,
+          "observed_duplicate_pair_frames": 139,
+          "confirmed_states": {
+            "U": 13231,
+            "M": 324,
+            "S": 3249
+          },
+          "ids_ever_moving": 62,
+          "fragment_groups": 24,
+          "implausible_jumps": 8,
+          "reactivations": 2686,
+          "reactivations_over_1m": 42,
+          "tracker_ms_mean": 21.4,
+          "tracker_ms_p95": 26.63
+        },
+        "box": {
+          "observed_coverage": 0.818,
+          "observed_dominant_id_share": 0.979,
+          "frames": 924,
+          "coverage": 0.818,
+          "unique_ids": 9,
+          "id_changes": 19,
+          "returns_to_previous_id": 11,
+          "dominant_id_share": 0.979,
+          "longest_run_s": 2.9,
+          "runs_over_1s": 14,
+          "competing_frames": 0,
+          "position_std_m": [
+            0.037,
+            0.051
+          ],
+          "speed_median": 0.07,
+          "speed_p95": 0.167,
+          "velocity_std_median": 0.139,
+          "states": {
+            "U": 323,
+            "S": 432,
+            "M": 1
+          }
+        }
+      },
+      "current_default_identical_to_baseline": true
+    },
+    "test_a2": {
+      "baseline": {
+        "scene": {
+          "created_ids": 464,
+          "confirmed_ids": 421,
+          "confirmed_ids_lasting_5s": 100,
+          "confirmed_lifetime_median_s": 2.01,
+          "confirmed_tracks_per_frame": 21.0,
+          "lost_tracks_per_frame": 12.2,
+          "duplicate_pair_frames": 277,
+          "duplicate_pairs": 345,
+          "observed_duplicate_pair_frames": 62,
+          "confirmed_states": {
+            "U": 14178,
+            "M": 1633,
+            "S": 335
+          },
+          "ids_ever_moving": 220,
+          "fragment_groups": 0,
+          "implausible_jumps": 82,
+          "reactivations": 1686,
+          "reactivations_over_1m": 62,
+          "tracker_ms_mean": 20.7,
+          "tracker_ms_p95": 26.32
+        },
+        "box": {
+          "observed_coverage": 0.776,
+          "observed_dominant_id_share": 0.501,
+          "frames": 769,
+          "coverage": 0.853,
+          "unique_ids": 11,
+          "id_changes": 15,
+          "returns_to_previous_id": 5,
+          "dominant_id_share": 0.498,
+          "longest_run_s": 5.7,
+          "runs_over_1s": 14,
+          "competing_frames": 9,
+          "position_std_m": [
+            0.055,
+            0.056
+          ],
+          "speed_median": 0.09,
+          "speed_p95": 0.547,
+          "velocity_std_median": 0.14,
+          "states": {
+            "U": 602,
+            "S": 36,
+            "M": 18
+          }
+        },
+        "person_spot": {
+          "unique_ids": 29,
+          "longest_span_s": 1.8
+        },
+        "historical_match": {
+          "frames_identical": 769,
+          "frames": 769,
+          "max_position_diff_m": 4.999850278153417e-05
+        }
+      },
+      "current_default": {
+        "scene": {
+          "created_ids": 464,
+          "confirmed_ids": 421,
+          "confirmed_ids_lasting_5s": 100,
+          "confirmed_lifetime_median_s": 2.01,
+          "confirmed_tracks_per_frame": 21.0,
+          "lost_tracks_per_frame": 12.2,
+          "duplicate_pair_frames": 277,
+          "duplicate_pairs": 345,
+          "observed_duplicate_pair_frames": 62,
+          "confirmed_states": {
+            "U": 14178,
+            "M": 1633,
+            "S": 335
+          },
+          "ids_ever_moving": 220,
+          "fragment_groups": 0,
+          "implausible_jumps": 82,
+          "reactivations": 1686,
+          "reactivations_over_1m": 62,
+          "tracker_ms_mean": 20.79,
+          "tracker_ms_p95": 26.18
+        },
+        "box": {
+          "observed_coverage": 0.776,
+          "observed_dominant_id_share": 0.501,
+          "frames": 769,
+          "coverage": 0.853,
+          "unique_ids": 11,
+          "id_changes": 15,
+          "returns_to_previous_id": 5,
+          "dominant_id_share": 0.498,
+          "longest_run_s": 5.7,
+          "runs_over_1s": 14,
+          "competing_frames": 9,
+          "position_std_m": [
+            0.055,
+            0.056
+          ],
+          "speed_median": 0.09,
+          "speed_p95": 0.547,
+          "velocity_std_median": 0.14,
+          "states": {
+            "U": 602,
+            "S": 36,
+            "M": 18
+          }
+        },
+        "person_spot": {
+          "unique_ids": 29,
+          "longest_span_s": 1.8
+        }
+      },
+      "improved": {
+        "scene": {
+          "created_ids": 243,
+          "confirmed_ids": 222,
+          "confirmed_ids_lasting_5s": 103,
+          "confirmed_lifetime_median_s": 4.61,
+          "confirmed_tracks_per_frame": 21.9,
+          "lost_tracks_per_frame": 19.23,
+          "duplicate_pair_frames": 383,
+          "duplicate_pairs": 530,
+          "observed_duplicate_pair_frames": 112,
+          "confirmed_states": {
+            "U": 14367,
+            "M": 460,
+            "S": 2013
+          },
+          "ids_ever_moving": 52,
+          "fragment_groups": 44,
+          "implausible_jumps": 73,
+          "reactivations": 2063,
+          "reactivations_over_1m": 114,
+          "tracker_ms_mean": 29.16,
+          "tracker_ms_p95": 36.46
+        },
+        "box": {
+          "observed_coverage": 0.78,
+          "observed_dominant_id_share": 0.952,
+          "frames": 769,
+          "coverage": 0.856,
+          "unique_ids": 12,
+          "id_changes": 28,
+          "returns_to_previous_id": 17,
+          "dominant_id_share": 0.96,
+          "longest_run_s": 3.7,
+          "runs_over_1s": 18,
+          "competing_frames": 22,
+          "position_std_m": [
+            0.052,
+            0.057
+          ],
+          "speed_median": 0.085,
+          "speed_p95": 0.274,
+          "velocity_std_median": 0.14,
+          "states": {
+            "U": 410,
+            "S": 248
+          }
+        },
+        "person_spot": {
+          "unique_ids": 24,
+          "longest_span_s": 31.2
+        }
+      },
+      "refined": {
+        "scene": {
+          "created_ids": 231,
+          "confirmed_ids": 198,
+          "confirmed_ids_lasting_5s": 116,
+          "confirmed_lifetime_median_s": 6.24,
+          "confirmed_tracks_per_frame": 17.97,
+          "lost_tracks_per_frame": 23.91,
+          "duplicate_pair_frames": 115,
+          "duplicate_pairs": 119,
+          "observed_duplicate_pair_frames": 115,
+          "confirmed_states": {
+            "U": 11216,
+            "M": 539,
+            "S": 2062
+          },
+          "ids_ever_moving": 68,
+          "fragment_groups": 44,
+          "implausible_jumps": 7,
+          "reactivations": 2164,
+          "reactivations_over_1m": 58,
+          "tracker_ms_mean": 21.34,
+          "tracker_ms_p95": 27.7
+        },
+        "box": {
+          "observed_coverage": 0.779,
+          "observed_dominant_id_share": 0.843,
+          "frames": 769,
+          "coverage": 0.779,
+          "unique_ids": 10,
+          "id_changes": 21,
+          "returns_to_previous_id": 12,
+          "dominant_id_share": 0.843,
+          "longest_run_s": 2.7,
+          "runs_over_1s": 10,
+          "competing_frames": 0,
+          "position_std_m": [
+            0.052,
+            0.055
+          ],
+          "speed_median": 0.085,
+          "speed_p95": 0.319,
+          "velocity_std_median": 0.139,
+          "states": {
+            "U": 314,
+            "S": 281,
+            "M": 4
+          }
+        },
+        "person_spot": {
+          "unique_ids": 16,
+          "longest_span_s": 4.2
+        }
+      },
+      "current_default_identical_to_baseline": true
+    },
+    "test_b": {
+      "baseline": {
+        "scene": {
+          "created_ids": 624,
+          "confirmed_ids": 576,
+          "confirmed_ids_lasting_5s": 116,
+          "confirmed_lifetime_median_s": 1.95,
+          "confirmed_tracks_per_frame": 20.99,
+          "lost_tracks_per_frame": 11.89,
+          "duplicate_pair_frames": 380,
+          "duplicate_pairs": 462,
+          "observed_duplicate_pair_frames": 103,
+          "confirmed_states": {
+            "U": 18379,
+            "M": 2209,
+            "S": 420
+          },
+          "ids_ever_moving": 306,
+          "fragment_groups": 0,
+          "implausible_jumps": 122,
+          "reactivations": 2070,
+          "reactivations_over_1m": 96,
+          "tracker_ms_mean": 20.61,
+          "tracker_ms_p95": 26.11
+        },
+        "box": {
+          "observed_coverage": 0.735,
+          "observed_dominant_id_share": 0.304,
+          "frames": 1001,
+          "coverage": 0.808,
+          "unique_ids": 13,
+          "id_changes": 13,
+          "returns_to_previous_id": 1,
+          "dominant_id_share": 0.311,
+          "longest_run_s": 7.5,
+          "runs_over_1s": 15,
+          "competing_frames": 7,
+          "position_std_m": [
+            0.065,
+            0.061
+          ],
+          "speed_median": 0.086,
+          "speed_p95": 0.796,
+          "velocity_std_median": 0.139,
+          "states": {
+            "U": 672,
+            "M": 50,
+            "S": 87
+          }
+        },
+        "person": {
+          "coverage": 0.958,
+          "unique_ids": 19,
+          "passes": [
+            {
+              "window_s": [
+                7.5,
+                17.5
+              ],
+              "coverage": 0.926,
+              "unique_ids": 3,
+              "id_changes": 3,
+              "walking_frames": 62,
+              "walking_reference_frames": 70.0,
+              "walking_ref_speed": 0.65,
+              "walking_track_speed": 0.769,
+              "walking_velocity_error": 0.245,
+              "walking_states": {
+                "U": 26,
+                "M": 36
+              },
+              "pausing_frames": 42,
+              "pausing_track_speed": 0.202,
+              "pausing_states": {
+                "M": 8,
+                "U": 31,
+                "S": 3
+              }
+            },
+            {
+              "window_s": [
+                21.5,
+                34.5
+              ],
+              "coverage": 0.978,
+              "unique_ids": 4,
+              "id_changes": 7,
+              "walking_frames": 67,
+              "walking_reference_frames": 68.0,
+              "walking_ref_speed": 0.739,
+              "walking_track_speed": 0.892,
+              "walking_velocity_error": 0.365,
+              "walking_states": {
+                "U": 12,
+                "M": 49,
+                "S": 6
+              },
+              "pausing_frames": 51,
+              "pausing_track_speed": 0.117,
+              "pausing_states": {
+                "M": 6,
+                "U": 40,
+                "S": 5
+              }
+            },
+            {
+              "window_s": [
+                39.5,
+                53.5
+              ],
+              "coverage": 0.976,
+              "unique_ids": 10,
+              "id_changes": 24,
+              "walking_frames": 64,
+              "walking_reference_frames": 68.0,
+              "walking_ref_speed": 0.798,
+              "walking_track_speed": 0.802,
+              "walking_velocity_error": 0.396,
+              "walking_states": {
+                "U": 30,
+                "M": 34
+              },
+              "pausing_frames": 57,
+              "pausing_track_speed": 0.172,
+              "pausing_states": {
+                "M": 13,
+                "U": 41,
+                "S": 3
+              }
+            }
+          ]
+        },
+        "historical_match": {
+          "frames_identical": 1001,
+          "frames": 1001,
+          "max_position_diff_m": 4.999922877013674e-05
+        }
+      },
+      "current_default": {
+        "scene": {
+          "created_ids": 624,
+          "confirmed_ids": 576,
+          "confirmed_ids_lasting_5s": 116,
+          "confirmed_lifetime_median_s": 1.95,
+          "confirmed_tracks_per_frame": 20.99,
+          "lost_tracks_per_frame": 11.89,
+          "duplicate_pair_frames": 380,
+          "duplicate_pairs": 462,
+          "observed_duplicate_pair_frames": 103,
+          "confirmed_states": {
+            "U": 18379,
+            "M": 2209,
+            "S": 420
+          },
+          "ids_ever_moving": 306,
+          "fragment_groups": 0,
+          "implausible_jumps": 122,
+          "reactivations": 2070,
+          "reactivations_over_1m": 96,
+          "tracker_ms_mean": 20.73,
+          "tracker_ms_p95": 26.15
+        },
+        "box": {
+          "observed_coverage": 0.735,
+          "observed_dominant_id_share": 0.304,
+          "frames": 1001,
+          "coverage": 0.808,
+          "unique_ids": 13,
+          "id_changes": 13,
+          "returns_to_previous_id": 1,
+          "dominant_id_share": 0.311,
+          "longest_run_s": 7.5,
+          "runs_over_1s": 15,
+          "competing_frames": 7,
+          "position_std_m": [
+            0.065,
+            0.061
+          ],
+          "speed_median": 0.086,
+          "speed_p95": 0.796,
+          "velocity_std_median": 0.139,
+          "states": {
+            "U": 672,
+            "M": 50,
+            "S": 87
+          }
+        },
+        "person": {
+          "coverage": 0.958,
+          "unique_ids": 19,
+          "passes": [
+            {
+              "window_s": [
+                7.5,
+                17.5
+              ],
+              "coverage": 0.926,
+              "unique_ids": 3,
+              "id_changes": 3,
+              "walking_frames": 62,
+              "walking_reference_frames": 70.0,
+              "walking_ref_speed": 0.65,
+              "walking_track_speed": 0.769,
+              "walking_velocity_error": 0.245,
+              "walking_states": {
+                "U": 26,
+                "M": 36
+              },
+              "pausing_frames": 42,
+              "pausing_track_speed": 0.202,
+              "pausing_states": {
+                "M": 8,
+                "U": 31,
+                "S": 3
+              }
+            },
+            {
+              "window_s": [
+                21.5,
+                34.5
+              ],
+              "coverage": 0.978,
+              "unique_ids": 4,
+              "id_changes": 7,
+              "walking_frames": 67,
+              "walking_reference_frames": 68.0,
+              "walking_ref_speed": 0.739,
+              "walking_track_speed": 0.892,
+              "walking_velocity_error": 0.365,
+              "walking_states": {
+                "U": 12,
+                "M": 49,
+                "S": 6
+              },
+              "pausing_frames": 51,
+              "pausing_track_speed": 0.117,
+              "pausing_states": {
+                "M": 6,
+                "U": 40,
+                "S": 5
+              }
+            },
+            {
+              "window_s": [
+                39.5,
+                53.5
+              ],
+              "coverage": 0.976,
+              "unique_ids": 10,
+              "id_changes": 24,
+              "walking_frames": 64,
+              "walking_reference_frames": 68.0,
+              "walking_ref_speed": 0.798,
+              "walking_track_speed": 0.802,
+              "walking_velocity_error": 0.396,
+              "walking_states": {
+                "U": 30,
+                "M": 34
+              },
+              "pausing_frames": 57,
+              "pausing_track_speed": 0.172,
+              "pausing_states": {
+                "M": 13,
+                "U": 41,
+                "S": 3
+              }
+            }
+          ]
+        }
+      },
+      "improved": {
+        "scene": {
+          "created_ids": 333,
+          "confirmed_ids": 301,
+          "confirmed_ids_lasting_5s": 134,
+          "confirmed_lifetime_median_s": 4.09,
+          "confirmed_tracks_per_frame": 21.84,
+          "lost_tracks_per_frame": 19.15,
+          "duplicate_pair_frames": 504,
+          "duplicate_pairs": 693,
+          "observed_duplicate_pair_frames": 134,
+          "confirmed_states": {
+            "U": 18989,
+            "M": 405,
+            "S": 2467
+          },
+          "ids_ever_moving": 63,
+          "fragment_groups": 83,
+          "implausible_jumps": 127,
+          "reactivations": 2631,
+          "reactivations_over_1m": 163,
+          "tracker_ms_mean": 29.09,
+          "tracker_ms_p95": 36.08
+        },
+        "box": {
+          "observed_coverage": 0.732,
+          "observed_dominant_id_share": 0.491,
+          "frames": 1001,
+          "coverage": 0.806,
+          "unique_ids": 10,
+          "id_changes": 14,
+          "returns_to_previous_id": 5,
+          "dominant_id_share": 0.489,
+          "longest_run_s": 7.5,
+          "runs_over_1s": 15,
+          "competing_frames": 6,
+          "position_std_m": [
+            0.056,
+            0.06
+          ],
+          "speed_median": 0.082,
+          "speed_p95": 0.342,
+          "velocity_std_median": 0.139,
+          "states": {
+            "U": 450,
+            "S": 355,
+            "M": 2
+          }
+        },
+        "person": {
+          "coverage": 0.948,
+          "unique_ids": 20,
+          "passes": [
+            {
+              "window_s": [
+                7.5,
+                17.5
+              ],
+              "coverage": 0.911,
+              "unique_ids": 4,
+              "id_changes": 7,
+              "walking_frames": 62,
+              "walking_reference_frames": 70.0,
+              "walking_ref_speed": 0.65,
+              "walking_track_speed": 0.676,
+              "walking_velocity_error": 0.257,
+              "walking_states": {
+                "M": 16,
+                "U": 46
+              },
+              "pausing_frames": 40,
+              "pausing_track_speed": 0.149,
+              "pausing_states": {
+                "U": 26,
+                "S": 14
+              }
+            },
+            {
+              "window_s": [
+                21.5,
+                34.5
+              ],
+              "coverage": 0.972,
+              "unique_ids": 4,
+              "id_changes": 8,
+              "walking_frames": 66,
+              "walking_reference_frames": 68.0,
+              "walking_ref_speed": 0.765,
+              "walking_track_speed": 0.808,
+              "walking_velocity_error": 0.297,
+              "walking_states": {
+                "U": 32,
+                "M": 28,
+                "S": 6
+              },
+              "pausing_frames": 51,
+              "pausing_track_speed": 0.117,
+              "pausing_states": {
+                "M": 6,
+                "U": 17,
+                "S": 28
+              }
+            },
+            {
+              "window_s": [
+                39.5,
+                53.5
+              ],
+              "coverage": 0.961,
+              "unique_ids": 9,
+              "id_changes": 20,
+              "walking_frames": 61,
+              "walking_reference_frames": 68.0,
+              "walking_ref_speed": 0.798,
+              "walking_track_speed": 0.72,
+              "walking_velocity_error": 0.451,
+              "walking_states": {
+                "M": 30,
+                "U": 31
+              },
+              "pausing_frames": 57,
+              "pausing_track_speed": 0.148,
+              "pausing_states": {
+                "U": 46,
+                "S": 11
+              }
+            }
+          ]
+        }
+      },
+      "refined": {
+        "scene": {
+          "created_ids": 332,
+          "confirmed_ids": 300,
+          "confirmed_ids_lasting_5s": 165,
+          "confirmed_lifetime_median_s": 5.43,
+          "confirmed_tracks_per_frame": 17.98,
+          "lost_tracks_per_frame": 24.02,
+          "duplicate_pair_frames": 137,
+          "duplicate_pairs": 150,
+          "observed_duplicate_pair_frames": 137,
+          "confirmed_states": {
+            "U": 14891,
+            "M": 637,
+            "S": 2465
+          },
+          "ids_ever_moving": 103,
+          "fragment_groups": 57,
+          "implausible_jumps": 12,
+          "reactivations": 2666,
+          "reactivations_over_1m": 66,
+          "tracker_ms_mean": 21.5,
+          "tracker_ms_p95": 26.86
+        },
+        "box": {
+          "observed_coverage": 0.727,
+          "observed_dominant_id_share": 0.493,
+          "frames": 1001,
+          "coverage": 0.727,
+          "unique_ids": 5,
+          "id_changes": 8,
+          "returns_to_previous_id": 4,
+          "dominant_id_share": 0.493,
+          "longest_run_s": 3.4,
+          "runs_over_1s": 13,
+          "competing_frames": 0,
+          "position_std_m": [
+            0.052,
+            0.055
+          ],
+          "speed_median": 0.082,
+          "speed_p95": 0.257,
+          "velocity_std_median": 0.139,
+          "states": {
+            "U": 361,
+            "S": 366,
+            "M": 1
+          }
+        },
+        "person": {
+          "coverage": 0.919,
+          "unique_ids": 18,
+          "passes": [
+            {
+              "window_s": [
+                7.5,
+                17.5
+              ],
+              "coverage": 0.867,
+              "unique_ids": 5,
+              "id_changes": 11,
+              "walking_frames": 56,
+              "walking_reference_frames": 70.0,
+              "walking_ref_speed": 0.65,
+              "walking_track_speed": 0.664,
+              "walking_velocity_error": 0.283,
+              "walking_states": {
+                "U": 32,
+                "M": 24
+              },
+              "pausing_frames": 40,
+              "pausing_track_speed": 0.137,
+              "pausing_states": {
+                "U": 23,
+                "M": 3,
+                "S": 14
+              }
+            },
+            {
+              "window_s": [
+                21.5,
+                34.5
+              ],
+              "coverage": 0.95,
+              "unique_ids": 4,
+              "id_changes": 6,
+              "walking_frames": 63,
+              "walking_reference_frames": 68.0,
+              "walking_ref_speed": 0.739,
+              "walking_track_speed": 0.869,
+              "walking_velocity_error": 0.377,
+              "walking_states": {
+                "U": 23,
+                "M": 34,
+                "S": 6
+              },
+              "pausing_frames": 51,
+              "pausing_track_speed": 0.126,
+              "pausing_states": {
+                "M": 6,
+                "U": 17,
+                "S": 28
+              }
+            },
+            {
+              "window_s": [
+                39.5,
+                53.5
+              ],
+              "coverage": 0.946,
+              "unique_ids": 7,
+              "id_changes": 16,
+              "walking_frames": 64,
+              "walking_reference_frames": 68.0,
+              "walking_ref_speed": 0.798,
+              "walking_track_speed": 0.742,
+              "walking_velocity_error": 0.448,
+              "walking_states": {
+                "M": 37,
+                "U": 27
+              },
+              "pausing_frames": 57,
+              "pausing_track_speed": 0.151,
+              "pausing_states": {
+                "U": 48,
+                "S": 9
+              }
+            }
+          ]
+        }
+      },
+      "current_default_identical_to_baseline": true
+    },
+    "test_c": {
+      "baseline": {
+        "scene": {
+          "created_ids": 699,
+          "confirmed_ids": 652,
+          "confirmed_ids_lasting_5s": 165,
+          "confirmed_lifetime_median_s": 2.34,
+          "confirmed_tracks_per_frame": 24.02,
+          "lost_tracks_per_frame": 12.75,
+          "duplicate_pair_frames": 682,
+          "duplicate_pairs": 1009,
+          "observed_duplicate_pair_frames": 233,
+          "confirmed_states": {
+            "U": 25767,
+            "M": 2529,
+            "S": 1243
+          },
+          "ids_ever_moving": 362,
+          "fragment_groups": 0,
+          "implausible_jumps": 114,
+          "reactivations": 3083,
+          "reactivations_over_1m": 88,
+          "tracker_ms_mean": 25.47,
+          "tracker_ms_p95": 36.22
+        },
+        "box": {
+          "observed_coverage": 0.685,
+          "observed_dominant_id_share": 0.321,
+          "frames": 1230,
+          "coverage": 0.776,
+          "unique_ids": 22,
+          "id_changes": 30,
+          "returns_to_previous_id": 9,
+          "dominant_id_share": 0.327,
+          "longest_run_s": 3.4,
+          "runs_over_1s": 19,
+          "competing_frames": 19,
+          "position_std_m": [
+            0.082,
+            0.067
+          ],
+          "speed_median": 0.067,
+          "speed_p95": 0.481,
+          "velocity_std_median": 0.141,
+          "states": {
+            "U": 830,
+            "M": 39,
+            "S": 86
+          },
+          "phases": {
+            "still": {
+              "n": 792,
+              "std_m": [
+                0.085,
+                0.067
+              ],
+              "speed_median": 0.068,
+              "speed_p95": 0.625,
+              "moving": 39,
+              "stationary": 65
+            },
+            "rotating": {
+              "n": 81,
+              "std_m": [
+                0.059,
+                0.062
+              ],
+              "speed_median": 0.071,
+              "speed_p95": 0.283,
+              "moving": 0,
+              "stationary": 11
+            },
+            "translating": {
+              "n": 82,
+              "std_m": [
+                0.061,
+                0.066
+              ],
+              "speed_median": 0.056,
+              "speed_p95": 0.282,
+              "moving": 0,
+              "stationary": 10
+            }
+          },
+          "id_changes_near_rotation": 1,
+          "drift_first_last_5s_m": 0.11
+        },
+        "historical_match": {
+          "frames_identical": 1230,
+          "frames": 1230,
+          "max_position_diff_m": 4.9999593743521586e-05
+        }
+      },
+      "current_default": {
+        "scene": {
+          "created_ids": 699,
+          "confirmed_ids": 652,
+          "confirmed_ids_lasting_5s": 165,
+          "confirmed_lifetime_median_s": 2.34,
+          "confirmed_tracks_per_frame": 24.02,
+          "lost_tracks_per_frame": 12.75,
+          "duplicate_pair_frames": 682,
+          "duplicate_pairs": 1009,
+          "observed_duplicate_pair_frames": 233,
+          "confirmed_states": {
+            "U": 25767,
+            "M": 2529,
+            "S": 1243
+          },
+          "ids_ever_moving": 362,
+          "fragment_groups": 0,
+          "implausible_jumps": 114,
+          "reactivations": 3083,
+          "reactivations_over_1m": 88,
+          "tracker_ms_mean": 25.45,
+          "tracker_ms_p95": 36.12
+        },
+        "box": {
+          "observed_coverage": 0.685,
+          "observed_dominant_id_share": 0.321,
+          "frames": 1230,
+          "coverage": 0.776,
+          "unique_ids": 22,
+          "id_changes": 30,
+          "returns_to_previous_id": 9,
+          "dominant_id_share": 0.327,
+          "longest_run_s": 3.4,
+          "runs_over_1s": 19,
+          "competing_frames": 19,
+          "position_std_m": [
+            0.082,
+            0.067
+          ],
+          "speed_median": 0.067,
+          "speed_p95": 0.481,
+          "velocity_std_median": 0.141,
+          "states": {
+            "U": 830,
+            "M": 39,
+            "S": 86
+          },
+          "phases": {
+            "still": {
+              "n": 792,
+              "std_m": [
+                0.085,
+                0.067
+              ],
+              "speed_median": 0.068,
+              "speed_p95": 0.625,
+              "moving": 39,
+              "stationary": 65
+            },
+            "rotating": {
+              "n": 81,
+              "std_m": [
+                0.059,
+                0.062
+              ],
+              "speed_median": 0.071,
+              "speed_p95": 0.283,
+              "moving": 0,
+              "stationary": 11
+            },
+            "translating": {
+              "n": 82,
+              "std_m": [
+                0.061,
+                0.066
+              ],
+              "speed_median": 0.056,
+              "speed_p95": 0.282,
+              "moving": 0,
+              "stationary": 10
+            }
+          },
+          "id_changes_near_rotation": 1,
+          "drift_first_last_5s_m": 0.11
+        }
+      },
+      "improved": {
+        "scene": {
+          "created_ids": 334,
+          "confirmed_ids": 315,
+          "confirmed_ids_lasting_5s": 187,
+          "confirmed_lifetime_median_s": 7.15,
+          "confirmed_tracks_per_frame": 25.12,
+          "lost_tracks_per_frame": 20.11,
+          "duplicate_pair_frames": 832,
+          "duplicate_pairs": 1435,
+          "observed_duplicate_pair_frames": 278,
+          "confirmed_states": {
+            "U": 25734,
+            "S": 4859,
+            "M": 302
+          },
+          "ids_ever_moving": 77,
+          "fragment_groups": 27,
+          "implausible_jumps": 74,
+          "reactivations": 3935,
+          "reactivations_over_1m": 93,
+          "tracker_ms_mean": 36.07,
+          "tracker_ms_p95": 49.74
+        },
+        "box": {
+          "observed_coverage": 0.689,
+          "observed_dominant_id_share": 0.568,
+          "frames": 1230,
+          "coverage": 0.783,
+          "unique_ids": 9,
+          "id_changes": 30,
+          "returns_to_previous_id": 22,
+          "dominant_id_share": 0.585,
+          "longest_run_s": 3.4,
+          "runs_over_1s": 17,
+          "competing_frames": 21,
+          "position_std_m": [
+            0.08,
+            0.067
+          ],
+          "speed_median": 0.061,
+          "speed_p95": 0.377,
+          "velocity_std_median": 0.142,
+          "states": {
+            "U": 619,
+            "S": 342,
+            "M": 2
+          },
+          "phases": {
+            "still": {
+              "n": 799,
+              "std_m": [
+                0.083,
+                0.067
+              ],
+              "speed_median": 0.064,
+              "speed_p95": 0.399,
+              "moving": 2,
+              "stationary": 282
+            },
+            "rotating": {
+              "n": 81,
+              "std_m": [
+                0.052,
+                0.058
+              ],
+              "speed_median": 0.056,
+              "speed_p95": 0.233,
+              "moving": 0,
+              "stationary": 31
+            },
+            "translating": {
+              "n": 83,
+              "std_m": [
+                0.065,
+                0.071
+              ],
+              "speed_median": 0.051,
+              "speed_p95": 0.317,
+              "moving": 0,
+              "stationary": 29
+            }
+          },
+          "id_changes_near_rotation": 2,
+          "drift_first_last_5s_m": 0.121
+        }
+      },
+      "refined": {
+        "scene": {
+          "created_ids": 343,
+          "confirmed_ids": 316,
+          "confirmed_ids_lasting_5s": 184,
+          "confirmed_lifetime_median_s": 6.98,
+          "confirmed_tracks_per_frame": 20.63,
+          "lost_tracks_per_frame": 24.73,
+          "duplicate_pair_frames": 275,
+          "duplicate_pairs": 314,
+          "observed_duplicate_pair_frames": 275,
+          "confirmed_states": {
+            "U": 19890,
+            "M": 651,
+            "S": 4835
+          },
+          "ids_ever_moving": 134,
+          "fragment_groups": 29,
+          "implausible_jumps": 8,
+          "reactivations": 3945,
+          "reactivations_over_1m": 45,
+          "tracker_ms_mean": 26.31,
+          "tracker_ms_p95": 36.69
+        },
+        "box": {
+          "observed_coverage": 0.676,
+          "observed_dominant_id_share": 0.484,
+          "frames": 1230,
+          "coverage": 0.676,
+          "unique_ids": 10,
+          "id_changes": 31,
+          "returns_to_previous_id": 22,
+          "dominant_id_share": 0.484,
+          "longest_run_s": 2.8,
+          "runs_over_1s": 14,
+          "competing_frames": 0,
+          "position_std_m": [
+            0.08,
+            0.065
+          ],
+          "speed_median": 0.054,
+          "speed_p95": 0.27,
+          "velocity_std_median": 0.141,
+          "states": {
+            "U": 468,
+            "S": 362,
+            "M": 2
+          },
+          "phases": {
+            "still": {
+              "n": 692,
+              "std_m": [
+                0.083,
+                0.065
+              ],
+              "speed_median": 0.056,
+              "speed_p95": 0.27,
+              "moving": 2,
+              "stationary": 295
+            },
+            "rotating": {
+              "n": 71,
+              "std_m": [
+                0.057,
+                0.064
+              ],
+              "speed_median": 0.051,
+              "speed_p95": 0.237,
+              "moving": 0,
+              "stationary": 37
+            },
+            "translating": {
+              "n": 69,
+              "std_m": [
+                0.053,
+                0.062
+              ],
+              "speed_median": 0.047,
+              "speed_p95": 0.299,
+              "moving": 0,
+              "stationary": 30
+            }
+          },
+          "id_changes_near_rotation": 2,
+          "drift_first_last_5s_m": 0.124
+        }
+      },
+      "current_default_identical_to_baseline": true
+    }
+  },
+  "evaluated_source_sha256": {
+    "src/go2_perception/tracking/association.py": "9e1f5f71c4ac0d61a9342ed8a3b7825c517fc6f256f188c687374a858ff4202a",
+    "src/go2_perception/tracking/config.py": "b28f8abc6d0bffaa17190972affbe45ebf3ee837354550b73f32cff6374ead5b",
+    "src/go2_perception/tracking/motion_classifier.py": "1ce5ea77f4f60c387b66b5ca40036bdb98b26ba34a50bfa94e49f151935b6e43",
+    "src/go2_perception/tracking/multi_object_tracker.py": "afe0390e7603d14938dc49ef793b1ffa336b354e6e5799ed18140d2d354c9315",
+    "src/go2_perception/tracking/track_duplicates.py": "d9aa1a8039fa31cdb551295b1848e0e57b07c969bf0d84e697da3ca23c29ec0b",
+    "configs/tracking_refinement.yaml": "3fb4007e5c80906791603d8c73cc31f6bec86c379747480f77a7c52ddca182fc",
+    "scripts/compare_tracking_real.py": "d8c319625e95f925f75beb9a0a99b2c071a5c8d1a622791fba33e65e0786f5bb"
+  },
+  "evaluation_scope": "offline unannotated proxies; same cached inputs; no live hardware test"
+}

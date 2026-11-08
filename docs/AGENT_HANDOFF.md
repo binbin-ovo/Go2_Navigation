@@ -1,6 +1,33 @@
 # Agent handoff — 2026-11-07 (macOS update)
 
-## Phase 3.6 robustness handoff (current)
+## Phase 3.7 refinement handoff (current)
+Branch `phase3-tracking-refinement` starts at `de043d1`, containing Claude's real comparison and
+Codex's Phase 3.6 work. Do not merge main or promote a profile to default without approval.
+Read [TRACKING_REFINEMENT](TRACKING_REFINEMENT.md) first, then the unchanged
+[TRACKING_REAL_COMPARISON](TRACKING_REAL_COMPARISON.md) for the regression diagnosis.
+
+New code constrains reactivation by last observation/time/speed; suppresses repeatedly overlapping,
+velocity-consistent weaker tracks; and separates moving activation/release from stationary dwell.
+Use `configs/tracking_refinement.yaml`; both earlier profiles remain available. Public sensor and
+tracking interfaces are unchanged. Source tests: 192 passed/1 hardware skipped. Seed 42's split
+failure persists; first-miss Lost status reduces occlusion IDF1, and irregular-motion recall has small regressions. Dependencies unchanged.
+
+The exact `compare_tracking_real.py --reuse-cache --serial` command is in TRACKING_REFINEMENT.
+Use its new read-only --cache-root and a fresh output directory: existing run outputs now refuse
+overwrite; --analyze reads them. Explicit PYTHONPATH=src avoids this Mac's stale installed package.
+No private samples are committed. Claude owns hardware/calibration verification and annotation;
+next label identities/visibility, record two close people and validate transitions on held-out data.
+Do not start learned forecasting using these unverified identity targets. Earlier handoffs below
+are historical; their 'next' tasks should be read in that context.
+
+Final offline replay: 3,924 frames; original/default outputs remain identical. Walking MOVING
+proxy improves about 39%→52%, and long reactivations fall in all recordings. Much of the duplicate
+count reduction is removal of coasting Confirmed states; observed-only duplicates barely change.
+A2/C dominant-ID continuity regresses relative to Phase 3.6, and A1 flicker increases. This is
+not a uniform fix or a default-ready profile; labels/held-out testing remain required. Full measured
+results and runtime are in TRACKING_REFINEMENT. No private samples are committed.
+
+## Phase 3.6 robustness handoff (historical)
 Branch `phase3-tracking-robustness` starts at `feature/macos-go2-phase3-validation` / `ecfaae3`.
 Do not merge main without approval. Read [TRACKING_ROBUSTNESS](TRACKING_ROBUSTNESS.md) first,
 then [TRACKING_ARCHITECTURE](TRACKING_ARCHITECTURE.md) and Claude's unchanged

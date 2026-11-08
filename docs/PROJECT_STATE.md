@@ -1,6 +1,23 @@
 # Project state — 2026-11-07
 
-## Phase 3.6 robustness (current: `phase3-tracking-robustness`)
+## Phase 3.7 refinement (current)
+Branch `phase3-tracking-refinement`, based on Claude's latest integrated comparison `de043d1`.
+Adds opt-in `tracking_refinement.yaml`: physical reacquisition limits, repeated-evidence duplicate
+suppression and asymmetric motion dwell/release. Original and Phase 3.6 profiles are unchanged;
+Go2 adapters, perception, pose gating and TrackOutput remain compatible.
+Tests: **192 passed, 1 hardware skipped**. Synthetic identity counts remain stable, but Lost-status timing changes coverage scores;
+moving recall improves with documented precision/coverage tradeoffs. No learned forecasting or live test.
+Read [TRACKING_REFINEMENT](TRACKING_REFINEMENT.md) for exact real comparisons, limitations and
+commands. Historical results below remain evidence for their own configurations.
+
+Final offline replay: 3,924 frames; original/default outputs remain identical. Walking MOVING
+proxy improves about 39%→52%, and long reactivations fall in all recordings. Much of the duplicate
+count reduction is removal of coasting Confirmed states; observed-only duplicates barely change.
+A2/C dominant-ID continuity regresses relative to Phase 3.6, and A1 flicker increases. This is
+not a uniform fix or a default-ready profile; labels/held-out testing remain required. Full measured
+results and runtime are in TRACKING_REFINEMENT. No private samples are committed.
+
+## Phase 3.6 robustness (historical: `phase3-tracking-robustness`)
 Based on latest macOS validation `ecfaae3`; main is unchanged. Opt-in profile adds time-based
 confirmed-track expiry, capped covariance gating, mature-box fragment recovery and motion dwell.
 Legacy defaults, raw perception, Go2 adapters, pose gating and public TrackOutput remain intact.

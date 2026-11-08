@@ -26,6 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 # label: (source, config, overrides). "baseline" source means the archived Git revision.
 VARIANTS = {
+    "refined": ("working", "configs/tracking_refinement.yaml", {}),
     "baseline": ("baseline", "configs/tracking.yaml", {}),
     "current_default": ("working", "configs/tracking.yaml", {}),
     "improved": ("working", "configs/tracking_robustness.yaml", {}),
@@ -156,9 +157,15 @@ def worker(args):
 
 def run(args):
     out = Path(args.output).resolve()
-    cache = out / "inputs"
+    if (out / "run.json").exists() or any((out / label).exists() for label in args.variants):
+        raise FileExistsError("Use a fresh output directory; --analyze reads existing results")
+    cache = Path(args.cache_root).resolve() if args.cache_root else out / "inputs"
+    if args.cache_root and not args.reuse_cache:
+        raise ValueError("External cache requires --reuse-cache")
     for name in args.recordings:
         target = cache / Path(name).name / "frames.jsonl"
+        if args.cache_root and not target.exists():
+            raise FileNotFoundError(target)
         if not (target.exists() and args.reuse_cache):
             print("Extracting LiDAR detections locally:", Path(name).name, flush=True)
             extract(name, target)
@@ -257,7 +264,7 @@ class Recording:
         path = Path(path)
         index = path / "lidar/utlidar_cloud_base/index.jsonl"
         self.t0 = json.loads(index.read_text().splitlines()[0])["stamp"]
-        odom = [json.loads(l) for l in (path / "state/utlidar_robot_odom.jsonl").read_text().splitlines()]
+        odom = [json.loads(line) for line in (path / "state/utlidar_robot_odom.jsonl").read_text().splitlines()]
         self.ot = np.array([o["stamp"] for o in odom])
         self.P = np.array([o["position"] for o in odom])
         yaw = Rotation.from_quat([o["q_xyzw"] for o in odom]).as_euler("zyx")[:, 0]
@@ -314,6 +321,12 @@ def object_proxy(rows, rec, anchor, radius, frame):
         seq.append((t, best[1]["id"] if best else None))
         if best:
             picked.append((t, rec.phase(r["t"]), best[1], to_xy(best[1]["p"])))
+    observed_ids = []
+    for r in rows:
+        observed_row = dict(r, tracks=[t for t in r["tracks"] if not t["misses"]])
+        best = nearest(observed_row, anchor, radius, to_xy)
+        if best:
+            observed_ids.append(best[1]["id"])
     ids = [i for _, i in seq if i is not None]
     changes = sum(a != b for a, b in zip(ids, ids[1:]))
     seen = set(ids[:1])
@@ -327,6 +340,8 @@ def object_proxy(rows, rec, anchor, radius, frame):
     speed = np.array([np.hypot(*x[2]["v"]) for x in picked])
     vstd = np.array([x[2]["vstd"] for x in picked])
     result = dict(
+        observed_coverage=round(len(observed_ids) / len(rows), 3),
+        observed_dominant_id_share=(round(collections.Counter(observed_ids).most_common(1)[0][1] / len(observed_ids), 3) if observed_ids else None),
         frames=len(rows),
         coverage=round(len(picked) / len(rows), 3),
         unique_ids=len(set(ids)),
@@ -411,6 +426,7 @@ def person_b(rows, rec, ref):
                 unique_ids=len(set(ids)),
                 id_changes=sum(i != j for i, j in zip(ids, ids[1:])),
                 walking_frames=len(walk),
+                walking_reference_frames=sum(x[2] is not None and np.hypot(*x[2]) > 0.4 for x in seg),
                 walking_ref_speed=round(float(np.median([np.hypot(*x[2]) for x in walk])), 3),
                 walking_track_speed=round(
                     float(np.median([np.hypot(*(rec.R @ x[3]["v"])) for x in walk])), 3
@@ -452,6 +468,7 @@ def scene(rows, static_robot):
     confirmed = set()
     dup_frames = 0
     dup_pairs = 0
+    observed_dup_frames = 0
     last_seen = {}
     jumps = 0
     reactivations = 0
@@ -487,6 +504,11 @@ def scene(rows, static_robot):
             for i, a in enumerate(conf)
             for b in conf[i + 1 :]
         )
+        observed_conf = [t for t in conf if not t["misses"]]
+        observed_dup_frames += any(
+            np.hypot(*(a["p"] - b["p"])) < 0.3
+            for i, a in enumerate(observed_conf) for b in observed_conf[i + 1:]
+        )
         dup_pairs += pairs
         dup_frames += pairs > 0
     life = np.array([last[i] - first[i] for i in confirmed])
@@ -504,6 +526,7 @@ def scene(rows, static_robot):
         ),
         duplicate_pair_frames=int(dup_frames),
         duplicate_pairs=int(dup_pairs),
+        observed_duplicate_pair_frames=int(observed_dup_frames),
         confirmed_states=dict(states),
         ids_ever_moving=len(ever_moving),
         fragment_groups=int(sum(r["fragments"] for r in rows)),
@@ -519,7 +542,7 @@ def historical_match(rows, path):
     """Exact-replay check against the original Phase 3 outputs (IDs, status, position)."""
     if not Path(path).exists():
         return None
-    old = [json.loads(l) for l in Path(path).read_text().splitlines()]
+    old = [json.loads(line) for line in Path(path).read_text().splitlines()]
     same = 0
     worst = 0.0
     for r, o in zip(rows, old):
@@ -594,7 +617,7 @@ def analyze(args):
     report = dict(run=run_info, recordings={})
     for name in ANCHORS:
         rec_path = Path(args.recordings_root) / name
-        if not rec_path.exists() or not (out / "baseline" / name).exists():
+        if not rec_path.exists() or not all((out / label / name).exists() for label in labels):
             continue
         rec = Recording(rec_path)
         data = {k: load_tracks(out / k / name / "tracks.jsonl") for k in labels}
@@ -610,15 +633,20 @@ def analyze(args):
             if name == "test_b" and ref.exists():
                 e["person"], _ = person_b(data[k], rec, np.load(ref))
             entry[k] = e
-        entry["baseline"]["historical_match"] = historical_match(
-            data["baseline"], Path(args.outputs_root) / f"{name}_tracking/tracks.jsonl"
-        )
+        if "baseline" in data:
+            entry["baseline"]["historical_match"] = historical_match(
+                data["baseline"], Path(args.outputs_root) / f"{name}_tracking/tracks.jsonl"
+            )
         entry["current_default_identical_to_baseline"] = all(
             [(t["id"], t["status"], t["motion"], *t["p"]) for t in a["tracks"]]
             == [(t["id"], t["status"], t["motion"], *t["p"]) for t in b["tracks"]]
             for a, b in zip(data["baseline"], data["current_default"])
-        ) if "current_default" in data else None
-        plot(out, name, rec, data, box_seqs, ["baseline", "improved"], frame)
+        ) if "current_default" in data and "baseline" in data else None
+        plot_labels = [label for label in ("improved", "refined") if label in data]
+        if len(plot_labels) != 2:
+            plot_labels = labels[:2]
+        if len(plot_labels) == 2:
+            plot(out, name, rec, data, box_seqs, plot_labels, frame)
         report["recordings"][name] = entry
         print("Analysed", name, flush=True)
     (out / "comparison_real.json").write_text(json.dumps(report, indent=2, default=float) + "\n")
@@ -636,6 +664,7 @@ if __name__ == "__main__":
     )
     p.add_argument("--variants", nargs="+", default=list(VARIANTS), choices=list(VARIANTS))
     p.add_argument("--reuse-cache", action="store_true")
+    p.add_argument("--cache-root", help="Read existing extracted inputs without modifying them")
     p.add_argument("--serial", action="store_true", help="one variant at a time, for timing")
     p.add_argument("--analyze", action="store_true", help="only analyse an existing run")
     p.add_argument("--recordings-root", default="data/recordings")

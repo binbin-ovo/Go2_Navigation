@@ -53,6 +53,18 @@ class TrackerConfig:
     fragment_max_extent: float = 1.5
     motion_dwell_s: float = 0.0
 
+    reactivation_max_speed: float = 0.0
+    reactivation_slack: float = 0.25
+    reactivation_velocity_margin: float = 0.5
+    duplicate_track_hits: int = 0
+    duplicate_track_iou: float = 0.6
+    duplicate_track_distance: float = 0.25
+    duplicate_track_velocity: float = 0.3
+    moving_min_displacement: float = 0.0
+    motion_evidence_window_s: float = 0.5
+    moving_dwell_s: float | None = None
+    moving_release_speed: float | None = None
+
     def __post_init__(self):
         if (
             self.mode not in ("odom", "fixed_sensor")
@@ -64,6 +76,12 @@ class TrackerConfig:
         if self.clock_domain is not None and not self.clock_domain:
             raise ValueError("Empty clock domain")
         nonnegative = (
+            "moving_min_displacement",
+            "reactivation_max_speed",
+            "reactivation_slack",
+            "reactivation_velocity_margin",
+            "duplicate_track_distance",
+            "duplicate_track_velocity",
             "pose_tolerance_s",
             "timestamp_tolerance_s",
             "process_noise",
@@ -79,6 +97,7 @@ class TrackerConfig:
             "motion_sigma",
         )
         positive = (
+            "motion_evidence_window_s",
             "confirmation_window_s",
             "fragment_max_extent",
             "measurement_noise",
@@ -136,3 +155,21 @@ class TrackerConfig:
             and self.adaptive_gate_max_distance < self.max_distance
         ):
             raise ValueError("Adaptive cap must be at least max_distance")
+
+        if (
+            not isinstance(self.duplicate_track_hits, int)
+            or isinstance(self.duplicate_track_hits, bool)
+            or self.duplicate_track_hits < 0
+        ):
+            raise ValueError("Invalid duplicate_track_hits")
+        if not 0 < self.duplicate_track_iou <= 1:
+            raise ValueError("Invalid duplicate_track_iou")
+        for key in ("moving_dwell_s", "moving_release_speed"):
+            v = getattr(self, key)
+            if v is not None and (not np.isfinite(v) or v < 0):
+                raise ValueError(f"Invalid {key}")
+        if (
+            self.moving_release_speed is not None
+            and self.moving_release_speed >= self.moving_speed
+        ):
+            raise ValueError("Moving release must be below activation")

@@ -1,5 +1,17 @@
 # Phase 3 tracking architecture
 
+## Phase 3.7 extension
+The additional opt-in profile preserves all existing interfaces. Association adds a last-observed
+travel bound on missed-track reacquisition while retaining covariance/class/vertical gates.
+Post-association suppression requires repeated overlapping boxes and agreeing velocity, retaining
+the stronger currently observed identity. Removed IDs use the existing deleted_ids diagnostic.
+The refinement marks a confirmed track Lost on its first miss, retaining its ID/filter for
+1.5 s. Global assignment is preserved. No state averaging, pose extrapolation or ID reuse is
+introduced. MOVING additionally needs recent observed displacement. Motion candidate dwell is
+asymmetric and MOVING release is independent of the stationary entry threshold. Missing
+observations still immediately output UNCERTAIN without a trajectory. See
+[TRACKING_REFINEMENT](TRACKING_REFINEMENT.md) for configuration units, defaults and exact rules.
+
 ## Phase 3.6 extension (2026-11-07)
 The existing pipeline and public signatures below remain unchanged. Optional robustness controls
 are documented with units/defaults in [TRACKING_ROBUSTNESS](TRACKING_ROBUSTNESS.md).

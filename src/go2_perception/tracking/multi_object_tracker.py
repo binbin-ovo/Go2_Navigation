@@ -9,6 +9,7 @@ from .association import associate, deduplicate, box_iou
 from .motion_classifier import classify_motion
 from .fragments import recover_fragments
 from .trajectory import predict_trajectory
+from .track_duplicates import suppress_track_duplicates
 
 
 class _Track:
@@ -22,6 +23,8 @@ class _Track:
             c.min_dt,
             c.max_prediction_interval,
         )
+        self.last_position = d.position[:2].copy()
+        self.last_velocity = np.zeros(2)
         self.created = self.last_observation = t
         self.hits = self.hit_streak = 1
         self.hit_times = deque([t])
@@ -71,9 +74,11 @@ class MultiObjectTracker:
         self.created_ids = []
         self.reactivated_ids = []
         self.fragment_groups = []
+        self._duplicate_evidence = {}
 
     def reset(self):
         """Drop every track before an unobservable interval. IDs keep increasing, never reused."""
+        self._duplicate_evidence.clear()
         ended = [t.track_id for t in self._tracks]
         self._tracks = []  # the timestamp is kept so out-of-order updates still fail
         return ended
@@ -131,7 +136,7 @@ class MultiObjectTracker:
         observations, self.fragment_groups = recover_fragments(
             self._tracks, observations, c
         )
-        matches, missed, new = associate(self._tracks, observations, c)
+        matches, missed, new = associate(self._tracks, observations, c, timestamp)
         for i, j in matches:
             t, d = self._tracks[i], observations[j]
             if t.status == "Lost" and t.confirmed:
@@ -141,6 +146,8 @@ class MultiObjectTracker:
             t.hits += 1
             t.hit_streak += 1
             t.misses = 0
+            t.last_position = d.position[:2].copy()
+            t.last_velocity = t.filter.state[2:].copy()
             t.last_observation = timestamp
             t.hit_times.append(timestamp)
             while t.hit_times and timestamp - t.hit_times[0] > c.confirmation_window_s:
@@ -179,6 +186,10 @@ class MultiObjectTracker:
             self._tracks.append(_Track(self._next_id, observations[j], timestamp, c))
             self.created_ids.append(self._next_id)
             self._next_id += 1
+        self._tracks, removed, self._duplicate_evidence = suppress_track_duplicates(
+            self._tracks, self._duplicate_evidence, c
+        )
+        self.deleted_ids.extend(removed)
         self._timestamp, self._clock = timestamp, domain
         output = []
         for t in self._tracks:
@@ -196,14 +207,30 @@ class MultiObjectTracker:
                 if t.confirmed
                 else "UNCERTAIN"
             )
+            if t.motion == "MOVING" and c.moving_min_displacement:
+                evidence = [
+                    h
+                    for h in t.history
+                    if h["observed"]
+                    and 0 < timestamp - h["timestamp"] <= c.motion_evidence_window_s
+                ]
+                if (
+                    len(evidence) < 2
+                    or np.linalg.norm(
+                        t.filter.state[:2] - np.array(evidence[0]["position"][:2])
+                    )
+                    < c.moving_min_displacement
+                ):
+                    t.motion = "UNCERTAIN"
             if c.motion_dwell_s:
                 candidate = t.motion
                 if candidate != t.motion_candidate or t.misses:
                     t.motion_candidate_since = timestamp
                     t.motion_candidate = candidate
-                if (
-                    candidate == "UNCERTAIN"
-                    or timestamp - t.motion_candidate_since < c.motion_dwell_s
+                if candidate == "UNCERTAIN" or timestamp - t.motion_candidate_since < (
+                    c.moving_dwell_s
+                    if candidate == "MOVING" and c.moving_dwell_s is not None
+                    else c.motion_dwell_s
                 ):
                     t.motion = "UNCERTAIN"
                 else:

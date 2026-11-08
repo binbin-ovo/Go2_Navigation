@@ -269,7 +269,7 @@ def main(args):
             z.extractall(tmp)
         reports = {}
         for label, source, config in [
-            ("baseline", Path(tmp) / "src", Path(tmp) / "configs/tracking.yaml"),
+            ("baseline", Path(tmp) / "src", Path(tmp) / args.baseline_config),
             ("improved", ROOT / "src", ROOT / args.config),
         ]:
             print("Evaluating", label, flush=True)
@@ -302,6 +302,7 @@ def main(args):
     }
     result = dict(
         baseline_commit=baseline,
+        baseline_config=args.baseline_config,
         seed=None if args.recordings else args.seed,
         real_data=bool(args.recordings),
         input_sha256=hashes,
@@ -315,6 +316,7 @@ def main(args):
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--baseline", default="ecfaae3")
+    p.add_argument("--baseline-config", default="configs/tracking.yaml")
     p.add_argument("--config", default="configs/tracking_robustness.yaml")
     p.add_argument("--output", required=True)
     p.add_argument("--seed", type=int, default=36)

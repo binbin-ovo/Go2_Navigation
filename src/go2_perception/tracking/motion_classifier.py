@@ -18,7 +18,12 @@ def classify_motion(
         return "MOVING"
     if high <= config.stationary_speed:
         return "STATIONARY"
-    if previous == "MOVING" and low > config.stationary_speed:
+    release = (
+        config.stationary_speed
+        if config.moving_release_speed is None
+        else config.moving_release_speed
+    )
+    if previous == "MOVING" and low > release:
         return "MOVING"
     if previous == "STATIONARY" and high < config.moving_speed:
         return "STATIONARY"

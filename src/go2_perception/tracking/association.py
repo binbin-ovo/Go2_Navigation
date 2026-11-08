@@ -12,7 +12,7 @@ def box_iou(a_min, a_max, b_min, b_max):
     return float(intersection / union) if union > 0 else 0.0
 
 
-def associate(tracks, detections, config):
+def associate(tracks, detections, config, timestamp=None):
     """Gate first, then maximize match count and minimize normalized cost using dummies."""
     n, m = len(tracks), len(detections)
     if not n or not m:
@@ -30,6 +30,20 @@ def associate(tracks, detections, config):
                 continue
             if abs(t.z - d.position[2]) > config.max_vertical_distance:
                 continue
+            if (
+                config.reactivation_max_speed
+                and t.status == "Lost"
+                and timestamp is not None
+            ):
+                elapsed = timestamp - t.last_observation
+                speed = min(
+                    config.reactivation_max_speed,
+                    np.linalg.norm(t.last_velocity)
+                    + config.reactivation_velocity_margin,
+                )
+                bound = config.reactivation_slack + speed * elapsed
+                if np.linalg.norm(d.position[:2] - t.last_position) > bound:
+                    continue
             distance = float(np.linalg.norm(t.filter.state[:2] - d.position[:2]))
             mahal = t.filter.mahalanobis(
                 d.position[:2], d.measurement_covariance[:2, :2]

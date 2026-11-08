@@ -1,5 +1,8 @@
 # Go2 Dynamic Perception and Navigation
 
+Phase 3.7 adds a separate experimental tracking refinement profile. See
+[the refinement evaluation](docs/TRACKING_REFINEMENT.md) for measured gains, regressions and reproduction.
+
 Phase 3.6 adds an opt-in tracking robustness profile and reproducible before/after benchmarks.
 See [tracking robustness](docs/TRACKING_ROBUSTNESS.md) for verified results and remaining limitations.
 

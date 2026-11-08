@@ -1,5 +1,8 @@
 # Architecture
 
+Phase 3.7 adds a separate experimental tracking refinement profile. See
+[the refinement evaluation](TRACKING_REFINEMENT.md) for measured gains, regressions and reproduction.
+
 Phase 3.6 adds opt-in robustness within the existing tracker, preserving all sensor/perception
 interfaces. See [TRACKING_ARCHITECTURE](TRACKING_ARCHITECTURE.md) for data flow and
 [TRACKING_ROBUSTNESS](TRACKING_ROBUSTNESS.md) for the profile, benchmark and limitations.

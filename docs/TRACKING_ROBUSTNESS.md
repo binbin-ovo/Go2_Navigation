@@ -1,5 +1,12 @@
 # Phase 3.6 tracking robustness — 2026-11-07
 
+## Phase 3.7 follow-up
+The original Phase 3.6 profile and evidence below are preserved. Claude's
+[real comparison](TRACKING_REAL_COMPARISON.md) exposed duplicate, long-reactivation and moving
+recall regressions. The separate opt-in `tracking_refinement.yaml` addresses these mechanisms;
+see [TRACKING_REFINEMENT](TRACKING_REFINEMENT.md) for measured comparisons and remaining
+tradeoffs. Neither experimental profile is the default, and main remains unchanged.
+
 Branch: `phase3-tracking-robustness`, based on macOS validation commit `ecfaae3`, not main.
 The original [real validation report](PHASE3_REAL_VALIDATION.md) is unchanged. This is an
 opt-in tracker experiment, not a replacement calibration or a claim of reliable person identity.
