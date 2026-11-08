@@ -1,5 +1,8 @@
 # Phase 3.7 tracking refinement — 2026-11-07
 
+> **2026-11-08:** these profiles are now scored against annotated ground truth in
+> [TRACKING_GROUND_TRUTH](TRACKING_GROUND_TRUTH.md). The proxies below remain as recorded.
+
 Branch `phase3-tracking-refinement` starts at Claude's integrated comparison commit `de043d1`.
 Main is unchanged. This is an opt-in experiment: original `tracking.yaml` and Phase 3.6
 `tracking_robustness.yaml` remain unchanged. Historical real reports and outputs are preserved.

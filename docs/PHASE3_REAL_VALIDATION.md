@@ -1,4 +1,7 @@
 # Phase 3 real-world validation (2026-11-07, macOS)
+
+> **2026-11-08:** sensor-based ground-truth annotations of A1, A2, B and C, and annotated scores
+> for three tracker profiles, are in [TRACKING_GROUND_TRUTH](TRACKING_GROUND_TRUTH.md).
 Real Go2 data captured on the Mac ([MAC_CONNECTION](MAC_CONNECTION.md)). Recordings are local and
 gitignored (they include private home images); `data/outputs/mac/*` is also local. Only the two
 LiDAR/BEV images in `docs/media` are committed.

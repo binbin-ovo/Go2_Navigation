@@ -19,3 +19,5 @@ third_party/
 build/
 dist/
 .venv-go2/
+# Local ground-truth annotations, review sheets and caches (derived from private recordings)
+data/annotations/

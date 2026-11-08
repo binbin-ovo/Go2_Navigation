@@ -1,6 +1,53 @@
-# Project state — 2026-11-07
+# Project state — 2026-11-08
 
-## Phase 3.7 refinement (current)
+## Phase 3.8 ground-truth validation (current)
+Branch `phase3-ground-truth-validation`, from `phase3-tracking-refinement` at `c643422`. Main is
+unchanged and no tracker code changed. Read [TRACKING_GROUND_TRUTH](TRACKING_GROUND_TRUTH.md).
+
+**What was added:**
+- An annotation workflow (`scripts/annotate_ground_truth.py`) and schema, matching and metrics
+  (`tracking/ground_truth.py`).
+- An evaluator (`scripts/evaluate_ground_truth.py`).
+- Sensor-based annotations of B, A2, C and A1: 3,069 tracker frames; person point and velocity,
+  box footprint region, visibility, motion and confidence.
+  - The annotations came from LiDAR background subtraction and were reviewed by Claude on
+    BEV-plus-camera contact sheets. No human has verified them yet.
+  - Annotations, specs, sheets and caches stay local in the gitignored `data/annotations/`.
+
+**Results, annotated IDF1 (Confirmed tracks), original → 3.6 → 3.7:**
+
+| Recording | IDF1 |
+|---|---|
+| B | 0.33 → 0.40 → 0.39 |
+| A2 | 0.30 → 0.60 → 0.53 |
+| C | 0.29 → 0.60 → 0.41 |
+| A1 | 0.90 → 0.90 → 0.86 |
+
+- **Best current identity configuration: 3.6.** 3.7 is between the original and 3.6. Walking
+  MOVING recall (B) is 0.61 → 0.43 → 0.50.
+- **Not default-ready.** IDF1 on the person recordings is at most 0.60, and the static box
+  changes ID 6–55 times per recording.
+
+**Bottleneck:** the LiDAR proposals, in particular clusters merging (DBSCAN `eps` 0.3 m).
+- The box loses its own proposal in 14–33% of visible frames by merging with the counter or wall,
+  and in B another 12% by merging with the person.
+- The person in A2 merges in 23% of frames.
+- Most ID changes follow such a merge or a duplicate track born during one. Odometry is not a
+  significant cause in C.
+- **Oracle segmentation diagnostic.** With each annotated object's own points as one proposal,
+  the unchanged original tracker reaches IDF1 B 0.67, A2 0.69, C 0.54 and A1 0.98, above every
+  tuned profile in three of four recordings. 3.6 and 3.7 lose identity on clean proposals.
+
+**Next:**
+1. Proposal-level work: a height- or background-aware split of object clusters from walls, and
+   person–object separation.
+2. Then record the held-out protocol H1–H3 in the report, with a second person and a taped pose,
+   and score it once.
+3. Have a person review the annotations.
+
+Tests: **203 passed, 1 hardware skipped**, in both venvs.
+
+## Phase 3.7 refinement (historical: `phase3-tracking-refinement`)
 Branch `phase3-tracking-refinement`, based on Claude's latest integrated comparison `de043d1`.
 Adds opt-in `tracking_refinement.yaml`: physical reacquisition limits, repeated-evidence duplicate
 suppression and asymmetric motion dwell/release. Original and Phase 3.6 profiles are unchanged;

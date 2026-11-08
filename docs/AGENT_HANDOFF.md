@@ -1,6 +1,55 @@
-# Agent handoff — 2026-11-07 (macOS update)
+# Agent handoff — 2026-11-08 (macOS update)
 
-## Phase 3.7 refinement handoff (current)
+## Phase 3.8 ground-truth handoff (current)
+Branch `phase3-ground-truth-validation`, from `c643422`. Do not merge main or change the default
+without approval. Read [TRACKING_GROUND_TRUTH](TRACKING_GROUND_TRUTH.md) first. The Phase 3.7
+section below is historical.
+
+**What exists now:**
+- An annotation workflow, `scripts/annotate_ground_truth.py` (`cache` / `propose` / `sheet`). It
+  uses LiDAR background subtraction, a measured static footprint and LiDAR-defined visibility,
+  and the camera only for review.
+- The schema and metrics, `src/go2_perception/tracking/ground_truth.py`: CLEAR-MOT-style matching
+  that keeps the previous match, IDF1, IDF1 per visit, switches, fragmentations, duplicates,
+  velocity error, motion confusion and recovery after occlusion.
+- `scripts/evaluate_ground_truth.py`: scoring, proposal-quality and ID-change diagnosis, and an
+  oracle-segmentation diagnostic.
+- Annotations for B, A2, C and A1. They are local only, in `data/annotations/`; the specs there
+  record intervals and review notes.
+- 11 synthetic tests.
+
+**Measured, original → 3.6 → 3.7:**
+- IDF1: B 0.33/0.40/0.39, A2 0.30/0.60/0.53, C 0.29/0.60/0.41, A1 0.90/0.90/0.86.
+- 3.6 is the best identity profile; 3.7 has fewer duplicates but lower coverage and more A1
+  flicker.
+- None is default-ready. Keep `tracking.yaml` as the default.
+
+**Bottleneck: proposals.**
+- Box merged with background in 14–33% of visible frames, and with the person in another 12%
+  in B.
+- Person merged in 23% of frames in A2.
+- Splits are rare. Odometry is ruled out as a major cause in C.
+- **Oracle segmentation diagnostic.** The untuned original tracker on oracle proposals reaches
+  IDF1 B 0.67, A2 0.69, C 0.54 and A1 0.98.
+  - That beats every tuned profile on real proposals in B, A2 and A1.
+  - 3.6 and 3.7 do worse than the original on clean proposals; for example, A1 3.6 has 44 flicker
+    switches.
+
+**Next for Codex.** Improve LiDAR proposals before more tracker tuning:
+1. Separate low objects from walls and counters: height-profile or background-aware splitting,
+   a smaller or adaptive `eps` near large planar clusters.
+2. Separate a person from an adjacent object.
+3. Then re-check the tracker profiles on the improved proposals. On clean proposals the
+   original tracker beats 3.6 and 3.7.
+4. Do not tune on A1, A2, B or C again. They are development data now.
+
+**Next for Claude and the user:**
+1. A human pass over the review sheets (time ranges listed in the report).
+2. Record held-out H1–H3 (two people, a taped start/end pose), annotate with unchanged
+   thresholds, and score once.
+3. Camera calibration, to enable semantic gating.
+
+## Phase 3.7 refinement handoff (historical)
 Branch `phase3-tracking-refinement` starts at `de043d1`, containing Claude's real comparison and
 Codex's Phase 3.6 work. Do not merge main or promote a profile to default without approval.
 Read [TRACKING_REFINEMENT](TRACKING_REFINEMENT.md) first, then the unchanged
