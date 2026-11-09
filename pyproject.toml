@@ -9,6 +9,8 @@ requires-python = ">=3.10,<3.13"
 dependencies = ["numpy==1.26.4", "scipy==1.15.2", "opencv-python==4.11.0.86", "open3d==0.19.0", "PyYAML==6.0.2", "torch==2.6.0", "torchvision==0.21.0", "ultralytics==8.3.100"]
 [project.optional-dependencies]
 test = ["pytest==8.3.5"]
+# Forecasting plots: Python 3.11/3.12 (core remains usable on Python 3.10).
+forecasting = ["matplotlib==3.11.2"]
 # Live Go2 access. Also install third_party/unitree_sdk2_python (see docs/GO2_CONNECTION.md).
 go2 = ["cyclonedds==0.10.2", "av==17.1.0"]
 [tool.setuptools.packages.find]

@@ -1,0 +1,4 @@
+# Same inputs/targets as forecasting_transformer.yaml; velocity estimated from observations only.
+method: mean
+recent_intervals: 3
+# Other supported method: last (one interval); Phase 3 adapter uses the same estimated velocity.

@@ -1,6 +1,14 @@
+# Phase 4 current state — 2026-11-09
+
+Branch `phase4-trajectory-forecasting`, based on Phase 3.7 `c6434229c54ee445763d8ceb1f5ef56b0f5c50da`; main is not merged. Added public ETH/UCY trajectory preparation, independent CV and Phase 3 baseline adapter, lightweight PyTorch Transformer, deterministic training/checkpoints, paired evaluation, validation ablations, plotting and guarded offline TrackOutput integration. Tracking/sensor internals remain unchanged; Claude's Phase 3.8 work is separate.
+
+Verified: five fixed scene-identifier-held-out CPU runs (15,061 windows), validation-only history/capacity/representation/noise/missing-input studies, synthetic adapter demo and 231 tests passed/1 hardware skipped. The learned model **loses overall**: macro ADE/FDE 0.5701/1.1762 m vs CV 0.5214/1.0933 m. No Go2 forecasting accuracy or GPU validation is claimed. Data/weights remain local, public aggregate results and selected plots are committed. Python 3.12.11, torch 2.6.0, numpy 1.26.4, optional matplotlib 3.11.2; existing core pins unchanged.
+
+Read [forecasting architecture](FORECASTING_ARCHITECTURE.md), [dataset protocol](FORECASTING_DATASETS.md), [commands and actual experiments](FORECASTING_EXPERIMENTS.md), and [integration contract](FORECASTING_INTEGRATION.md). Known limitations: one seed, correlated windows, no social context or uncertainty, unverified dataset redistribution rights, no clean-install test, and untrusted real tracker identities. Do not train from unvalidated Go2 tracks. Next: Claude validates identities/frames/visibility, then evaluate public-trained models and CV on held-out ground truth; extend forecasting research using validation-only decisions. Earlier phase sections below are historical.
+
 # Agent handoff — 2026-11-07 (macOS update)
 
-## Phase 3.7 refinement handoff (current)
+## Phase 3.7 refinement handoff (historical)
 Branch `phase3-tracking-refinement` starts at `de043d1`, containing Claude's real comparison and
 Codex's Phase 3.6 work. Do not merge main or promote a profile to default without approval.
 Read [TRACKING_REFINEMENT](TRACKING_REFINEMENT.md) first, then the unchanged
@@ -240,3 +248,11 @@ validated segmentation. First YOLO import may report a nonfatal font-cache warni
 The next milestone is **recorded, synchronized Go2 RGB–LiDAR replay with measured calibration**,
 followed by live read-only inference. Autonomous locomotion, learned forecasting and planning
 remain out of scope.
+
+## Phase 4 continuation checklist
+
+1. Use the `phase4-trajectory-forecasting` branch and read FORECASTING_EXPERIMENTS.md for the complete installation/reproduction commands. Run the synthetic smoke configuration before downloading annotations.
+2. Codex owns `src/go2_perception/forecasting/`, `scripts/*forecasting*.py`, forecasting configs and tests. Core tracking and Go2 adapters were not rewritten. Claude retains sensor access, real calibration, ground truth and hardware validation.
+3. For a real offline trial, establish stable metric odometry coordinates and reliable pedestrian IDs, retain at least 2.8 seconds of observed history, then use the explicit bounded resampling adapter. Keep all real recordings local.
+4. Compare CV and learned forecasts on the same manually validated held-out windows. Never treat the public-data results or synthetic demo as proof of Go2 forecasting accuracy. Resolve fragmentation/ID switches before collecting training labels.
+5. Reproduce known limitations with the documented five-fold command (model loses overall) and the noise ablation (model error rises substantially). Unknown data redistribution rights, GPU execution and clean-install portability remain unresolved. Do not merge into main or promote the learned model to navigation without separate approval and validation.

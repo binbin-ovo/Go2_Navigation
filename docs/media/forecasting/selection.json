@@ -1,0 +1,56 @@
+{
+  "straight": {
+    "index": 120,
+    "key": "eth/test/biwi_eth.txt:357:490.00000000",
+    "scene": "eth",
+    "category": "straight",
+    "transformer_ade_m": 0.6238260865211487,
+    "cv_ade_m": 0.3305457390124744,
+    "selection": "median CV-ADE example within GT category"
+  },
+  "turning": {
+    "index": 50,
+    "key": "eth/test/biwi_eth.txt:171:352.40000000",
+    "scene": "eth",
+    "category": "turning",
+    "transformer_ade_m": 0.7326125502586365,
+    "cv_ade_m": 1.808966464475169,
+    "selection": "median CV-ADE example within GT category"
+  },
+  "stopping": {
+    "index": 29,
+    "key": "eth/test/biwi_eth.txt:171:335.60000000",
+    "scene": "eth",
+    "category": "stopping",
+    "transformer_ade_m": 1.985775113105774,
+    "cv_ade_m": 1.4842489256798987,
+    "selection": "median CV-ADE example within GT category"
+  },
+  "starting": {
+    "index": 85,
+    "key": "eth/test/biwi_eth.txt:216:390.80000000",
+    "scene": "eth",
+    "category": "starting",
+    "transformer_ade_m": 0.6985383629798889,
+    "cv_ade_m": 1.0477008757930717,
+    "selection": "median CV-ADE example within GT category"
+  },
+  "largest_transformer_advantage": {
+    "index": 89,
+    "key": "eth/test/biwi_eth.txt:230:394.00000000",
+    "scene": "eth",
+    "category": "turning",
+    "transformer_ade_m": 3.770761489868164,
+    "cv_ade_m": 5.672541572732681,
+    "selection": "largest error difference"
+  },
+  "largest_cv_advantage": {
+    "index": 68,
+    "key": "eth/test/biwi_eth.txt:216:377.20000000",
+    "scene": "eth",
+    "category": "other",
+    "transformer_ade_m": 3.1860265731811523,
+    "cv_ade_m": 1.0536473612968622,
+    "selection": "largest error difference"
+  }
+}

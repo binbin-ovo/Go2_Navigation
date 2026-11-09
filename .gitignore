@@ -19,3 +19,7 @@ third_party/
 build/
 dist/
 .venv-go2/
+# Public forecasting datasets and local research artifacts
+data/public/
+*.pth
+.venv-forecast/

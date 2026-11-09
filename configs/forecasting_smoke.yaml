@@ -1,0 +1,37 @@
+dataset:
+  root: tests/fixtures/forecasting
+  manifest: tests/fixtures/forecasting/manifest.yaml
+  train:
+  - train_scene
+  validation:
+  - validation_scene
+  test:
+  - test_scene
+  obs_steps: 4
+  pred_steps: 6
+  cohort_obs: 6
+  cohort_pred: 6
+  stride: 3
+  dt: 0.4
+model:
+  d_model: 16
+  heads: 2
+  layers: 1
+  feedforward: 32
+  dropout: 0
+  representation: displacement
+  heading_align: false
+baseline:
+  method: mean
+  recent_intervals: 3
+training:
+  seed: 42
+  device: cpu
+  threads: 1
+  batch_size: 8
+  epochs: 3
+  patience: 3
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  clip_grad_norm: 1.0
+  accumulate_steps: 1

@@ -1,3 +1,9 @@
+## Phase 4 offline forecasting (2026-11-09)
+
+Public annotated pedestrian forecasting is implemented on `phase4-trajectory-forecasting`; tracking and Go2 sensor APIs remain unchanged. A 78,680-parameter Transformer was trained and evaluated against constant velocity across five held-out scene identifiers. It did not win overall (macro ADE 0.5701 m vs CV 0.5214 m). Full suite: 231 passed, one hardware test skipped. No live forecasting validation or navigation control is claimed.
+
+See [architecture](FORECASTING_ARCHITECTURE.md), [datasets](FORECASTING_DATASETS.md), [installation, commands and results](FORECASTING_EXPERIMENTS.md), and [Claude integration contract](FORECASTING_INTEGRATION.md). Existing phase descriptions below retain their historical validation scope.
+
 # Architecture
 
 Phase 3.7 adds a separate experimental tracking refinement profile. See
