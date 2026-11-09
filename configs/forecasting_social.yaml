@@ -1,0 +1,45 @@
+dataset:
+  root: data/public/eth_ucy/datasets
+  manifest: configs/forecasting/eth_ucy_manifest.yaml
+  train:
+  - univ
+  - zara1
+  - zara2
+  validation:
+  - hotel
+  test:
+  - eth
+  obs_steps: 8
+  pred_steps: 12
+  cohort_obs: 12
+  cohort_pred: 12
+  stride: 2
+  dt: 0.4
+model:
+  d_model: 64
+  heads: 4
+  layers: 2
+  feedforward: 128
+  dropout: 0.1
+  representation: displacement
+  heading_align: false
+baseline:
+  method: mean
+  recent_intervals: 3
+training:
+  seed: 42
+  device: cpu
+  threads: 4
+  batch_size: 128
+  epochs: 30
+  patience: 6
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  clip_grad_norm: 1.0
+  accumulate_steps: 1
+social:
+  radius: 3.0
+  max_neighbors: 8
+augmentation:
+  noise_std: 0.0
+  mask_probability: 0.0

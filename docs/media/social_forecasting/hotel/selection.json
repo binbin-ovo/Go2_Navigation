@@ -1,0 +1,140 @@
+{
+  "straight": {
+    "key": "hotel/test/biwi_hotel.txt:24:25.20000000",
+    "category": "straight",
+    "selection": "median CV ADE in category",
+    "metrics": {
+      "constant_velocity": {
+        "ade_m": 0.25299250222528863,
+        "fde_m": 0.6158730046663311
+      },
+      "single": {
+        "ade_m": 1.132686734199524,
+        "fde_m": 2.836613178253174
+      },
+      "social": {
+        "ade_m": 1.3147460222244263,
+        "fde_m": 3.2652318477630615
+      },
+      "social_disabled": {
+        "ade_m": 1.3985131978988647,
+        "fde_m": 3.494257688522339
+      }
+    }
+  },
+  "turning": {
+    "key": "hotel/test/biwi_hotel.txt:199:385.60000000",
+    "category": "turning",
+    "selection": "median CV ADE in category",
+    "metrics": {
+      "constant_velocity": {
+        "ade_m": 0.646243907763186,
+        "fde_m": 0.9507892420549707
+      },
+      "single": {
+        "ade_m": 0.45495426654815674,
+        "fde_m": 0.6082033514976501
+      },
+      "social": {
+        "ade_m": 0.5283876061439514,
+        "fde_m": 0.8308136463165283
+      },
+      "social_disabled": {
+        "ade_m": 0.481680303812027,
+        "fde_m": 0.7518145442008972
+      }
+    }
+  },
+  "stopping": {
+    "key": "hotel/test/biwi_hotel.txt:307:528.40000000",
+    "category": "stopping",
+    "selection": "median CV ADE in category",
+    "metrics": {
+      "constant_velocity": {
+        "ade_m": 1.3522512596378478,
+        "fde_m": 3.1653917688460536
+      },
+      "single": {
+        "ade_m": 0.4995492994785309,
+        "fde_m": 0.9700161814689636
+      },
+      "social": {
+        "ade_m": 0.3921031057834625,
+        "fde_m": 0.6212947368621826
+      },
+      "social_disabled": {
+        "ade_m": 0.3921031057834625,
+        "fde_m": 0.6212947368621826
+      }
+    }
+  },
+  "starting": {
+    "key": "hotel/test/biwi_hotel.txt:361:667.20000000",
+    "category": "starting",
+    "selection": "median CV ADE in category",
+    "metrics": {
+      "constant_velocity": {
+        "ade_m": 0.4647714905921889,
+        "fde_m": 1.1594829275068188
+      },
+      "single": {
+        "ade_m": 0.3793993890285492,
+        "fde_m": 1.0249481201171875
+      },
+      "social": {
+        "ade_m": 0.4779245853424072,
+        "fde_m": 1.1046487092971802
+      },
+      "social_disabled": {
+        "ade_m": 0.3845076560974121,
+        "fde_m": 1.020655632019043
+      }
+    }
+  },
+  "social_win": {
+    "key": "hotel/test/biwi_hotel.txt:307:529.20000000",
+    "category": "stopping",
+    "selection": "largest absolute social-minus-CV ADE difference within win/loss",
+    "metrics": {
+      "constant_velocity": {
+        "ade_m": 1.6731757169543744,
+        "fde_m": 3.521150361988367
+      },
+      "single": {
+        "ade_m": 0.6727455258369446,
+        "fde_m": 1.1244709491729736
+      },
+      "social": {
+        "ade_m": 0.41817617416381836,
+        "fde_m": 0.758995771408081
+      },
+      "social_disabled": {
+        "ade_m": 0.44123998284339905,
+        "fde_m": 0.8953038454055786
+      }
+    }
+  },
+  "social_failure": {
+    "key": "hotel/test/biwi_hotel.txt:230:414.80000000",
+    "category": "straight",
+    "selection": "largest absolute social-minus-CV ADE difference within win/loss",
+    "metrics": {
+      "constant_velocity": {
+        "ade_m": 0.2171684646669844,
+        "fde_m": 0.35227750966833615
+      },
+      "single": {
+        "ade_m": 2.1127071380615234,
+        "fde_m": 4.377503395080566
+      },
+      "social": {
+        "ade_m": 2.5683786869049072,
+        "fde_m": 5.049396991729736
+      },
+      "social_disabled": {
+        "ade_m": 2.381946086883545,
+        "fde_m": 4.6412811279296875
+      }
+    }
+  }
+}

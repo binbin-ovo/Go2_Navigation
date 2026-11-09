@@ -1,0 +1,16 @@
+# Phase 4.1 predeclared experiment protocol
+
+Declared before social architecture training, 2026-11-09. Base: 447f164.
+Retain all Phase 4 windows, hashes, five outer scene-identifier splits, cyclic validation scenes, 8/12 steps at 0.4 s, optimizer/early stopping and CPU settings. Seeds: 42, 43, 44 for both neural models. Reuse existing verified single-agent seed 42 artifacts; train seeds 43/44 unchanged. No best-seed selection. Report mean and sample standard deviation across the three seed runs, not confidence intervals over correlated windows.
+
+Social input: nearest at most 8 other pedestrians within 3 m at the observation cutoff, same recording, exact shared sample times, last observation required, incomplete prior histories explicitly masked. Radius/count set before training. Never use future neighbor coordinates or require neighbor future availability. Preserve target window eligibility exactly.
+
+Model: shared 64-wide, two-layer, four-head temporal encoder; masked neighbor histories; relative positions about the target's last position; invariant masked mean neighbor pooling and a target-conditioned prediction head. No social ordering positional encoding. Use direct deterministic trajectory output, no control or uncertainty claims. Keep Phase 4 single-agent architecture unchanged. Report social-disabled evaluation of the SAME trained weights as a diagnostic, not a separately trained baseline.
+
+Crowding: zero, one, or two-plus selected neighbors at cutoff (observed information only). Report category and horizon metrics unchanged. Time warmed batch-one and batch-128 forward passes; exclude preprocessing/transfer/tracking. Report full-data preparation separately where available.
+
+Robustness: ETH-fold HOTEL validation only, seed 42, fixed Gaussian sigma 0.05 m, one missing target interior observation, 50% interior neighbor-observation dropout, and no neighbors. Clean metrics remain separate. Train one additional social model with sigma 0.05 m noise and interior target/neighbor masking probability 0.2; use clean validation ADE selection. Do not choose settings from held-out test results or promote augmented model into the primary test comparison. Same perturbations and target windows across methods. Missing single-agent/CV inputs repaired using adjacent past observations; social model receives explicit validity masks.
+
+Diagnostics completed before architecture: Phase 4 reports train loss plateau around 0.118, noisy validation ADE 0.336 best to 0.402 final (ETH fold); longer history offers little benefit; capacity 128 loses to 64; local positions improve validation but remain behind CV; 0.05 m noise sharply worsens the single-agent model. These are symptoms, not proof of overfitting or interactions as the cause. Repeat seeds before conclusions. No Go2 data used for training; no tracking/hardware changes.
+
+Validation-only follow-up (declared after the joint-augmentation validation result): separately run noise-only (sigma .05, mask probability zero) and mask-only (sigma zero, mask probability .2) ETH-fold seed42 controls, using the same five validation perturbations and clean-validation selection. These isolate the combined augmentation factors. Neither control is evaluated on test scenes or substituted into the primary three-seed comparison; the social architecture remains fixed.
