@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" font-family="Helvetica, Arial, sans-serif" font-size="16">
+  <rect width="960" height="540" fill="#ffffff"/>
+  <rect x="0" y="0" width="540" height="400" fill="#1e1e1e"/>
+  <text x="12" y="24" fill="#fff">RGB detections - not calibrated to LiDAR tracks</text>
+  <rect x="30" y="50" width="480" height="270" fill="none" stroke="#888" stroke-dasharray="6 4"/>
+  <text x="150" y="190" fill="#bbb">camera frame + YOLO boxes</text>
+  <text x="12" y="345" fill="#ddd" font-size="13">camera frame index, host-receipt time (approximate)</text>
+  <rect x="10" y="355" width="520" height="38" fill="#a02020"/>
+  <text x="20" y="380" fill="#fff" font-size="14">highlight caption (red: failure, green: success)</text>
+  <rect x="540" y="0" width="420" height="400" fill="#fafafa" stroke="#333"/>
+  <text x="552" y="24">LiDAR BEV, frame: odom (start heading up)</text>
+  <polygon points="750,380 740,400 760,400" fill="#3ca03c"/>
+  <rect x="725" y="170" width="40" height="30" fill="none" stroke="#c828c8" stroke-width="2"/>
+  <text x="772" y="190" fill="#c828c8" font-size="13">GT box</text>
+  <circle cx="700" cy="260" r="7" fill="#ff8c00"/>
+  <line x1="700" y1="260" x2="600" y2="250" stroke="#ff8c00" stroke-width="2" stroke-dasharray="8 6"/>
+  <text x="710" y="255" font-size="13">#235 0.8 m/s MOVING</text>
+  <circle cx="820" cy="300" r="8" fill="none" stroke="#1e78d7" stroke-width="1.5"/>
+  <text x="832" y="304" font-size="13" fill="#777">#21 pred LOST</text>
+  <circle cx="660" cy="120" r="20" fill="none" stroke="#dc2828" stroke-width="2"/>
+  <rect x="610" y="85" width="120" height="18" fill="#dc2828"/>
+  <text x="614" y="99" fill="#fff" font-size="12">ID SWITCH vs GT</text>
+  <rect x="550" y="310" width="150" height="80" fill="#f2f2f2" stroke="#ccc"/>
+  <text x="558" y="330" font-size="12">legend: motion colours,</text>
+  <text x="558" y="346" font-size="12">filled = observed,</text>
+  <text x="558" y="362" font-size="12">hollow = predicted,</text>
+  <text x="558" y="378" font-size="12">dashed = CV 4.8 s</text>
+  <rect x="0" y="400" width="960" height="140" fill="#f5f5f5" stroke="#333"/>
+  <text x="12" y="424" font-size="14">time, LiDAR stamp, camera-LiDAR dt (approximate), track counts, new IDs, robot v / yaw rate</text>
+  <line x1="12" y1="470" x2="460" y2="470" stroke="#333"/>
+  <line x1="120" y1="460" x2="120" y2="480" stroke="#dc2828" stroke-width="3"/>
+  <line x1="180" y1="460" x2="180" y2="480" stroke="#e6af00" stroke-width="3"/>
+  <line x1="240" y1="452" x2="240" y2="488" stroke="#000" stroke-width="4"/>
+  <text x="12" y="510" font-size="13">event timeline + cursor</text>
+  <text x="490" y="460" font-size="13" fill="#dc2828">12.3 s ID SWITCH vs GT: box #21 -> #101</text>
+  <text x="490" y="482" font-size="13" fill="#0078aa">12.5 s POSSIBLE FRAGMENTATION #54 -> #60</text>
+  <text x="490" y="504" font-size="13" fill="#0078aa">event log (last five)</text>
+  <text x="790" y="424" font-size="13" fill="#fff" style="paint-order:stroke" stroke="#3c3cdc" stroke-width="10">ODOMETRY GAP</text>
+</svg>

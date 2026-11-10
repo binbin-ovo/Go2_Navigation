@@ -32,6 +32,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from go2_perception.tracking import ground_truth as gt  # noqa: E402
+from go2_perception.tracking.annotation_edits import apply_review  # noqa: E402
 
 VOXEL = 0.1
 
@@ -325,21 +326,6 @@ def person_states(clouds, spec, oid, obj, times):
     return states
 
 
-def apply_review(states, review, t0):
-    for r in review:
-        for t, frame in states.items():
-            if not r["start"] <= t - t0 <= r["end"]:
-                continue
-            for s in list(frame):
-                if s["id"] != r["id"]:
-                    continue
-                if r.get("reject"):
-                    frame.remove(s)
-                    continue
-                s.update(r.get("set", {}))
-                s["reviewed"] = r.get("note", True)
-
-
 def propose(args):
     spec = json.loads(Path(args.spec).read_text())
     name = spec["recording"]
@@ -347,6 +333,8 @@ def propose(args):
     t0, times = frame_times(spec, Path(args.inputs) / name / "frames.jsonl")
     per_object, meta = {}, {}
     for oid, obj in spec["objects"].items():
+        if obj.get("manual"):  # declared for manual annotation only; nothing to propose
+            continue
         if obj["type"] == "person":
             per_object[oid] = person_states(clouds, spec, oid, obj, times)
         else:
@@ -359,7 +347,8 @@ def propose(args):
                 for i in spec["intervals"]
             ):
                 frames[t].append(s)
-    apply_review(frames, spec.get("review", []), t0)
+    objects = {oid: dict(type=o["type"], description=o.get("description", "")) for oid, o in spec["objects"].items()}
+    apply_review(frames, spec.get("review", []), t0, objects)
     doc = dict(
         schema=gt.SCHEMA,
         recording=name,
@@ -368,10 +357,8 @@ def propose(args):
         t0=t0,
         annotator=spec.get("annotator", "unspecified"),
         method=spec.get("method", "lidar background subtraction, reviewed"),
-        objects={
-            oid: dict(type=o["type"], description=o.get("description", ""))
-            for oid, o in spec["objects"].items()
-        },
+        objects=objects,
+        human_review_entries=len(spec.get("review", [])),
         intervals=spec["intervals"],
         review_log=spec.get("review_log", []),
         obstacle_measurements=meta,
@@ -380,7 +367,7 @@ def propose(args):
     out = Path(args.annotations) / f"{name}.json"
     gt.save(doc, out)
     print(f"{name}: {len(doc['frames'])} annotated frames -> {out}")
-    for oid in spec["objects"]:
+    for oid in objects:
         statuses = [s["status"] for f in doc["frames"] for s in f["objects"] if s["id"] == oid]
         print(" ", oid, {k: statuses.count(k) for k in gt.STATUSES if statuses.count(k)})
 

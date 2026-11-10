@@ -1,6 +1,41 @@
-# Agent handoff — 2026-11-08 (macOS update)
+# Agent handoff — 2026-11-09 (macOS update)
 
-## Phase 3.8 ground-truth handoff (current)
+## Phase 3.8 visual ground-truth handoff (current)
+Branch `phase3-visual-groundtruth`. It contains `79bb0f9` (ground truth) and the merged Phase
+4.1 branch `5979a76`. Do not merge main or change defaults without approval. Read
+[VIDEO_ANNOTATION](VIDEO_ANNOTATION.md), then [TRACKING_GROUND_TRUTH](TRACKING_GROUND_TRUTH.md).
+
+**Code added:**
+- `visualization/diagnostic_video.py`: rendering, camera alignment, trails, heuristic events,
+  H.264 writer, private-path guard.
+- `scripts/render_tracking_video.py`: single, comparison and forecast-overlay videos, stills,
+  event logs.
+- `scripts/render_highlights.py`: the captioned montage.
+- `tracking/annotation_edits.py` and `scripts/annotation_editor.py`: manual corrections as
+  review entries, CSV round trip, `identity_uncertain`.
+- `scripts/forecast_ground_truth.py`: 8+12 windows at 0.4 s from validated trajectories,
+  through the Phase 4 adapter checks; CV only.
+- 13 synthetic tests.
+
+**Videos are private and local:** `/Users/yushan/Desktop/Go2_Navigation/data/outputs/mac/videos/`.
+
+**For Codex:**
+- Use the videos to inspect cluster merging. Most red events coincide with the box or the
+  person merging into a background cluster.
+- The proposal-level work from the ground-truth handoff remains the priority.
+- Do not tune on A1, A2, B or C.
+
+**For Claude and the user:**
+1. Human review in the editor (A2, B, C first).
+2. Record held-out H1–H3.
+3. Place the Phase 4 / 4.1 checkpoints under `data/outputs/forecasting/` and add learned
+   predictions to `forecast_ground_truth.py`, through the existing adapters only.
+4. Camera calibration, before any camera↔LiDAR association.
+
+**Forecasting blocker:** only 6 independent identity-validated windows (one person, B and A2).
+That supports plumbing checks only.
+
+## Phase 3.8 ground-truth handoff (2026-11-08)
 Branch `phase3-ground-truth-validation`, from `c643422`. Do not merge main or change the default
 without approval. Read [TRACKING_GROUND_TRUTH](TRACKING_GROUND_TRUTH.md) first. The Phase 3.7
 section below is historical.

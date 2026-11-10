@@ -425,6 +425,65 @@ PYTHONPATH=src .venv-go2/bin/python scripts/evaluate_ground_truth.py --combine \
 PYTHONPATH=src:third_party/unitree_sdk2_python .venv-go2/bin/python -m pytest -q
 ```
 
+## Update 2026-11-09: videos, manual editing and forecasting readiness
+Branch `phase3-visual-groundtruth`. See [VIDEO_ANNOTATION](VIDEO_ANNOTATION.md) for the videos.
+
+**Annotations and scores are unchanged.** All four annotation files are identical after the
+editing refactor. The rerun evaluation reproduces
+[TRACKING_GROUND_TRUTH_METRICS.json](TRACKING_GROUND_TRUTH_METRICS.json) byte for byte. The
+tracker comparison above (original → 3.6 → 3.7 on the same cached inputs) therefore stands:
+- **IDF1:** B 0.33/0.40/0.39, A2 0.30/0.60/0.53, C 0.29/0.60/0.41, A1 0.90/0.90/0.86.
+- **Not tuned on these labels.** No threshold or parameter was changed in response to them.
+
+**Manual editing** (`scripts/annotation_editor.py`, `tracking/annotation_edits.py`):
+- Corrections go into the spec's `review` list with a reviewer, and are re-applied on every
+  `propose`. Touched states carry `human_reviewed`.
+- **Edit types:**
+  - status, motion and confidence;
+  - point position (by mouse click);
+  - drop a state;
+  - rename an identity;
+  - add a new object;
+  - mark a state `identity_uncertain`. Such states are don't-care in every metric, so an
+    unidentifiable object is never assigned an identity.
+- **Spreadsheet round trip:** a CSV export/import.
+- **No human review exists yet.** `human_review_entries` is 0 in every annotation file. Every
+  result here still rests on LiDAR-derived, Claude-reviewed labels. The human review
+  priorities below still apply; A2, B and C come first.
+
+**Forecasting readiness for Phase 4.2** (`scripts/forecast_ground_truth.py`; aggregate
+results in [FORECASTING_GROUND_TRUTH_READINESS.json](FORECASTING_GROUND_TRUTH_READINESS.json)):
+- **The contract.** 0.4 s grid, 8 observed + 12 future positions, odom metres, go2_robot
+  clock, interpolation only between real samples at most 0.15 s apart, no extrapolation, no
+  window across an exit from view.
+- **Available trajectories.** One annotated person per recording, three visits each:
+  - B: 9.6, 13.0 and 13.7 s;
+  - A2: 13.0, 9.8 and 10.3 s.
+- **Windows from annotated histories:** B 200, A2 139 (one per LiDAR frame). Only **3
+  independent (non-overlapping) windows per recording**, 6 in total.
+- **Windows from tracker histories:** these need the same track matched to the person through
+  the whole 2.8 s history, observed at the origin, and passing the Phase 4 adapter's
+  `track_history` checks. `assume_pedestrian=True` is justified only by the annotation match.
+  - B: 25 / 29 / 40 (original / 3.6 / 3.7).
+  - A2: 12 / 25 / 12.
+  - Most rejections are "identity not validated": the matched ID changed inside the history.
+- **Constant velocity** (`forecasting.baseline.constant_velocity`, the Phase 4 baseline):
+
+  | Recording | History | Windows | ADE m | FDE m |
+  |---|---|---:|---:|---:|
+  | B | annotated | 200 | 0.55 | 1.28 |
+  | A2 | annotated | 139 | 1.18 | 2.81 |
+  | B | tracker, 3.6 (paired annotated-history ADE/FDE on the same windows: 0.20/0.42) | 29 | 0.31 | 0.41 |
+  | A2 | tracker, 3.6 (paired annotated: 1.12/2.70) | 25 | 1.50 | 3.32 |
+
+  The tracker-history windows that survive are mostly pauses, where the ID holds, so their
+  errors are not comparable to all windows. A2's walking turns and stops give large CV errors.
+- **Learned models: blocked here.** The Phase 4 single-agent and Phase 4.1 social checkpoints
+  (`data/outputs/forecasting/...`) are not on this Mac. Only CV was evaluated, and no model
+  was trained or selected on these data.
+- **What this supports.** Six independent windows from one person are not enough to compare
+  forecasters. They support plumbing and visual checks only (the `*_forecast_cv.mp4` videos).
+
 ## Remaining manual annotation needs
 - **Human review of the annotations.** A person should check at least the B and A2 sheets around
   the pauses in front of the box (B 10–13, 24–31 and 43–50 s; A2 8–13 and 35–38 s). Visibility

@@ -1,0 +1,245 @@
+{
+ "contract": {
+  "dt_s": 0.4,
+  "observed": 8,
+  "predicted": 12,
+  "max_gap_s": 0.15
+ },
+ "checkpoints": {
+  "data/outputs/forecasting/eth_base/best.pt": "not present on this machine"
+ },
+ "recordings": {
+  "test_b": {
+   "visits_s": {
+    "person/1": 9.61,
+    "person/2": 13.0,
+    "person/3": 13.71
+   },
+   "gt_history_cv": {
+    "count": 200,
+    "independent_windows": 3,
+    "ade_m": 0.5487952961543688,
+    "fde_m": 1.2765576371829455,
+    "ade_median_m": 0.43195448699654637,
+    "fde_median_m": 1.2077119809408718
+   },
+   "tracker_history_cv": {
+    "baseline": {
+     "count": 25,
+     "independent_windows": 1,
+     "ade_m": 0.2886693149765341,
+     "fde_m": 0.3663084047307981,
+     "ade_median_m": 0.288860520058561,
+     "fde_median_m": 0.34979007650818633
+    },
+    "improved": {
+     "count": 29,
+     "independent_windows": 2,
+     "ade_m": 0.31403119708950494,
+     "fde_m": 0.4089792338917737,
+     "ade_median_m": 0.29918307362791324,
+     "fde_median_m": 0.3847177051015872
+    },
+    "refined": {
+     "count": 40,
+     "independent_windows": 2,
+     "ade_m": 0.3098013807008596,
+     "fde_m": 0.42356133638258686,
+     "ade_median_m": 0.3012585986396276,
+     "fde_median_m": 0.40522025556189833
+    }
+   },
+   "paired_gt_vs_tracker": {
+    "baseline": {
+     "gt": {
+      "count": 25,
+      "independent_windows": 1,
+      "ade_m": 0.20477279885398464,
+      "fde_m": 0.4278143225243719,
+      "ade_median_m": 0.17073064889568645,
+      "fde_median_m": 0.3138566922502091
+     },
+     "tracker": {
+      "count": 25,
+      "independent_windows": 1,
+      "ade_m": 0.2886693149765341,
+      "fde_m": 0.3663084047307981,
+      "ade_median_m": 0.288860520058561,
+      "fde_median_m": 0.34979007650818633
+     }
+    },
+    "improved": {
+     "gt": {
+      "count": 29,
+      "independent_windows": 2,
+      "ade_m": 0.20386565136766827,
+      "fde_m": 0.41621199960059024,
+      "ade_median_m": 0.17073064889568645,
+      "fde_median_m": 0.3138566922502091
+     },
+     "tracker": {
+      "count": 29,
+      "independent_windows": 2,
+      "ade_m": 0.31403119708950494,
+      "fde_m": 0.4089792338917737,
+      "ade_median_m": 0.29918307362791324,
+      "fde_median_m": 0.3847177051015872
+     }
+    },
+    "refined": {
+     "gt": {
+      "count": 40,
+      "independent_windows": 2,
+      "ade_m": 0.25313444003593416,
+      "fde_m": 0.4817896047860419,
+      "ade_median_m": 0.22919492254713647,
+      "fde_median_m": 0.43857088526909827
+     },
+     "tracker": {
+      "count": 40,
+      "independent_windows": 2,
+      "ade_m": 0.3098013807008596,
+      "fde_m": 0.42356133638258686,
+      "ade_median_m": 0.3012585986396276,
+      "fde_median_m": 0.40522025556189833
+     }
+    }
+   },
+   "rejected": {
+    "gt_history": {
+     "no complete 8+12 annotated window": 362
+    },
+    "baseline": {
+     "identity not validated": 169,
+     "no Confirmed track matched at origin": 4,
+     "Only currently observed confirmed tracks are eligible": 2
+    },
+    "improved": {
+     "identity not validated": 163,
+     "no Confirmed track matched at origin": 6,
+     "Only currently observed confirmed tracks are eligible": 2
+    },
+    "refined": {
+     "identity not validated": 150,
+     "no Confirmed track matched at origin": 10
+    }
+   }
+  },
+  "test_a2": {
+   "visits_s": {
+    "person/1": 12.99,
+    "person/2": 9.82,
+    "person/3": 10.26
+   },
+   "gt_history_cv": {
+    "count": 139,
+    "independent_windows": 3,
+    "ade_m": 1.1819392278542173,
+    "fde_m": 2.809958534306794,
+    "ade_median_m": 1.115506825555303,
+    "fde_median_m": 2.3620536678915656
+   },
+   "tracker_history_cv": {
+    "baseline": {
+     "count": 12,
+     "independent_windows": 1,
+     "ade_m": 2.075163996542963,
+     "fde_m": 4.882211016128313,
+     "ade_median_m": 2.1256781148629136,
+     "fde_median_m": 4.954014684421254
+    },
+    "improved": {
+     "count": 25,
+     "independent_windows": 2,
+     "ade_m": 1.5020537704826202,
+     "fde_m": 3.3235315383699033,
+     "ade_median_m": 1.3086948214036687,
+     "fde_median_m": 2.6872743627852826
+    },
+    "refined": {
+     "count": 12,
+     "independent_windows": 1,
+     "ade_m": 2.075163996542963,
+     "fde_m": 4.882211016128313,
+     "ade_median_m": 2.1256781148629136,
+     "fde_median_m": 4.954014684421254
+    }
+   },
+   "paired_gt_vs_tracker": {
+    "baseline": {
+     "gt": {
+      "count": 12,
+      "independent_windows": 1,
+      "ade_m": 1.8686227474513268,
+      "fde_m": 4.494294993135586,
+      "ade_median_m": 1.8664189708626844,
+      "fde_median_m": 4.464768516526668
+     },
+     "tracker": {
+      "count": 12,
+      "independent_windows": 1,
+      "ade_m": 2.075163996542963,
+      "fde_m": 4.882211016128313,
+      "ade_median_m": 2.1256781148629136,
+      "fde_median_m": 4.954014684421254
+     }
+    },
+    "improved": {
+     "gt": {
+      "count": 25,
+      "independent_windows": 2,
+      "ade_m": 1.120333388822629,
+      "fde_m": 2.6977092900191635,
+      "ade_median_m": 0.7982031042066816,
+      "fde_median_m": 1.7214605484390093
+     },
+     "tracker": {
+      "count": 25,
+      "independent_windows": 2,
+      "ade_m": 1.5020537704826202,
+      "fde_m": 3.3235315383699033,
+      "ade_median_m": 1.3086948214036687,
+      "fde_median_m": 2.6872743627852826
+     }
+    },
+    "refined": {
+     "gt": {
+      "count": 12,
+      "independent_windows": 1,
+      "ade_m": 1.8686227474513268,
+      "fde_m": 4.494294993135586,
+      "ade_median_m": 1.8664189708626844,
+      "fde_median_m": 4.464768516526668
+     },
+     "tracker": {
+      "count": 12,
+      "independent_windows": 1,
+      "ade_m": 2.075163996542963,
+      "fde_m": 4.882211016128313,
+      "ade_median_m": 2.1256781148629136,
+      "fde_median_m": 4.954014684421254
+     }
+    }
+   },
+   "rejected": {
+    "gt_history": {
+     "no complete 8+12 annotated window": 373
+    },
+    "baseline": {
+     "identity not validated": 66,
+     "no Confirmed track matched at origin": 60,
+     "Only currently observed confirmed tracks are eligible": 1
+    },
+    "improved": {
+     "identity not validated": 59,
+     "Only currently observed confirmed tracks are eligible": 2,
+     "no Confirmed track matched at origin": 53
+    },
+    "refined": {
+     "identity not validated": 59,
+     "no Confirmed track matched at origin": 68
+    }
+   }
+  }
+ }
+}

@@ -1,6 +1,51 @@
-# Project state — 2026-11-08
+# Project state — 2026-11-09
 
-## Phase 3.8 ground-truth validation (current)
+## Phase 3.8 visual ground truth (current)
+Branch `phase3-visual-groundtruth`. It contains the Phase 3.8 ground-truth work (`79bb0f9`)
+plus a merge of `phase4-social-forecasting` (`5979a76`; code and documents only, no tracker
+default changed). Main is unchanged. Read [VIDEO_ANNOTATION](VIDEO_ANNOTATION.md).
+
+**Synchronized diagnostic videos.** `scripts/render_tracking_video.py`, H.264 1920×1080 at
+real time, written to the ignored `data/outputs/mac/videos/`.
+- **Left:** camera with YOLO boxes, labelled not calibrated to LiDAR.
+- **Right:** odom BEV with raw points, clusters, robot path, tracks coloured by motion
+  (observed filled, predicted hollow), trails, velocity, a 4.8 s constant-velocity future, and
+  the annotations.
+- **Bottom:** clocks with approximate camera−LiDAR offset (p95 34 ms), counts, robot
+  velocity, warnings, and an event timeline and log. ID switches are red only when the
+  annotations support them; other events are amber heuristics.
+
+**Outputs:**
+- Full videos for A1, A2, B and C;
+- three-variant side-by-side comparisons;
+- forecast overlays for B and A2;
+- a 70 s highlight montage.
+
+All decode on macOS (QuickLook) and were checked with ffprobe.
+
+**Also added:**
+- **Manual annotation editing:** an OpenCV editor plus CSV round trip. Edits are stored as
+  review entries; `identity_uncertain` states are don't-care in scoring.
+- **Forecasting readiness:** `scripts/forecast_ground_truth.py`.
+
+**Results:**
+- **Ground-truth scores unchanged.** IDF1 B 0.33/0.40/0.39, A2 0.30/0.60/0.53,
+  C 0.29/0.60/0.41, A1 0.90/0.90/0.86 (original / 3.6 / 3.7).
+- **Phase 4.2 eligibility.**
+  - Annotated windows (8+12 at 0.4 s): B 200, A2 139, only 6 independent in total.
+  - Identity-validated tracker windows: B 25/29/40, A2 12/25/12.
+  - CV ADE/FDE with annotated history: B 0.55/1.28 m, A2 1.18/2.81 m.
+  - No learned checkpoint is on this Mac.
+
+Tests: **283 passed, 1 hardware skipped**, in both venvs.
+
+**Next:**
+1. Human review of the A2, B and C annotations with the editor.
+2. Held-out recordings H1–H3 (with two people and taped poses).
+3. Copy the Phase 4/4.1 checkpoints to this Mac to evaluate learned models on validated windows.
+4. Camera calibration.
+
+## Phase 3.8 ground-truth validation (2026-11-08)
 Branch `phase3-ground-truth-validation`, from `phase3-tracking-refinement` at `c643422`. Main is
 unchanged and no tracker code changed. Read [TRACKING_GROUND_TRUTH](TRACKING_GROUND_TRUTH.md).
 

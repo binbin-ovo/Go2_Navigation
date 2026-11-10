@@ -30,6 +30,16 @@ CONFIDENCES = ("high", "medium", "low")
 DETECTABLE = ("visible", "partial")
 
 
+def scorable(state):
+    """Detectable, located and identifiable: the states a tracker is scored on. States marked
+    ``identity_uncertain`` (unidentifiable in review) are don't-care, never guessed."""
+    return (
+        state["status"] in DETECTABLE
+        and bool(state.get("xy") or state.get("region"))
+        and not state.get("identity_uncertain")
+    )
+
+
 def validate(doc):
     """Raise ValueError on any schema violation; return the document."""
     if doc.get("schema") != SCHEMA:
@@ -70,6 +80,8 @@ def validate(doc):
                 raise ValueError(f"{oid}: region needs at least three finite vertices")
             if state["status"] == "out_of_view" and (xy is not None or region is not None):
                 raise ValueError(f"{oid}: out_of_view objects carry no position")
+            if not isinstance(state.get("identity_uncertain", False), bool):
+                raise ValueError(f"{oid}: identity_uncertain must be a boolean")
             if "velocity" in state and state["velocity"] is not None and xy is None:
                 raise ValueError(f"{oid}: velocity requires a point position")
     return doc
@@ -155,7 +167,7 @@ def match_frame(states, rows, gates, previous=None):
     gate.
     """
     previous = previous or {}
-    located = [s for s in states if s["status"] in DETECTABLE and (s.get("xy") or s.get("region"))]
+    located = [s for s in states if scorable(s)]
     near = {s["id"]: [] for s in located}
     if not located or not rows:
         return {}, near
@@ -275,7 +287,7 @@ def evaluate(doc, records, selection="confirmed", gates=None, zone=None, recover
         scored += 1
         zone_ids = set()
         for s in states:
-            if s["status"] in DETECTABLE and (s.get("xy") or s.get("region")):
+            if scorable(s):
                 zone_ids |= {
                     r[0] for r in rows if state_distance(s, r[1:3]) <= zone[s["type"]]
                 }
@@ -286,7 +298,7 @@ def evaluate(doc, records, selection="confirmed", gates=None, zone=None, recover
             m["frames"] += 1
             row = matches.get(s["id"])
             events[s["id"]].append((frame["t"], s["status"], None if row is None else row[0]))
-            if s["status"] not in DETECTABLE or not (s.get("xy") or s.get("region")):
+            if not scorable(s):
                 continue
             m["detectable"] += 1
             key = (s["id"], s.get("visit"))

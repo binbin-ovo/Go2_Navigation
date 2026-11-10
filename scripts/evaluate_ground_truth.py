@@ -60,7 +60,7 @@ def subset(doc, start, end):
 
 
 def located(states):
-    return [s for s in states if s["status"] in gt.DETECTABLE and (s.get("xy") or s.get("region"))]
+    return [s for s in states if gt.scorable(s)]
 
 
 def proposal_state(s, dets, others):
