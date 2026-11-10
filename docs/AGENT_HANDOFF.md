@@ -1,3 +1,7 @@
+## Phase 5A interface delivery — 2026-11-10 (in progress)
+
+Branch `phase5-stable-lidar-perception` starts at integrated `9068088542067fc117535279b412fbf2f808fdf6`, preserving Phase 3.8 video/annotation and Phase 4.1 forecasting. First deliverable: [scene schema](SCENE_REPRESENTATION_INTERFACE.md), deterministic `tests/fixtures/scene/renderer.jsonl`, generator and NumPy-only JSONL validator. Seven interface tests passed. Claude can build a renderer from this fixture independently. Git publication is delivery; Claude acknowledgement is pending. No operational defaults, tracker internals or hardware code changed. Temporal accumulation investigation and stable perception implementation are still in progress; no Phase 5A real-data improvement is claimed.
+
 # Agent handoff — 2026-11-09 (macOS update)
 
 ## Phase 3.8 visual ground-truth handoff (current)
