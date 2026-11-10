@@ -34,3 +34,15 @@ PYTHONPATH=src python scripts/generate_scene_fixture.py --output /tmp/go2-render
 ```
 
 Do not overwrite existing fixtures silently. This schema is not a ROS topic and does not imply a live Go2 connection. Claude can build the renderer now; perception implementation and measured validation will follow on the same branch. Runtime annotations are prohibited; GT is evaluation-only.
+
+## Machine schema and minimal consumer
+
+The normative structural schema is [`schemas/go2-scene-v1.schema.json`](../schemas/go2-scene-v1.schema.json), JSON Schema draft 2020-12. Semantic validation (finite values, rigid transforms, PSD covariance, age consistency and duplicate IDs) is additionally performed by `scene.serialization.validate_scene`. JSON Schema's numeric type alone does not reject a nonstandard parser's NaN; consumers must reject nonfinite values.
+
+A renderer can begin with the **standard-library-only** example:
+
+```bash
+python scripts/read_scene.py tests/fixtures/scene/renderer.jsonl
+```
+
+It prints six summaries; the last two frames contain one directly supported filtered box and one stale box. Draw scene points/boxes directly in odom. Apply `T_odom_base` only to the robot model; applying it to scene points again would double-transform them. Treat `display_compact` as rendering guidance only. The source measurements must still reach perception unchanged. Optional new fields may be ignored; changes to existing fields, units, semantics or required structure require coordination with Claude and a new schema version.

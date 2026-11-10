@@ -41,3 +41,15 @@ def test_scene_rejects_bad_contract(change):
         r["objects"][0]["observation_age_s"] = 5
     with pytest.raises(ValueError):
         validate_scene(r)
+
+
+def test_machine_schema_and_minimal_consumer():
+    jsonschema = pytest.importorskip("jsonschema")
+    schema = json.loads(Path("schemas/go2-scene-v1.schema.json").read_text())
+    jsonschema.Draft202012Validator.check_schema(schema)
+    for row in read_scenes("tests/fixtures/scene/renderer.jsonl"):
+        jsonschema.Draft202012Validator(schema).validate(row)
+    consumer = runpy.run_path("scripts/read_scene.py")["summarize"]
+    rows = list(consumer("tests/fixtures/scene/renderer.jsonl"))
+    assert rows[0]["observed_boxes"] == 2 and rows[-1]["stale_boxes"] == 1
+    assert all(r["frame"] == "odom" and r["clock"] == "synthetic" for r in rows)

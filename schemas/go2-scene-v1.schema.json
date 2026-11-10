@@ -1,0 +1,308 @@
+{
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "go2-scene-v1"
+    },
+    "timestamp": {
+      "type": "number"
+    },
+    "clock_domain": {
+      "type": "string",
+      "minLength": 1
+    },
+    "frame_id": {
+      "const": "odom"
+    },
+    "units": {
+      "const": "m"
+    },
+    "epoch": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "robot_pose": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "timestamp": {
+              "type": "number"
+            },
+            "parent_frame": {
+              "type": "string",
+              "minLength": 1
+            },
+            "child_frame": {
+              "const": "base_link"
+            },
+            "T_odom_base": {
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4,
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4
+              }
+            }
+          },
+          "required": [
+            "timestamp",
+            "parent_frame",
+            "child_frame",
+            "T_odom_base"
+          ],
+          "additionalProperties": true
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "background": {
+      "type": "object",
+      "properties": {
+        "voxel_size": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "free_space_policy": {
+          "const": "unobserved_is_unknown"
+        },
+        "cells": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "center": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 3,
+                "maxItems": 3
+              },
+              "observation_count": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "last_observed": {
+                "type": "number"
+              },
+              "age_s": {
+                "type": "number",
+                "minimum": 0
+              },
+              "evidence_score": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            },
+            "required": [
+              "center",
+              "observation_count",
+              "last_observed",
+              "age_s",
+              "evidence_score"
+            ],
+            "additionalProperties": true
+          }
+        }
+      },
+      "required": [
+        "voxel_size",
+        "free_space_policy",
+        "cells"
+      ],
+      "additionalProperties": true
+    },
+    "objects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "object_id": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "track_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "center": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "dimensions": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "orientation_xyzw": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "velocity": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "velocity_covariance": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "motion_state": {
+            "enum": [
+              "STATIONARY",
+              "MOVING",
+              "UNCERTAIN"
+            ]
+          },
+          "status": {
+            "enum": [
+              "observed_filtered",
+              "stale"
+            ]
+          },
+          "last_observed": {
+            "type": "number"
+          },
+          "observation_age_s": {
+            "type": "number",
+            "minimum": 0
+          },
+          "age_s": {
+            "type": "number",
+            "minimum": 0
+          },
+          "observation_score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "observed_box": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "center": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 3,
+                    "maxItems": 3
+                  },
+                  "dimensions": {
+                    "type": "array",
+                    "items": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    "minItems": 3,
+                    "maxItems": 3
+                  },
+                  "point_count": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "required": [
+                  "center",
+                  "dimensions",
+                  "point_count"
+                ],
+                "additionalProperties": true
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "display_compact": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "object_id",
+          "track_id",
+          "center",
+          "dimensions",
+          "orientation_xyzw",
+          "velocity",
+          "velocity_covariance",
+          "motion_state",
+          "status",
+          "last_observed",
+          "observation_age_s",
+          "age_s",
+          "observation_score",
+          "observed_box",
+          "display_compact"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "diagnostics": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema",
+    "timestamp",
+    "clock_domain",
+    "frame_id",
+    "units",
+    "epoch",
+    "robot_pose",
+    "background",
+    "objects",
+    "diagnostics"
+  ],
+  "additionalProperties": true,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Go2 stable scene snapshot v1",
+  "description": "One JSONL row; numeric arrays contain finite values. Additional semantic checks are in scene.serialization.validate_scene. Additive optional fields allowed."
+}
