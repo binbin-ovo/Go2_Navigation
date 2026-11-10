@@ -1,3 +1,26 @@
+## Phase 5A → Phase 5B Claude Handoff
+
+- **Branch:** `phase5-stable-lidar-perception`.
+- **Complete interface commit:** `5e269061c3da70ffe3d00798eb9bf05977869797` (includes initial fixture/schema version commit `9b99375`). This immutable commit contains every renderer-facing interface file; this handoff note is a subsequent documentation commit on the same branch.
+- **Contract:** `docs/SCENE_REPRESENTATION_INTERFACE.md`.
+- **Versioned machine schema:** `schemas/go2-scene-v1.schema.json` (`go2-scene-v1`, JSON Schema 2020-12).
+- **Exact deterministic fixture:** `tests/fixtures/scene/renderer.jsonl` (six JSONL rows, synthetic only).
+- **Minimal consumer:** `scripts/read_scene.py`, standard library only; `scripts/generate_scene_fixture.py` reproduces the fixture. Semantic validator: `src/go2_perception/scene/serialization.py`; tests: `tests/test_scene_interface.py` (**8 passed**).
+
+Fetch the branch, then consume the fixture without waiting for perception implementation:
+
+```bash
+git fetch origin phase5-stable-lidar-perception
+# Read from a separate checkout/worktree to preserve your current annotation/video work.
+git worktree add ../Go2_scene_renderer origin/phase5-stable-lidar-perception
+cd ../Go2_scene_renderer
+python scripts/read_scene.py tests/fixtures/scene/renderer.jsonl
+```
+
+All scene geometry is already in `odom`, in meters, right-handed x-forward/y-left/z-up at odometry origin. Timestamps are seconds in the explicitly named clock domain; fixture clock is `synthetic`, real records use `go2_robot`. Row-major `T_odom_base` maps base column vectors into odom: apply it only to the robot mesh, never again to the scene points/boxes. Clear renderer history on epoch changes. Null pose is unknown, not identity. Preserve observed-vs-filtered-vs-stale and UNCERTAIN state; absence/expired cells are unknown, not free space. The last two fixture frames deliberately mark the static box stale while the second object remains observed/MOVING.
+
+`display_compact` controls drawing only; raw measurements must still enter perception. Scores are defined evidence/recency ratios, not probabilities. This delivery contains no camera calibration, private recordings, control commands or promise of real geometry accuracy. Claude may implement the renderer against v1 immediately. Codex will continue Phase 5A on the same branch, preserving required fields and semantics. Additive optional fields are allowed; a breaking change requires explicit coordination with Claude and a new version. User selected GitHub branch publication as the delivery channel; Claude acknowledgement remains pending.
+
 ## Phase 5A interface delivery — 2026-11-10 (in progress)
 
 Branch `phase5-stable-lidar-perception` starts at integrated `9068088542067fc117535279b412fbf2f808fdf6`, preserving Phase 3.8 video/annotation and Phase 4.1 forecasting. First deliverable: [scene schema](SCENE_REPRESENTATION_INTERFACE.md), deterministic `tests/fixtures/scene/renderer.jsonl`, generator and NumPy-only JSONL validator. Seven interface tests passed. Claude can build a renderer from this fixture independently. Git publication is delivery; Claude acknowledgement is pending. No operational defaults, tracker internals or hardware code changed. Temporal accumulation investigation and stable perception implementation are still in progress; no Phase 5A real-data improvement is claimed.
