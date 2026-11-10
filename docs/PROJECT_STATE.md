@@ -47,8 +47,6 @@ unchanged and no tracker code changed. Read [TRACKING_GROUND_TRUTH](TRACKING_GRO
 
 Tests: **203 passed, 1 hardware skipped**, in both venvs.
 
-## Phase 3.7 refinement (historical: `phase3-tracking-refinement`)
-
 ## Phase 4.1 forecasting state (merged from `phase4-social-forecasting` at 5979a76)
 
 Branch `phase4-social-forecasting`, based on verified Phase 4 `447f164e808fee381fd3e9dbe8244583a0bed2f4`. No merge into main. Implemented observation-only multi-pedestrian extraction with partial-history masks, an 87,128-parameter shared temporal encoder with relative-position/mean neighbor pooling, dedicated checkpoint/training/evaluation interfaces, robustness studies, research plots, and a guarded offline multi-track adapter. Original forecasting, TrackOutput/ForecastOutput, tracking internals and Go2 hardware adapters are unchanged.
@@ -61,7 +59,7 @@ Read [social architecture](SOCIAL_FORECASTING_ARCHITECTURE.md), [actual experime
 
 Next: keep CV as the reference; Claude validates real pedestrian identity segments and stable metric frames. Then run matched held-out offline Go2 comparisons with explicit externally validated IDs. Repeat noise-only augmentation across seeds before considering more architecture. Historical phase states follow; their current/next claims apply to their original milestones.
 
-# Phase 4 historical state — 2026-11-09
+## Phase 4 historical state (from `phase4-trajectory-forecasting`)
 
 Branch `phase4-trajectory-forecasting`, based on Phase 3.7 `c6434229c54ee445763d8ceb1f5ef56b0f5c50da`; main is not merged. Added public ETH/UCY trajectory preparation, independent CV and Phase 3 baseline adapter, lightweight PyTorch Transformer, deterministic training/checkpoints, paired evaluation, validation ablations, plotting and guarded offline TrackOutput integration. Tracking/sensor internals remain unchanged; Claude's Phase 3.8 work is separate.
 
@@ -69,9 +67,7 @@ Verified: five fixed scene-identifier-held-out CPU runs (15,061 windows), valida
 
 Read [forecasting architecture](FORECASTING_ARCHITECTURE.md), [dataset protocol](FORECASTING_DATASETS.md), [commands and actual experiments](FORECASTING_EXPERIMENTS.md), and [integration contract](FORECASTING_INTEGRATION.md). Known limitations: one seed, correlated windows, no social context or uncertainty, unverified dataset redistribution rights, no clean-install test, and untrusted real tracker identities. Do not train from unvalidated Go2 tracks. Next: Claude validates identities/frames/visibility, then evaluate public-trained models and CV on held-out ground truth; extend forecasting research using validation-only decisions. Earlier phase sections below are historical.
 
-# Project state — 2026-11-07
-
-## Phase 3.7 refinement (historical)
+## Phase 3.7 refinement (historical: `phase3-tracking-refinement`)
 
 Branch `phase3-tracking-refinement`, based on Claude's latest integrated comparison `de043d1`.
 Adds opt-in `tracking_refinement.yaml`: physical reacquisition limits, repeated-evidence duplicate

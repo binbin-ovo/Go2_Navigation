@@ -69,8 +69,6 @@ Verified: five fixed scene-identifier-held-out CPU runs (15,061 windows), valida
 
 Read [forecasting architecture](FORECASTING_ARCHITECTURE.md), [dataset protocol](FORECASTING_DATASETS.md), [commands and actual experiments](FORECASTING_EXPERIMENTS.md), and [integration contract](FORECASTING_INTEGRATION.md). Known limitations: one seed, correlated windows, no social context or uncertainty, unverified dataset redistribution rights, no clean-install test, and untrusted real tracker identities. Do not train from unvalidated Go2 tracks. Next: Claude validates identities/frames/visibility, then evaluate public-trained models and CV on held-out ground truth; extend forecasting research using validation-only decisions. Earlier phase sections below are historical.
 
-# Agent handoff — 2026-11-07 (macOS update)
-
 ## Phase 3.7 refinement handoff (historical)
 Branch `phase3-tracking-refinement` starts at `de043d1`, containing Claude's real comparison and
 Codex's Phase 3.6 work. Do not merge main or promote a profile to default without approval.
