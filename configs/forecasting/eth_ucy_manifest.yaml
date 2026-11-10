@@ -1,0 +1,27 @@
+name: social-gan-eth-ucy-canonical-v1
+source_revision: 691231e1adb6a344c7bcea9ebf2534518b226ead
+archive_url: https://www.dropbox.com/s/8n02xqv3l9q18r1/datasets.zip?dl=1
+archive_sha256: f62be0aaafd49ba2923954c398f2513419d2627911ce673ebc880127974d2c7f
+coordinate_system: metric_world_xy
+units: m
+step_seconds: 0.4
+frame_stride: 10
+scenes:
+  eth:
+  - eth/test/biwi_eth.txt
+  hotel:
+  - hotel/test/biwi_hotel.txt
+  univ:
+  - univ/test/students001.txt
+  - univ/test/students003.txt
+  zara1:
+  - zara1/test/crowds_zara01.txt
+  zara2:
+  - zara2/test/crowds_zara02.txt
+file_sha256:
+  eth/test/biwi_eth.txt: cf8d3fd342a15f409ebc2a1fc76b91a0f06390bd21f1e11410f3859331ab082b
+  hotel/test/biwi_hotel.txt: 9caa771bb9153d6b809dd0916b6f86761b641e6bbb15e766c1de3133fbbb7fcf
+  univ/test/students001.txt: a6d87f278d94136fe39b8be91555487a29ac77259ae403b9dba2d5c18caf7b5b
+  univ/test/students003.txt: e25798b660634330aa89f8bb259425de720e84d0873902726c1d1f4ccff21d6c
+  zara1/test/crowds_zara01.txt: 1147a1962a09abfb86f28c6cddcac862e095a0cf129b3016385b69eacdd09d85
+  zara2/test/crowds_zara02.txt: 8a649d0f8c9ae75c87c4d23a85f892786b0aa30266e996c7be03e69dafff22ff

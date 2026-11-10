@@ -1,0 +1,4856 @@
+{
+  "base_commit": "447f164e808fee381fd3e9dbe8244583a0bed2f4",
+  "training": {
+    "social_seed43/hotel/training": {
+      "summary": {
+        "epochs": 30,
+        "best_validation_ade_m": 0.5621788501739502,
+        "wall_s": 78.80664858268574,
+        "checkpoint_sha256": "08e0b8181889c4c15a2dd54a7a0e2b3c8df5973a8d0fdac1f62ab588bc2e8c37",
+        "test_evaluated": false,
+        "metadata": {
+          "train": {
+            "split": "train",
+            "scenes": [
+              "eth",
+              "zara1",
+              "zara2"
+            ],
+            "recording_sha256": {
+              "eth/test/biwi_eth.txt": "cf8d3fd342a15f409ebc2a1fc76b91a0f06390bd21f1e11410f3859331ab082b",
+              "zara1/test/crowds_zara01.txt": "1147a1962a09abfb86f28c6cddcac862e095a0cf129b3016385b69eacdd09d85",
+              "zara2/test/crowds_zara02.txt": "8a649d0f8c9ae75c87c4d23a85f892786b0aa30266e996c7be03e69dafff22ff"
+            },
+            "windows": 3693,
+            "window_keys_sha256": "147b1adff46266b5c47b2582d7064c1bd970a014ff54cc39ed48a14b0af9fec1",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 3.577579203899269,
+            "zero_neighbor_windows": 316,
+            "partial_neighbor_histories": 373
+          },
+          "validation": {
+            "split": "validation",
+            "scenes": [
+              "univ"
+            ],
+            "recording_sha256": {
+              "univ/test/students001.txt": "a6d87f278d94136fe39b8be91555487a29ac77259ae403b9dba2d5c18caf7b5b",
+              "univ/test/students003.txt": "e25798b660634330aa89f8bb259425de720e84d0873902726c1d1f4ccff21d6c"
+            },
+            "windows": 10943,
+            "window_keys_sha256": "23d33102919741226715fa96ed88c2635bdfca10e290f7653d4bc1e9dffd0a24",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 6.620213835328521,
+            "zero_neighbor_windows": 65,
+            "partial_neighbor_histories": 3979
+          },
+          "torch": "2.6.0",
+          "numpy": "1.26.4",
+          "python": "3.12.11",
+          "platform": "macOS-26.6.2-arm64-arm-64bit",
+          "device": "cpu",
+          "parameter_count": 87128
+        }
+      },
+      "history": [
+        {
+          "epoch": 1,
+          "train_smooth_l1": 0.41259448934773135,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.9131062626838684,
+            "fde_m": 1.5932369232177734
+          },
+          "validation_smooth_l1": 0.2998669743537903,
+          "elapsed_s": 2.5663806665688753
+        },
+        {
+          "epoch": 2,
+          "train_smooth_l1": 0.12750102941934377,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.7906265258789062,
+            "fde_m": 1.518225073814392
+          },
+          "validation_smooth_l1": 0.25199374556541443,
+          "elapsed_s": 5.181157166603953
+        },
+        {
+          "epoch": 3,
+          "train_smooth_l1": 0.11000687176663798,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.7784536480903625,
+            "fde_m": 1.5124719142913818
+          },
+          "validation_smooth_l1": 0.24623309075832367,
+          "elapsed_s": 7.838639999739826
+        },
+        {
+          "epoch": 4,
+          "train_smooth_l1": 0.10249693653801738,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.7520346641540527,
+            "fde_m": 1.5098439455032349
+          },
+          "validation_smooth_l1": 0.23645910620689392,
+          "elapsed_s": 10.499915374908596
+        },
+        {
+          "epoch": 5,
+          "train_smooth_l1": 0.09915649431114303,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.7176496386528015,
+            "fde_m": 1.4759069681167603
+          },
+          "validation_smooth_l1": 0.2153145670890808,
+          "elapsed_s": 13.033350666984916
+        },
+        {
+          "epoch": 6,
+          "train_smooth_l1": 0.09311922980967234,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.6469383239746094,
+            "fde_m": 1.3415498733520508
+          },
+          "validation_smooth_l1": 0.18565087020397186,
+          "elapsed_s": 15.58554624998942
+        },
+        {
+          "epoch": 7,
+          "train_smooth_l1": 0.08962129308841366,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.6522602438926697,
+            "fde_m": 1.3184621334075928
+          },
+          "validation_smooth_l1": 0.18579663336277008,
+          "elapsed_s": 18.07603762485087
+        },
+        {
+          "epoch": 8,
+          "train_smooth_l1": 0.08778399364221331,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.6347504258155823,
+            "fde_m": 1.308475375175476
+          },
+          "validation_smooth_l1": 0.1815662831068039,
+          "elapsed_s": 20.61649924982339
+        },
+        {
+          "epoch": 9,
+          "train_smooth_l1": 0.08544845911357708,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.640406608581543,
+            "fde_m": 1.3181959390640259
+          },
+          "validation_smooth_l1": 0.1848689615726471,
+          "elapsed_s": 23.127938041929156
+        },
+        {
+          "epoch": 10,
+          "train_smooth_l1": 0.08546305723607363,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.6372252106666565,
+            "fde_m": 1.3116614818572998
+          },
+          "validation_smooth_l1": 0.1803351193666458,
+          "elapsed_s": 25.75292699970305
+        },
+        {
+          "epoch": 11,
+          "train_smooth_l1": 0.0826452773033104,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.6137325167655945,
+            "fde_m": 1.294432520866394
+          },
+          "validation_smooth_l1": 0.17823049426078796,
+          "elapsed_s": 28.268266374710947
+        },
+        {
+          "epoch": 12,
+          "train_smooth_l1": 0.08214350273510385,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.6026319861412048,
+            "fde_m": 1.2610257863998413
+          },
+          "validation_smooth_l1": 0.17240576446056366,
+          "elapsed_s": 30.804874082561582
+        },
+        {
+          "epoch": 13,
+          "train_smooth_l1": 0.08208728879246323,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.6229491829872131,
+            "fde_m": 1.3111571073532104
+          },
+          "validation_smooth_l1": 0.17821386456489563,
+          "elapsed_s": 33.3260868745856
+        },
+        {
+          "epoch": 14,
+          "train_smooth_l1": 0.08031473937047195,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.6061340570449829,
+            "fde_m": 1.2799984216690063
+          },
+          "validation_smooth_l1": 0.17437013983726501,
+          "elapsed_s": 35.89674129197374
+        },
+        {
+          "epoch": 15,
+          "train_smooth_l1": 0.08082506782658985,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.6268036365509033,
+            "fde_m": 1.2977550029754639
+          },
+          "validation_smooth_l1": 0.1769636571407318,
+          "elapsed_s": 38.806243707891554
+        },
+        {
+          "epoch": 16,
+          "train_smooth_l1": 0.080214280353679,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.580563485622406,
+            "fde_m": 1.2460050582885742
+          },
+          "validation_smooth_l1": 0.1648073047399521,
+          "elapsed_s": 41.720222416799515
+        },
+        {
+          "epoch": 17,
+          "train_smooth_l1": 0.0787244468055829,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.595205545425415,
+            "fde_m": 1.2560654878616333
+          },
+          "validation_smooth_l1": 0.16921749711036682,
+          "elapsed_s": 44.33473758259788
+        },
+        {
+          "epoch": 18,
+          "train_smooth_l1": 0.0792029683558624,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.6049254536628723,
+            "fde_m": 1.272348403930664
+          },
+          "validation_smooth_l1": 0.16978049278259277,
+          "elapsed_s": 46.93717566691339
+        },
+        {
+          "epoch": 19,
+          "train_smooth_l1": 0.07935114908482271,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.6445233225822449,
+            "fde_m": 1.348511815071106
+          },
+          "validation_smooth_l1": 0.18962645530700684,
+          "elapsed_s": 49.494866707827896
+        },
+        {
+          "epoch": 20,
+          "train_smooth_l1": 0.07877951583830348,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5721613168716431,
+            "fde_m": 1.2312541007995605
+          },
+          "validation_smooth_l1": 0.16201446950435638,
+          "elapsed_s": 52.01798174995929
+        },
+        {
+          "epoch": 21,
+          "train_smooth_l1": 0.07728266418020543,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5888628363609314,
+            "fde_m": 1.2563308477401733
+          },
+          "validation_smooth_l1": 0.16811004281044006,
+          "elapsed_s": 54.534581791609526
+        },
+        {
+          "epoch": 22,
+          "train_smooth_l1": 0.07548479852058557,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5728557705879211,
+            "fde_m": 1.2214196920394897
+          },
+          "validation_smooth_l1": 0.16073590517044067,
+          "elapsed_s": 57.51235091686249
+        },
+        {
+          "epoch": 23,
+          "train_smooth_l1": 0.07525582267982735,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5923241972923279,
+            "fde_m": 1.2646822929382324
+          },
+          "validation_smooth_l1": 0.16495288908481598,
+          "elapsed_s": 60.21901133283973
+        },
+        {
+          "epoch": 24,
+          "train_smooth_l1": 0.07662438789789605,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.568581759929657,
+            "fde_m": 1.2120180130004883
+          },
+          "validation_smooth_l1": 0.15740910172462463,
+          "elapsed_s": 62.976794249843806
+        },
+        {
+          "epoch": 25,
+          "train_smooth_l1": 0.07406503069241002,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5900521874427795,
+            "fde_m": 1.253370761871338
+          },
+          "validation_smooth_l1": 0.16659186780452728,
+          "elapsed_s": 65.45574616687372
+        },
+        {
+          "epoch": 26,
+          "train_smooth_l1": 0.07365079262441908,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5829645991325378,
+            "fde_m": 1.2527284622192383
+          },
+          "validation_smooth_l1": 0.16545088589191437,
+          "elapsed_s": 67.96881454158574
+        },
+        {
+          "epoch": 27,
+          "train_smooth_l1": 0.07403663780581586,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5783905386924744,
+            "fde_m": 1.2414060831069946
+          },
+          "validation_smooth_l1": 0.16389255225658417,
+          "elapsed_s": 70.43801649985835
+        },
+        {
+          "epoch": 28,
+          "train_smooth_l1": 0.07607640804974587,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5988937616348267,
+            "fde_m": 1.2787643671035767
+          },
+          "validation_smooth_l1": 0.1678638458251953,
+          "elapsed_s": 73.26763583254069
+        },
+        {
+          "epoch": 29,
+          "train_smooth_l1": 0.0730395794072159,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5621788501739502,
+            "fde_m": 1.209010124206543
+          },
+          "validation_smooth_l1": 0.15569628775119781,
+          "elapsed_s": 75.9170331666246
+        },
+        {
+          "epoch": 30,
+          "train_smooth_l1": 0.07565087745167394,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.601670503616333,
+            "fde_m": 1.258152723312378
+          },
+          "validation_smooth_l1": 0.16632194817066193,
+          "elapsed_s": 78.80604304187
+        }
+      ],
+      "config": {
+        "dataset": {
+          "root": "data/public/eth_ucy/datasets",
+          "manifest": "configs/forecasting/eth_ucy_manifest.yaml",
+          "train": [
+            "eth",
+            "zara1",
+            "zara2"
+          ],
+          "validation": [
+            "univ"
+          ],
+          "test": [
+            "hotel"
+          ],
+          "obs_steps": 8,
+          "pred_steps": 12,
+          "cohort_obs": 12,
+          "cohort_pred": 12,
+          "stride": 2,
+          "dt": 0.4
+        },
+        "model": {
+          "d_model": 64,
+          "heads": 4,
+          "layers": 2,
+          "feedforward": 128,
+          "dropout": 0.1,
+          "representation": "displacement",
+          "heading_align": false
+        },
+        "baseline": {
+          "method": "mean",
+          "recent_intervals": 3
+        },
+        "training": {
+          "seed": 43,
+          "device": "cpu",
+          "threads": 4,
+          "batch_size": 128,
+          "epochs": 30,
+          "patience": 6,
+          "learning_rate": 0.001,
+          "weight_decay": 0.0001,
+          "clip_grad_norm": 1.0,
+          "accumulate_steps": 1
+        },
+        "social": {
+          "radius": 3.0,
+          "max_neighbors": 8
+        },
+        "augmentation": {
+          "noise_std": 0.0,
+          "mask_probability": 0.0
+        }
+      }
+    },
+    "social_seed43/zara1/training": {
+      "summary": {
+        "epochs": 9,
+        "best_validation_ade_m": 0.36590033769607544,
+        "wall_s": 54.363020416814834,
+        "checkpoint_sha256": "69be7beb4df4a13f3ae18bbd02936bd7ba3b3060f03dda9c3bbf5e5d2e3cb943",
+        "test_evaluated": false,
+        "metadata": {
+          "train": {
+            "split": "train",
+            "scenes": [
+              "eth",
+              "hotel",
+              "univ"
+            ],
+            "recording_sha256": {
+              "eth/test/biwi_eth.txt": "cf8d3fd342a15f409ebc2a1fc76b91a0f06390bd21f1e11410f3859331ab082b",
+              "hotel/test/biwi_hotel.txt": "9caa771bb9153d6b809dd0916b6f86761b641e6bbb15e766c1de3133fbbb7fcf",
+              "univ/test/students001.txt": "a6d87f278d94136fe39b8be91555487a29ac77259ae403b9dba2d5c18caf7b5b",
+              "univ/test/students003.txt": "e25798b660634330aa89f8bb259425de720e84d0873902726c1d1f4ccff21d6c"
+            },
+            "windows": 11496,
+            "window_keys_sha256": "c140ea4f48a61ad79c07b6c71fb98a4252528ffbcbc49c171ad7ae5a5d0f5ad2",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 6.388656924147529,
+            "zero_neighbor_windows": 177,
+            "partial_neighbor_histories": 4176
+          },
+          "validation": {
+            "split": "validation",
+            "scenes": [
+              "zara2"
+            ],
+            "recording_sha256": {
+              "zara2/test/crowds_zara02.txt": "8a649d0f8c9ae75c87c4d23a85f892786b0aa30266e996c7be03e69dafff22ff"
+            },
+            "windows": 2629,
+            "window_keys_sha256": "bf3a324f3d7b015d58c0644c5c059d272b5609089f84181db82ae3f02741eb41",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 4.053252187143401,
+            "zero_neighbor_windows": 153,
+            "partial_neighbor_histories": 239
+          },
+          "torch": "2.6.0",
+          "numpy": "1.26.4",
+          "python": "3.12.11",
+          "platform": "macOS-26.6.2-arm64-arm-64bit",
+          "device": "cpu",
+          "parameter_count": 87128
+        }
+      },
+      "history": [
+        {
+          "epoch": 1,
+          "train_smooth_l1": 0.22888590827864247,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.52081698179245,
+            "fde_m": 0.9963630437850952
+          },
+          "validation_smooth_l1": 0.12365570664405823,
+          "elapsed_s": 5.954305666964501
+        },
+        {
+          "epoch": 2,
+          "train_smooth_l1": 0.141683826040251,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.42093798518180847,
+            "fde_m": 0.8624252080917358
+          },
+          "validation_smooth_l1": 0.1050548255443573,
+          "elapsed_s": 11.79801212484017
+        },
+        {
+          "epoch": 3,
+          "train_smooth_l1": 0.13681044930912342,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.36590033769607544,
+            "fde_m": 0.7745113968849182
+          },
+          "validation_smooth_l1": 0.09139326214790344,
+          "elapsed_s": 17.630439541768283
+        },
+        {
+          "epoch": 4,
+          "train_smooth_l1": 0.13413321676358797,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.4016973674297333,
+            "fde_m": 0.8441567420959473
+          },
+          "validation_smooth_l1": 0.10085997730493546,
+          "elapsed_s": 23.506608333904296
+        },
+        {
+          "epoch": 5,
+          "train_smooth_l1": 0.12981755942334378,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.3781946897506714,
+            "fde_m": 0.8071242570877075
+          },
+          "validation_smooth_l1": 0.09843692183494568,
+          "elapsed_s": 29.391361416783184
+        },
+        {
+          "epoch": 6,
+          "train_smooth_l1": 0.1303922614768386,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.41766053438186646,
+            "fde_m": 0.8825131058692932
+          },
+          "validation_smooth_l1": 0.1036924347281456,
+          "elapsed_s": 35.521959291771054
+        },
+        {
+          "epoch": 7,
+          "train_smooth_l1": 0.12797858677519305,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.39953336119651794,
+            "fde_m": 0.8334479928016663
+          },
+          "validation_smooth_l1": 0.09761151671409607,
+          "elapsed_s": 41.690534084104
+        },
+        {
+          "epoch": 8,
+          "train_smooth_l1": 0.1285802279816125,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.42213547229766846,
+            "fde_m": 0.8825722336769104
+          },
+          "validation_smooth_l1": 0.10835061222314835,
+          "elapsed_s": 48.23740779189393
+        },
+        {
+          "epoch": 9,
+          "train_smooth_l1": 0.12682003067986536,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.4354730546474457,
+            "fde_m": 0.8816307783126831
+          },
+          "validation_smooth_l1": 0.09922898560762405,
+          "elapsed_s": 54.36268183402717
+        }
+      ],
+      "config": {
+        "dataset": {
+          "root": "data/public/eth_ucy/datasets",
+          "manifest": "configs/forecasting/eth_ucy_manifest.yaml",
+          "train": [
+            "eth",
+            "hotel",
+            "univ"
+          ],
+          "validation": [
+            "zara2"
+          ],
+          "test": [
+            "zara1"
+          ],
+          "obs_steps": 8,
+          "pred_steps": 12,
+          "cohort_obs": 12,
+          "cohort_pred": 12,
+          "stride": 2,
+          "dt": 0.4
+        },
+        "model": {
+          "d_model": 64,
+          "heads": 4,
+          "layers": 2,
+          "feedforward": 128,
+          "dropout": 0.1,
+          "representation": "displacement",
+          "heading_align": false
+        },
+        "baseline": {
+          "method": "mean",
+          "recent_intervals": 3
+        },
+        "training": {
+          "seed": 43,
+          "device": "cpu",
+          "threads": 4,
+          "batch_size": 128,
+          "epochs": 30,
+          "patience": 6,
+          "learning_rate": 0.001,
+          "weight_decay": 0.0001,
+          "clip_grad_norm": 1.0,
+          "accumulate_steps": 1
+        },
+        "social": {
+          "radius": 3.0,
+          "max_neighbors": 8
+        },
+        "augmentation": {
+          "noise_std": 0.0,
+          "mask_probability": 0.0
+        }
+      }
+    },
+    "social_seed43/univ/training": {
+      "summary": {
+        "epochs": 13,
+        "best_validation_ade_m": 0.46000903844833374,
+        "wall_s": 14.117031666915864,
+        "checkpoint_sha256": "35ff96352d31b36b664c421eab88b60e8fad338fb82bf387e9a586b833caea80",
+        "test_evaluated": false,
+        "metadata": {
+          "train": {
+            "split": "train",
+            "scenes": [
+              "eth",
+              "hotel",
+              "zara2"
+            ],
+            "recording_sha256": {
+              "eth/test/biwi_eth.txt": "cf8d3fd342a15f409ebc2a1fc76b91a0f06390bd21f1e11410f3859331ab082b",
+              "hotel/test/biwi_hotel.txt": "9caa771bb9153d6b809dd0916b6f86761b641e6bbb15e766c1de3133fbbb7fcf",
+              "zara2/test/crowds_zara02.txt": "8a649d0f8c9ae75c87c4d23a85f892786b0aa30266e996c7be03e69dafff22ff"
+            },
+            "windows": 3182,
+            "window_keys_sha256": "179dc317eee31d5daad0f43961a51a84bb2645705720d5cef759d545421f7b28",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 3.6627906976744184,
+            "zero_neighbor_windows": 265,
+            "partial_neighbor_histories": 436
+          },
+          "validation": {
+            "split": "validation",
+            "scenes": [
+              "zara1"
+            ],
+            "recording_sha256": {
+              "zara1/test/crowds_zara01.txt": "1147a1962a09abfb86f28c6cddcac862e095a0cf129b3016385b69eacdd09d85"
+            },
+            "windows": 936,
+            "window_keys_sha256": "e3ecea9a1b976a16bde30f66e97c9f1d934a750154772379ac4469c6d5298a66",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 2.5790598290598292,
+            "zero_neighbor_windows": 106,
+            "partial_neighbor_histories": 100
+          },
+          "torch": "2.6.0",
+          "numpy": "1.26.4",
+          "python": "3.12.11",
+          "platform": "macOS-26.6.2-arm64-arm-64bit",
+          "device": "cpu",
+          "parameter_count": 87128
+        }
+      },
+      "history": [
+        {
+          "epoch": 1,
+          "train_smooth_l1": 0.35803855507910287,
+          "validation": {
+            "count": 936,
+            "ade_m": 1.083937644958496,
+            "fde_m": 2.6035349369049072
+          },
+          "validation_smooth_l1": 0.3709987998008728,
+          "elapsed_s": 1.0842884168960154
+        },
+        {
+          "epoch": 2,
+          "train_smooth_l1": 0.16064455519862927,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.5700394511222839,
+            "fde_m": 1.0820691585540771
+          },
+          "validation_smooth_l1": 0.13813985884189606,
+          "elapsed_s": 2.1696062916889787
+        },
+        {
+          "epoch": 3,
+          "train_smooth_l1": 0.1132400820534009,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.4950108230113983,
+            "fde_m": 1.0089813470840454
+          },
+          "validation_smooth_l1": 0.11299481987953186,
+          "elapsed_s": 3.248156458605081
+        },
+        {
+          "epoch": 4,
+          "train_smooth_l1": 0.10375053236538476,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.5083906650543213,
+            "fde_m": 1.0066434144973755
+          },
+          "validation_smooth_l1": 0.11260365694761276,
+          "elapsed_s": 4.344685249961913
+        },
+        {
+          "epoch": 5,
+          "train_smooth_l1": 0.0968019238887981,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.5021645426750183,
+            "fde_m": 1.0176719427108765
+          },
+          "validation_smooth_l1": 0.1124313622713089,
+          "elapsed_s": 5.415587625000626
+        },
+        {
+          "epoch": 6,
+          "train_smooth_l1": 0.08961093998007771,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.46072113513946533,
+            "fde_m": 0.9503206610679626
+          },
+          "validation_smooth_l1": 0.10044341534376144,
+          "elapsed_s": 6.482665208633989
+        },
+        {
+          "epoch": 7,
+          "train_smooth_l1": 0.08615527440642201,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.46000903844833374,
+            "fde_m": 0.9420923590660095
+          },
+          "validation_smooth_l1": 0.10012587159872055,
+          "elapsed_s": 7.575739208608866
+        },
+        {
+          "epoch": 8,
+          "train_smooth_l1": 0.07987002818830578,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.46738508343696594,
+            "fde_m": 0.9522247910499573
+          },
+          "validation_smooth_l1": 0.10206621140241623,
+          "elapsed_s": 8.642841124907136
+        },
+        {
+          "epoch": 9,
+          "train_smooth_l1": 0.08001055090795292,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.4636869430541992,
+            "fde_m": 0.9471412897109985
+          },
+          "validation_smooth_l1": 0.10065405815839767,
+          "elapsed_s": 9.715358666609973
+        },
+        {
+          "epoch": 10,
+          "train_smooth_l1": 0.07705019706172961,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.4850172698497772,
+            "fde_m": 0.9890177845954895
+          },
+          "validation_smooth_l1": 0.1068713441491127,
+          "elapsed_s": 10.7882395000197
+        },
+        {
+          "epoch": 11,
+          "train_smooth_l1": 0.07695303540290488,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.5214995741844177,
+            "fde_m": 1.0458747148513794
+          },
+          "validation_smooth_l1": 0.1174134910106659,
+          "elapsed_s": 11.944184416905046
+        },
+        {
+          "epoch": 12,
+          "train_smooth_l1": 0.07643522558198794,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.4690725803375244,
+            "fde_m": 0.9699852466583252
+          },
+          "validation_smooth_l1": 0.10307779163122177,
+          "elapsed_s": 13.015688041690737
+        },
+        {
+          "epoch": 13,
+          "train_smooth_l1": 0.07899000313739445,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.48981454968452454,
+            "fde_m": 0.9798131585121155
+          },
+          "validation_smooth_l1": 0.10750452429056168,
+          "elapsed_s": 14.116578499786556
+        }
+      ],
+      "config": {
+        "dataset": {
+          "root": "data/public/eth_ucy/datasets",
+          "manifest": "configs/forecasting/eth_ucy_manifest.yaml",
+          "train": [
+            "eth",
+            "hotel",
+            "zara2"
+          ],
+          "validation": [
+            "zara1"
+          ],
+          "test": [
+            "univ"
+          ],
+          "obs_steps": 8,
+          "pred_steps": 12,
+          "cohort_obs": 12,
+          "cohort_pred": 12,
+          "stride": 2,
+          "dt": 0.4
+        },
+        "model": {
+          "d_model": 64,
+          "heads": 4,
+          "layers": 2,
+          "feedforward": 128,
+          "dropout": 0.1,
+          "representation": "displacement",
+          "heading_align": false
+        },
+        "baseline": {
+          "method": "mean",
+          "recent_intervals": 3
+        },
+        "training": {
+          "seed": 43,
+          "device": "cpu",
+          "threads": 4,
+          "batch_size": 128,
+          "epochs": 30,
+          "patience": 6,
+          "learning_rate": 0.001,
+          "weight_decay": 0.0001,
+          "clip_grad_norm": 1.0,
+          "accumulate_steps": 1
+        },
+        "social": {
+          "radius": 3.0,
+          "max_neighbors": 8
+        },
+        "augmentation": {
+          "noise_std": 0.0,
+          "mask_probability": 0.0
+        }
+      }
+    },
+    "social_seed43/zara2/training": {
+      "summary": {
+        "epochs": 14,
+        "best_validation_ade_m": 0.9090952277183533,
+        "wall_s": 89.04176433384418,
+        "checkpoint_sha256": "83ef6aebf3fb330cfa939562127874c640164e0af04b25b7581c7f7a77bebd78",
+        "test_evaluated": false,
+        "metadata": {
+          "train": {
+            "split": "train",
+            "scenes": [
+              "hotel",
+              "univ",
+              "zara1"
+            ],
+            "recording_sha256": {
+              "hotel/test/biwi_hotel.txt": "9caa771bb9153d6b809dd0916b6f86761b641e6bbb15e766c1de3133fbbb7fcf",
+              "univ/test/students001.txt": "a6d87f278d94136fe39b8be91555487a29ac77259ae403b9dba2d5c18caf7b5b",
+              "univ/test/students003.txt": "e25798b660634330aa89f8bb259425de720e84d0873902726c1d1f4ccff21d6c",
+              "zara1/test/crowds_zara01.txt": "1147a1962a09abfb86f28c6cddcac862e095a0cf129b3016385b69eacdd09d85"
+            },
+            "windows": 12304,
+            "window_keys_sha256": "11f2cd354b7b95980b870d9311abb84f84a17b0c7c990ab684bce071cde1d1f7",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 6.1537711313394015,
+            "zero_neighbor_windows": 226,
+            "partial_neighbor_histories": 4242
+          },
+          "validation": {
+            "split": "validation",
+            "scenes": [
+              "eth"
+            ],
+            "recording_sha256": {
+              "eth/test/biwi_eth.txt": "cf8d3fd342a15f409ebc2a1fc76b91a0f06390bd21f1e11410f3859331ab082b"
+            },
+            "windows": 128,
+            "window_keys_sha256": "29ce24bdb5d2be3fa84f4c1d3caf6169dd58cf5e4e6c6f94c3631ee1b05684f8",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 1.109375,
+            "zero_neighbor_windows": 57,
+            "partial_neighbor_histories": 34
+          },
+          "torch": "2.6.0",
+          "numpy": "1.26.4",
+          "python": "3.12.11",
+          "platform": "macOS-26.6.2-arm64-arm-64bit",
+          "device": "cpu",
+          "parameter_count": 87128
+        }
+      },
+      "history": [
+        {
+          "epoch": 1,
+          "train_smooth_l1": 0.22893216308831238,
+          "validation": {
+            "count": 128,
+            "ade_m": 1.0009492635726929,
+            "fde_m": 1.9070088863372803
+          },
+          "validation_smooth_l1": 0.33592498302459717,
+          "elapsed_s": 6.335210584104061
+        },
+        {
+          "epoch": 2,
+          "train_smooth_l1": 0.14308831998678737,
+          "validation": {
+            "count": 128,
+            "ade_m": 0.924902081489563,
+            "fde_m": 1.7748397588729858
+          },
+          "validation_smooth_l1": 0.30659782886505127,
+          "elapsed_s": 12.573429000098258
+        },
+        {
+          "epoch": 3,
+          "train_smooth_l1": 0.13119739652532594,
+          "validation": {
+            "count": 128,
+            "ade_m": 0.9294108152389526,
+            "fde_m": 1.8134268522262573
+          },
+          "validation_smooth_l1": 0.3114255666732788,
+          "elapsed_s": 18.949599124956876
+        },
+        {
+          "epoch": 4,
+          "train_smooth_l1": 0.1282111797360667,
+          "validation": {
+            "count": 128,
+            "ade_m": 0.9426819086074829,
+            "fde_m": 1.8652026653289795
+          },
+          "validation_smooth_l1": 0.3163203299045563,
+          "elapsed_s": 25.190237834118307
+        },
+        {
+          "epoch": 5,
+          "train_smooth_l1": 0.12863281729627493,
+          "validation": {
+            "count": 128,
+            "ade_m": 0.946790337562561,
+            "fde_m": 1.9019854068756104
+          },
+          "validation_smooth_l1": 0.31870007514953613,
+          "elapsed_s": 31.535558166913688
+        },
+        {
+          "epoch": 6,
+          "train_smooth_l1": 0.12632794763471433,
+          "validation": {
+            "count": 128,
+            "ade_m": 0.9986755847930908,
+            "fde_m": 1.9879510402679443
+          },
+          "validation_smooth_l1": 0.3390870988368988,
+          "elapsed_s": 37.92756795883179
+        },
+        {
+          "epoch": 7,
+          "train_smooth_l1": 0.12688389333311387,
+          "validation": {
+            "count": 128,
+            "ade_m": 0.9404116868972778,
+            "fde_m": 1.8623998165130615
+          },
+          "validation_smooth_l1": 0.3162405788898468,
+          "elapsed_s": 44.414720334112644
+        },
+        {
+          "epoch": 8,
+          "train_smooth_l1": 0.1247811375285156,
+          "validation": {
+            "count": 128,
+            "ade_m": 0.9090952277183533,
+            "fde_m": 1.8023616075515747
+          },
+          "validation_smooth_l1": 0.301811546087265,
+          "elapsed_s": 51.008047624956816
+        },
+        {
+          "epoch": 9,
+          "train_smooth_l1": 0.12357615619432787,
+          "validation": {
+            "count": 128,
+            "ade_m": 0.9326990842819214,
+            "fde_m": 1.880774736404419
+          },
+          "validation_smooth_l1": 0.3147287666797638,
+          "elapsed_s": 57.15437762485817
+        },
+        {
+          "epoch": 10,
+          "train_smooth_l1": 0.12294638978489354,
+          "validation": {
+            "count": 128,
+            "ade_m": 0.9599592089653015,
+            "fde_m": 1.9062535762786865
+          },
+          "validation_smooth_l1": 0.32363247871398926,
+          "elapsed_s": 63.51251720869914
+        },
+        {
+          "epoch": 11,
+          "train_smooth_l1": 0.12335976927271125,
+          "validation": {
+            "count": 128,
+            "ade_m": 0.9312959909439087,
+            "fde_m": 1.830463171005249
+          },
+          "validation_smooth_l1": 0.31272420287132263,
+          "elapsed_s": 69.86450550006703
+        },
+        {
+          "epoch": 12,
+          "train_smooth_l1": 0.12135969166327824,
+          "validation": {
+            "count": 128,
+            "ade_m": 0.9172288179397583,
+            "fde_m": 1.8297417163848877
+          },
+          "validation_smooth_l1": 0.30203279852867126,
+          "elapsed_s": 76.14115104172379
+        },
+        {
+          "epoch": 13,
+          "train_smooth_l1": 0.12076134562143578,
+          "validation": {
+            "count": 128,
+            "ade_m": 0.9269453287124634,
+            "fde_m": 1.8313744068145752
+          },
+          "validation_smooth_l1": 0.30765417218208313,
+          "elapsed_s": 82.42468745913357
+        },
+        {
+          "epoch": 14,
+          "train_smooth_l1": 0.12082430129320941,
+          "validation": {
+            "count": 128,
+            "ade_m": 0.9189672470092773,
+            "fde_m": 1.8313698768615723
+          },
+          "validation_smooth_l1": 0.300625741481781,
+          "elapsed_s": 89.04144570883363
+        }
+      ],
+      "config": {
+        "dataset": {
+          "root": "data/public/eth_ucy/datasets",
+          "manifest": "configs/forecasting/eth_ucy_manifest.yaml",
+          "train": [
+            "hotel",
+            "univ",
+            "zara1"
+          ],
+          "validation": [
+            "eth"
+          ],
+          "test": [
+            "zara2"
+          ],
+          "obs_steps": 8,
+          "pred_steps": 12,
+          "cohort_obs": 12,
+          "cohort_pred": 12,
+          "stride": 2,
+          "dt": 0.4
+        },
+        "model": {
+          "d_model": 64,
+          "heads": 4,
+          "layers": 2,
+          "feedforward": 128,
+          "dropout": 0.1,
+          "representation": "displacement",
+          "heading_align": false
+        },
+        "baseline": {
+          "method": "mean",
+          "recent_intervals": 3
+        },
+        "training": {
+          "seed": 43,
+          "device": "cpu",
+          "threads": 4,
+          "batch_size": 128,
+          "epochs": 30,
+          "patience": 6,
+          "learning_rate": 0.001,
+          "weight_decay": 0.0001,
+          "clip_grad_norm": 1.0,
+          "accumulate_steps": 1
+        },
+        "social": {
+          "radius": 3.0,
+          "max_neighbors": 8
+        },
+        "augmentation": {
+          "noise_std": 0.0,
+          "mask_probability": 0.0
+        }
+      }
+    },
+    "social_seed43/eth/training": {
+      "summary": {
+        "epochs": 11,
+        "best_validation_ade_m": 0.3650893270969391,
+        "wall_s": 90.15185729181394,
+        "checkpoint_sha256": "3a871d359857e3bd56524b8c4e1bca0042877cbe49d60bd99523044de887b761",
+        "test_evaluated": false,
+        "metadata": {
+          "train": {
+            "split": "train",
+            "scenes": [
+              "univ",
+              "zara1",
+              "zara2"
+            ],
+            "recording_sha256": {
+              "univ/test/students001.txt": "a6d87f278d94136fe39b8be91555487a29ac77259ae403b9dba2d5c18caf7b5b",
+              "univ/test/students003.txt": "e25798b660634330aa89f8bb259425de720e84d0873902726c1d1f4ccff21d6c",
+              "zara1/test/crowds_zara01.txt": "1147a1962a09abfb86f28c6cddcac862e095a0cf129b3016385b69eacdd09d85",
+              "zara2/test/crowds_zara02.txt": "8a649d0f8c9ae75c87c4d23a85f892786b0aa30266e996c7be03e69dafff22ff"
+            },
+            "windows": 14508,
+            "window_keys_sha256": "46bc38338ad96eb1512b942ce56abcbaaa407ca11fab2b04a57836ab48362de0",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 5.894334160463193,
+            "zero_neighbor_windows": 324,
+            "partial_neighbor_histories": 4318
+          },
+          "validation": {
+            "split": "validation",
+            "scenes": [
+              "hotel"
+            ],
+            "recording_sha256": {
+              "hotel/test/biwi_hotel.txt": "9caa771bb9153d6b809dd0916b6f86761b641e6bbb15e766c1de3133fbbb7fcf"
+            },
+            "windows": 425,
+            "window_keys_sha256": "6df1769533f1aa76cbe59779b0ebeff35d582475fe553f80f7b058d281658b68",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 2.0164705882352942,
+            "zero_neighbor_windows": 55,
+            "partial_neighbor_histories": 163
+          },
+          "torch": "2.6.0",
+          "numpy": "1.26.4",
+          "python": "3.12.11",
+          "platform": "macOS-26.6.2-arm64-arm-64bit",
+          "device": "cpu",
+          "parameter_count": 87128
+        }
+      },
+      "history": [
+        {
+          "epoch": 1,
+          "train_smooth_l1": 0.21297472930657887,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.41484713554382324,
+            "fde_m": 0.7640422582626343
+          },
+          "validation_smooth_l1": 0.09180017560720444,
+          "elapsed_s": 8.103914207778871
+        },
+        {
+          "epoch": 2,
+          "train_smooth_l1": 0.12797859734268863,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.38991430401802063,
+            "fde_m": 0.7275117635726929
+          },
+          "validation_smooth_l1": 0.0806625559926033,
+          "elapsed_s": 16.71542725013569
+        },
+        {
+          "epoch": 3,
+          "train_smooth_l1": 0.12425250682886356,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.4051330089569092,
+            "fde_m": 0.7516206502914429
+          },
+          "validation_smooth_l1": 0.08756229281425476,
+          "elapsed_s": 24.901968999765813
+        },
+        {
+          "epoch": 4,
+          "train_smooth_l1": 0.12172522769918907,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.4289255440235138,
+            "fde_m": 0.8356639742851257
+          },
+          "validation_smooth_l1": 0.09247241169214249,
+          "elapsed_s": 33.114644249901175
+        },
+        {
+          "epoch": 5,
+          "train_smooth_l1": 0.12161926200255435,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.3650893270969391,
+            "fde_m": 0.6920655965805054
+          },
+          "validation_smooth_l1": 0.0775008276104927,
+          "elapsed_s": 41.1369396247901
+        },
+        {
+          "epoch": 6,
+          "train_smooth_l1": 0.12004744096961861,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.377590537071228,
+            "fde_m": 0.7211707234382629
+          },
+          "validation_smooth_l1": 0.08458253741264343,
+          "elapsed_s": 49.257847249973565
+        },
+        {
+          "epoch": 7,
+          "train_smooth_l1": 0.11773056377712478,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.3834300935268402,
+            "fde_m": 0.7637138366699219
+          },
+          "validation_smooth_l1": 0.0838220939040184,
+          "elapsed_s": 57.58942287508398
+        },
+        {
+          "epoch": 8,
+          "train_smooth_l1": 0.11775533220213834,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.3839627206325531,
+            "fde_m": 0.750555694103241
+          },
+          "validation_smooth_l1": 0.09014223515987396,
+          "elapsed_s": 65.90028366679326
+        },
+        {
+          "epoch": 9,
+          "train_smooth_l1": 0.11696200889925804,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.3901459872722626,
+            "fde_m": 0.7579299211502075
+          },
+          "validation_smooth_l1": 0.08979704231023788,
+          "elapsed_s": 74.14757987484336
+        },
+        {
+          "epoch": 10,
+          "train_smooth_l1": 0.11693567545380447,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.40298861265182495,
+            "fde_m": 0.7741312384605408
+          },
+          "validation_smooth_l1": 0.08568493276834488,
+          "elapsed_s": 82.83470070781186
+        },
+        {
+          "epoch": 11,
+          "train_smooth_l1": 0.11507009725729099,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.385305255651474,
+            "fde_m": 0.7411247491836548
+          },
+          "validation_smooth_l1": 0.08170990645885468,
+          "elapsed_s": 90.15147324977443
+        }
+      ],
+      "config": {
+        "dataset": {
+          "root": "data/public/eth_ucy/datasets",
+          "manifest": "configs/forecasting/eth_ucy_manifest.yaml",
+          "train": [
+            "univ",
+            "zara1",
+            "zara2"
+          ],
+          "validation": [
+            "hotel"
+          ],
+          "test": [
+            "eth"
+          ],
+          "obs_steps": 8,
+          "pred_steps": 12,
+          "cohort_obs": 12,
+          "cohort_pred": 12,
+          "stride": 2,
+          "dt": 0.4
+        },
+        "model": {
+          "d_model": 64,
+          "heads": 4,
+          "layers": 2,
+          "feedforward": 128,
+          "dropout": 0.1,
+          "representation": "displacement",
+          "heading_align": false
+        },
+        "baseline": {
+          "method": "mean",
+          "recent_intervals": 3
+        },
+        "training": {
+          "seed": 43,
+          "device": "cpu",
+          "threads": 4,
+          "batch_size": 128,
+          "epochs": 30,
+          "patience": 6,
+          "learning_rate": 0.001,
+          "weight_decay": 0.0001,
+          "clip_grad_norm": 1.0,
+          "accumulate_steps": 1
+        },
+        "social": {
+          "radius": 3.0,
+          "max_neighbors": 8
+        },
+        "augmentation": {
+          "noise_std": 0.0,
+          "mask_probability": 0.0
+        }
+      }
+    },
+    "social_seed44/hotel/training": {
+      "summary": {
+        "epochs": 24,
+        "best_validation_ade_m": 0.5696828365325928,
+        "wall_s": 65.50495079066604,
+        "checkpoint_sha256": "12eab3eb466582916e9bd205e041c7b674d5409347da95d846c59774d3e87618",
+        "test_evaluated": false,
+        "metadata": {
+          "train": {
+            "split": "train",
+            "scenes": [
+              "eth",
+              "zara1",
+              "zara2"
+            ],
+            "recording_sha256": {
+              "eth/test/biwi_eth.txt": "cf8d3fd342a15f409ebc2a1fc76b91a0f06390bd21f1e11410f3859331ab082b",
+              "zara1/test/crowds_zara01.txt": "1147a1962a09abfb86f28c6cddcac862e095a0cf129b3016385b69eacdd09d85",
+              "zara2/test/crowds_zara02.txt": "8a649d0f8c9ae75c87c4d23a85f892786b0aa30266e996c7be03e69dafff22ff"
+            },
+            "windows": 3693,
+            "window_keys_sha256": "147b1adff46266b5c47b2582d7064c1bd970a014ff54cc39ed48a14b0af9fec1",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 3.577579203899269,
+            "zero_neighbor_windows": 316,
+            "partial_neighbor_histories": 373
+          },
+          "validation": {
+            "split": "validation",
+            "scenes": [
+              "univ"
+            ],
+            "recording_sha256": {
+              "univ/test/students001.txt": "a6d87f278d94136fe39b8be91555487a29ac77259ae403b9dba2d5c18caf7b5b",
+              "univ/test/students003.txt": "e25798b660634330aa89f8bb259425de720e84d0873902726c1d1f4ccff21d6c"
+            },
+            "windows": 10943,
+            "window_keys_sha256": "23d33102919741226715fa96ed88c2635bdfca10e290f7653d4bc1e9dffd0a24",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 6.620213835328521,
+            "zero_neighbor_windows": 65,
+            "partial_neighbor_histories": 3979
+          },
+          "torch": "2.6.0",
+          "numpy": "1.26.4",
+          "python": "3.12.11",
+          "platform": "macOS-26.6.2-arm64-arm-64bit",
+          "device": "cpu",
+          "parameter_count": 87128
+        }
+      },
+      "history": [
+        {
+          "epoch": 1,
+          "train_smooth_l1": 0.3759405431654148,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.8632179498672485,
+            "fde_m": 1.54117751121521
+          },
+          "validation_smooth_l1": 0.2812495231628418,
+          "elapsed_s": 2.6747936247847974
+        },
+        {
+          "epoch": 2,
+          "train_smooth_l1": 0.12285459272396006,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.7865632176399231,
+            "fde_m": 1.5200791358947754
+          },
+          "validation_smooth_l1": 0.24840496480464935,
+          "elapsed_s": 5.411767457611859
+        },
+        {
+          "epoch": 3,
+          "train_smooth_l1": 0.10520253271558502,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.7750046849250793,
+            "fde_m": 1.5104494094848633
+          },
+          "validation_smooth_l1": 0.24697118997573853,
+          "elapsed_s": 8.158671165816486
+        },
+        {
+          "epoch": 4,
+          "train_smooth_l1": 0.10329854690323281,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.7440557479858398,
+            "fde_m": 1.447298288345337
+          },
+          "validation_smooth_l1": 0.22988198697566986,
+          "elapsed_s": 10.932359999977052
+        },
+        {
+          "epoch": 5,
+          "train_smooth_l1": 0.09816916426555464,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.718345582485199,
+            "fde_m": 1.4152414798736572
+          },
+          "validation_smooth_l1": 0.21634243428707123,
+          "elapsed_s": 13.725532332900912
+        },
+        {
+          "epoch": 6,
+          "train_smooth_l1": 0.0924788191188263,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.6577395796775818,
+            "fde_m": 1.3469908237457275
+          },
+          "validation_smooth_l1": 0.1907729059457779,
+          "elapsed_s": 16.407245540991426
+        },
+        {
+          "epoch": 7,
+          "train_smooth_l1": 0.09002419864174283,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.6787297129631042,
+            "fde_m": 1.3878138065338135
+          },
+          "validation_smooth_l1": 0.19441933929920197,
+          "elapsed_s": 19.13401679089293
+        },
+        {
+          "epoch": 8,
+          "train_smooth_l1": 0.08875413481100704,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.6045552492141724,
+            "fde_m": 1.2911465167999268
+          },
+          "validation_smooth_l1": 0.17468959093093872,
+          "elapsed_s": 21.927127374801785
+        },
+        {
+          "epoch": 9,
+          "train_smooth_l1": 0.08372040137935066,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.6150854229927063,
+            "fde_m": 1.2926263809204102
+          },
+          "validation_smooth_l1": 0.17245157063007355,
+          "elapsed_s": 24.648831957951188
+        },
+        {
+          "epoch": 10,
+          "train_smooth_l1": 0.08549735398553039,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5890163779258728,
+            "fde_m": 1.2660900354385376
+          },
+          "validation_smooth_l1": 0.16810162365436554,
+          "elapsed_s": 27.360274207778275
+        },
+        {
+          "epoch": 11,
+          "train_smooth_l1": 0.08331843883590004,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5897178053855896,
+            "fde_m": 1.267587661743164
+          },
+          "validation_smooth_l1": 0.16649216413497925,
+          "elapsed_s": 30.061316415667534
+        },
+        {
+          "epoch": 12,
+          "train_smooth_l1": 0.0834156734056341,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5881997346878052,
+            "fde_m": 1.2586816549301147
+          },
+          "validation_smooth_l1": 0.1655479371547699,
+          "elapsed_s": 32.7726187906228
+        },
+        {
+          "epoch": 13,
+          "train_smooth_l1": 0.08291129180805941,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.592126190662384,
+            "fde_m": 1.2577608823776245
+          },
+          "validation_smooth_l1": 0.16598206758499146,
+          "elapsed_s": 35.47992929071188
+        },
+        {
+          "epoch": 14,
+          "train_smooth_l1": 0.08116554591331641,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.641701877117157,
+            "fde_m": 1.3492213487625122
+          },
+          "validation_smooth_l1": 0.17929977178573608,
+          "elapsed_s": 38.16744262492284
+        },
+        {
+          "epoch": 15,
+          "train_smooth_l1": 0.08315223651730591,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5993832349777222,
+            "fde_m": 1.2846941947937012
+          },
+          "validation_smooth_l1": 0.17182856798171997,
+          "elapsed_s": 40.892084165941924
+        },
+        {
+          "epoch": 16,
+          "train_smooth_l1": 0.07916349381805596,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5758658647537231,
+            "fde_m": 1.2441402673721313
+          },
+          "validation_smooth_l1": 0.16289164125919342,
+          "elapsed_s": 43.62622791575268
+        },
+        {
+          "epoch": 17,
+          "train_smooth_l1": 0.07878289715811355,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5898785591125488,
+            "fde_m": 1.2663525342941284
+          },
+          "validation_smooth_l1": 0.16689130663871765,
+          "elapsed_s": 46.34078370779753
+        },
+        {
+          "epoch": 18,
+          "train_smooth_l1": 0.07814822587667039,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5696828365325928,
+            "fde_m": 1.2375701665878296
+          },
+          "validation_smooth_l1": 0.16027994453907013,
+          "elapsed_s": 49.09406637493521
+        },
+        {
+          "epoch": 19,
+          "train_smooth_l1": 0.07669361171734033,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5880829095840454,
+            "fde_m": 1.256972312927246
+          },
+          "validation_smooth_l1": 0.16378769278526306,
+          "elapsed_s": 51.87108808290213
+        },
+        {
+          "epoch": 20,
+          "train_smooth_l1": 0.07697377518331847,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5872724652290344,
+            "fde_m": 1.2589709758758545
+          },
+          "validation_smooth_l1": 0.16495202481746674,
+          "elapsed_s": 54.662322249729186
+        },
+        {
+          "epoch": 21,
+          "train_smooth_l1": 0.07861073855224936,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.6187583804130554,
+            "fde_m": 1.3168597221374512
+          },
+          "validation_smooth_l1": 0.17230276763439178,
+          "elapsed_s": 57.39538150001317
+        },
+        {
+          "epoch": 22,
+          "train_smooth_l1": 0.07964945369673201,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.608379602432251,
+            "fde_m": 1.3065135478973389
+          },
+          "validation_smooth_l1": 0.1726895123720169,
+          "elapsed_s": 60.09011916583404
+        },
+        {
+          "epoch": 23,
+          "train_smooth_l1": 0.07696255870040374,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5773702263832092,
+            "fde_m": 1.250517725944519
+          },
+          "validation_smooth_l1": 0.16257062554359436,
+          "elapsed_s": 62.77710466599092
+        },
+        {
+          "epoch": 24,
+          "train_smooth_l1": 0.07833513128678392,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5936973690986633,
+            "fde_m": 1.2625343799591064
+          },
+          "validation_smooth_l1": 0.16651131212711334,
+          "elapsed_s": 65.50440479069948
+        }
+      ],
+      "config": {
+        "dataset": {
+          "root": "data/public/eth_ucy/datasets",
+          "manifest": "configs/forecasting/eth_ucy_manifest.yaml",
+          "train": [
+            "eth",
+            "zara1",
+            "zara2"
+          ],
+          "validation": [
+            "univ"
+          ],
+          "test": [
+            "hotel"
+          ],
+          "obs_steps": 8,
+          "pred_steps": 12,
+          "cohort_obs": 12,
+          "cohort_pred": 12,
+          "stride": 2,
+          "dt": 0.4
+        },
+        "model": {
+          "d_model": 64,
+          "heads": 4,
+          "layers": 2,
+          "feedforward": 128,
+          "dropout": 0.1,
+          "representation": "displacement",
+          "heading_align": false
+        },
+        "baseline": {
+          "method": "mean",
+          "recent_intervals": 3
+        },
+        "training": {
+          "seed": 44,
+          "device": "cpu",
+          "threads": 4,
+          "batch_size": 128,
+          "epochs": 30,
+          "patience": 6,
+          "learning_rate": 0.001,
+          "weight_decay": 0.0001,
+          "clip_grad_norm": 1.0,
+          "accumulate_steps": 1
+        },
+        "social": {
+          "radius": 3.0,
+          "max_neighbors": 8
+        },
+        "augmentation": {
+          "noise_std": 0.0,
+          "mask_probability": 0.0
+        }
+      }
+    },
+    "social_seed44/zara1/training": {
+      "summary": {
+        "epochs": 13,
+        "best_validation_ade_m": 0.3656887114048004,
+        "wall_s": 95.79470475018024,
+        "checkpoint_sha256": "1c2f5aae4a63ea7f02bc8516dbccce7f6371ece35581b41feac0944a7f996414",
+        "test_evaluated": false,
+        "metadata": {
+          "train": {
+            "split": "train",
+            "scenes": [
+              "eth",
+              "hotel",
+              "univ"
+            ],
+            "recording_sha256": {
+              "eth/test/biwi_eth.txt": "cf8d3fd342a15f409ebc2a1fc76b91a0f06390bd21f1e11410f3859331ab082b",
+              "hotel/test/biwi_hotel.txt": "9caa771bb9153d6b809dd0916b6f86761b641e6bbb15e766c1de3133fbbb7fcf",
+              "univ/test/students001.txt": "a6d87f278d94136fe39b8be91555487a29ac77259ae403b9dba2d5c18caf7b5b",
+              "univ/test/students003.txt": "e25798b660634330aa89f8bb259425de720e84d0873902726c1d1f4ccff21d6c"
+            },
+            "windows": 11496,
+            "window_keys_sha256": "c140ea4f48a61ad79c07b6c71fb98a4252528ffbcbc49c171ad7ae5a5d0f5ad2",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 6.388656924147529,
+            "zero_neighbor_windows": 177,
+            "partial_neighbor_histories": 4176
+          },
+          "validation": {
+            "split": "validation",
+            "scenes": [
+              "zara2"
+            ],
+            "recording_sha256": {
+              "zara2/test/crowds_zara02.txt": "8a649d0f8c9ae75c87c4d23a85f892786b0aa30266e996c7be03e69dafff22ff"
+            },
+            "windows": 2629,
+            "window_keys_sha256": "bf3a324f3d7b015d58c0644c5c059d272b5609089f84181db82ae3f02741eb41",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 4.053252187143401,
+            "zero_neighbor_windows": 153,
+            "partial_neighbor_histories": 239
+          },
+          "torch": "2.6.0",
+          "numpy": "1.26.4",
+          "python": "3.12.11",
+          "platform": "macOS-26.6.2-arm64-arm-64bit",
+          "device": "cpu",
+          "parameter_count": 87128
+        }
+      },
+      "history": [
+        {
+          "epoch": 1,
+          "train_smooth_l1": 0.23062129843417523,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.4399280846118927,
+            "fde_m": 0.8986268639564514
+          },
+          "validation_smooth_l1": 0.115924172103405,
+          "elapsed_s": 7.517799875233322
+        },
+        {
+          "epoch": 2,
+          "train_smooth_l1": 0.13817468248748413,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.4717966914176941,
+            "fde_m": 0.9160557389259338
+          },
+          "validation_smooth_l1": 0.11450563371181488,
+          "elapsed_s": 15.240376207977533
+        },
+        {
+          "epoch": 3,
+          "train_smooth_l1": 0.13670178579014874,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.4006291925907135,
+            "fde_m": 0.834079921245575
+          },
+          "validation_smooth_l1": 0.09972557425498962,
+          "elapsed_s": 23.014951625373214
+        },
+        {
+          "epoch": 4,
+          "train_smooth_l1": 0.13119258673015202,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.4188568592071533,
+            "fde_m": 0.8915086984634399
+          },
+          "validation_smooth_l1": 0.1114150658249855,
+          "elapsed_s": 30.703270166181028
+        },
+        {
+          "epoch": 5,
+          "train_smooth_l1": 0.13104389385996218,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.4229976236820221,
+            "fde_m": 0.8778601288795471
+          },
+          "validation_smooth_l1": 0.11315888911485672,
+          "elapsed_s": 38.23150833323598
+        },
+        {
+          "epoch": 6,
+          "train_smooth_l1": 0.12926063332486334,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.3962245285511017,
+            "fde_m": 0.837826669216156
+          },
+          "validation_smooth_l1": 0.10408912599086761,
+          "elapsed_s": 45.72123033320531
+        },
+        {
+          "epoch": 7,
+          "train_smooth_l1": 0.1277879960497967,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.3656887114048004,
+            "fde_m": 0.7810572981834412
+          },
+          "validation_smooth_l1": 0.09017129987478256,
+          "elapsed_s": 53.020376458298415
+        },
+        {
+          "epoch": 8,
+          "train_smooth_l1": 0.12843844953019667,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.42418718338012695,
+            "fde_m": 0.8830300569534302
+          },
+          "validation_smooth_l1": 0.10886384546756744,
+          "elapsed_s": 60.19714562501758
+        },
+        {
+          "epoch": 9,
+          "train_smooth_l1": 0.12532768928930008,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.40280255675315857,
+            "fde_m": 0.8480800986289978
+          },
+          "validation_smooth_l1": 0.10109972208738327,
+          "elapsed_s": 67.5551622081548
+        },
+        {
+          "epoch": 10,
+          "train_smooth_l1": 0.12603114888580125,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.41328904032707214,
+            "fde_m": 0.869384229183197
+          },
+          "validation_smooth_l1": 0.10594441741704941,
+          "elapsed_s": 74.45664374995977
+        },
+        {
+          "epoch": 11,
+          "train_smooth_l1": 0.12449922796828762,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.37763580679893494,
+            "fde_m": 0.7963951826095581
+          },
+          "validation_smooth_l1": 0.09501174092292786,
+          "elapsed_s": 81.57582333311439
+        },
+        {
+          "epoch": 12,
+          "train_smooth_l1": 0.12461348648442937,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.38275274634361267,
+            "fde_m": 0.8181010484695435
+          },
+          "validation_smooth_l1": 0.09402903914451599,
+          "elapsed_s": 88.66610158327967
+        },
+        {
+          "epoch": 13,
+          "train_smooth_l1": 0.12473212184595746,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.3997388482093811,
+            "fde_m": 0.8384992480278015
+          },
+          "validation_smooth_l1": 0.10232897847890854,
+          "elapsed_s": 95.7941191662103
+        }
+      ],
+      "config": {
+        "dataset": {
+          "root": "data/public/eth_ucy/datasets",
+          "manifest": "configs/forecasting/eth_ucy_manifest.yaml",
+          "train": [
+            "eth",
+            "hotel",
+            "univ"
+          ],
+          "validation": [
+            "zara2"
+          ],
+          "test": [
+            "zara1"
+          ],
+          "obs_steps": 8,
+          "pred_steps": 12,
+          "cohort_obs": 12,
+          "cohort_pred": 12,
+          "stride": 2,
+          "dt": 0.4
+        },
+        "model": {
+          "d_model": 64,
+          "heads": 4,
+          "layers": 2,
+          "feedforward": 128,
+          "dropout": 0.1,
+          "representation": "displacement",
+          "heading_align": false
+        },
+        "baseline": {
+          "method": "mean",
+          "recent_intervals": 3
+        },
+        "training": {
+          "seed": 44,
+          "device": "cpu",
+          "threads": 4,
+          "batch_size": 128,
+          "epochs": 30,
+          "patience": 6,
+          "learning_rate": 0.001,
+          "weight_decay": 0.0001,
+          "clip_grad_norm": 1.0,
+          "accumulate_steps": 1
+        },
+        "social": {
+          "radius": 3.0,
+          "max_neighbors": 8
+        },
+        "augmentation": {
+          "noise_std": 0.0,
+          "mask_probability": 0.0
+        }
+      }
+    },
+    "social_seed44/univ/training": {
+      "summary": {
+        "epochs": 10,
+        "best_validation_ade_m": 0.45874732732772827,
+        "wall_s": 12.409112041816115,
+        "checkpoint_sha256": "5f39df417d9c7674e6210cc2b976d8d209092e7db89a0e2424492a2969a0a52b",
+        "test_evaluated": false,
+        "metadata": {
+          "train": {
+            "split": "train",
+            "scenes": [
+              "eth",
+              "hotel",
+              "zara2"
+            ],
+            "recording_sha256": {
+              "eth/test/biwi_eth.txt": "cf8d3fd342a15f409ebc2a1fc76b91a0f06390bd21f1e11410f3859331ab082b",
+              "hotel/test/biwi_hotel.txt": "9caa771bb9153d6b809dd0916b6f86761b641e6bbb15e766c1de3133fbbb7fcf",
+              "zara2/test/crowds_zara02.txt": "8a649d0f8c9ae75c87c4d23a85f892786b0aa30266e996c7be03e69dafff22ff"
+            },
+            "windows": 3182,
+            "window_keys_sha256": "179dc317eee31d5daad0f43961a51a84bb2645705720d5cef759d545421f7b28",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 3.6627906976744184,
+            "zero_neighbor_windows": 265,
+            "partial_neighbor_histories": 436
+          },
+          "validation": {
+            "split": "validation",
+            "scenes": [
+              "zara1"
+            ],
+            "recording_sha256": {
+              "zara1/test/crowds_zara01.txt": "1147a1962a09abfb86f28c6cddcac862e095a0cf129b3016385b69eacdd09d85"
+            },
+            "windows": 936,
+            "window_keys_sha256": "e3ecea9a1b976a16bde30f66e97c9f1d934a750154772379ac4469c6d5298a66",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 2.5790598290598292,
+            "zero_neighbor_windows": 106,
+            "partial_neighbor_histories": 100
+          },
+          "torch": "2.6.0",
+          "numpy": "1.26.4",
+          "python": "3.12.11",
+          "platform": "macOS-26.6.2-arm64-arm-64bit",
+          "device": "cpu",
+          "parameter_count": 87128
+        }
+      },
+      "history": [
+        {
+          "epoch": 1,
+          "train_smooth_l1": 0.33819431882283735,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.9286304712295532,
+            "fde_m": 2.5882718563079834
+          },
+          "validation_smooth_l1": 0.2958665192127228,
+          "elapsed_s": 1.1446329578757286
+        },
+        {
+          "epoch": 2,
+          "train_smooth_l1": 0.14405825573044853,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.581460177898407,
+            "fde_m": 1.1006313562393188
+          },
+          "validation_smooth_l1": 0.13859732449054718,
+          "elapsed_s": 2.303509374614805
+        },
+        {
+          "epoch": 3,
+          "train_smooth_l1": 0.11556080192571012,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.48509714007377625,
+            "fde_m": 0.9980621337890625
+          },
+          "validation_smooth_l1": 0.11021678894758224,
+          "elapsed_s": 3.4280945416539907
+        },
+        {
+          "epoch": 4,
+          "train_smooth_l1": 0.0959514584146454,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.45874732732772827,
+            "fde_m": 0.9346417188644409
+          },
+          "validation_smooth_l1": 0.1007661297917366,
+          "elapsed_s": 4.559862041845918
+        },
+        {
+          "epoch": 5,
+          "train_smooth_l1": 0.08934493968877906,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.4712534248828888,
+            "fde_m": 0.958860456943512
+          },
+          "validation_smooth_l1": 0.10481181740760803,
+          "elapsed_s": 5.717311666812748
+        },
+        {
+          "epoch": 6,
+          "train_smooth_l1": 0.08598596108158305,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.4718613624572754,
+            "fde_m": 0.9644402861595154
+          },
+          "validation_smooth_l1": 0.1044086366891861,
+          "elapsed_s": 7.124686624854803
+        },
+        {
+          "epoch": 7,
+          "train_smooth_l1": 0.08464115507793007,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.4697224199771881,
+            "fde_m": 0.9608908295631409
+          },
+          "validation_smooth_l1": 0.1039823368191719,
+          "elapsed_s": 8.388356041628867
+        },
+        {
+          "epoch": 8,
+          "train_smooth_l1": 0.08326405629112914,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.4806564748287201,
+            "fde_m": 0.9802986979484558
+          },
+          "validation_smooth_l1": 0.10702763497829437,
+          "elapsed_s": 9.599886124953628
+        },
+        {
+          "epoch": 9,
+          "train_smooth_l1": 0.08089655695809725,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.47913143038749695,
+            "fde_m": 0.9820574522018433
+          },
+          "validation_smooth_l1": 0.10629056394100189,
+          "elapsed_s": 11.003079166635871
+        },
+        {
+          "epoch": 10,
+          "train_smooth_l1": 0.07763662592915901,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.5177460312843323,
+            "fde_m": 1.0434925556182861
+          },
+          "validation_smooth_l1": 0.11709973216056824,
+          "elapsed_s": 12.408734874799848
+        }
+      ],
+      "config": {
+        "dataset": {
+          "root": "data/public/eth_ucy/datasets",
+          "manifest": "configs/forecasting/eth_ucy_manifest.yaml",
+          "train": [
+            "eth",
+            "hotel",
+            "zara2"
+          ],
+          "validation": [
+            "zara1"
+          ],
+          "test": [
+            "univ"
+          ],
+          "obs_steps": 8,
+          "pred_steps": 12,
+          "cohort_obs": 12,
+          "cohort_pred": 12,
+          "stride": 2,
+          "dt": 0.4
+        },
+        "model": {
+          "d_model": 64,
+          "heads": 4,
+          "layers": 2,
+          "feedforward": 128,
+          "dropout": 0.1,
+          "representation": "displacement",
+          "heading_align": false
+        },
+        "baseline": {
+          "method": "mean",
+          "recent_intervals": 3
+        },
+        "training": {
+          "seed": 44,
+          "device": "cpu",
+          "threads": 4,
+          "batch_size": 128,
+          "epochs": 30,
+          "patience": 6,
+          "learning_rate": 0.001,
+          "weight_decay": 0.0001,
+          "clip_grad_norm": 1.0,
+          "accumulate_steps": 1
+        },
+        "social": {
+          "radius": 3.0,
+          "max_neighbors": 8
+        },
+        "augmentation": {
+          "noise_std": 0.0,
+          "mask_probability": 0.0
+        }
+      }
+    },
+    "social_seed44/zara2/training": {
+      "summary": {
+        "epochs": 9,
+        "best_validation_ade_m": 0.9558124542236328,
+        "wall_s": 62.661553791724145,
+        "checkpoint_sha256": "1edf8a1202954aeecc499e98c883c575f0cb25dcd24ca4e4b90bd34b2bdac095",
+        "test_evaluated": false,
+        "metadata": {
+          "train": {
+            "split": "train",
+            "scenes": [
+              "hotel",
+              "univ",
+              "zara1"
+            ],
+            "recording_sha256": {
+              "hotel/test/biwi_hotel.txt": "9caa771bb9153d6b809dd0916b6f86761b641e6bbb15e766c1de3133fbbb7fcf",
+              "univ/test/students001.txt": "a6d87f278d94136fe39b8be91555487a29ac77259ae403b9dba2d5c18caf7b5b",
+              "univ/test/students003.txt": "e25798b660634330aa89f8bb259425de720e84d0873902726c1d1f4ccff21d6c",
+              "zara1/test/crowds_zara01.txt": "1147a1962a09abfb86f28c6cddcac862e095a0cf129b3016385b69eacdd09d85"
+            },
+            "windows": 12304,
+            "window_keys_sha256": "11f2cd354b7b95980b870d9311abb84f84a17b0c7c990ab684bce071cde1d1f7",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 6.1537711313394015,
+            "zero_neighbor_windows": 226,
+            "partial_neighbor_histories": 4242
+          },
+          "validation": {
+            "split": "validation",
+            "scenes": [
+              "eth"
+            ],
+            "recording_sha256": {
+              "eth/test/biwi_eth.txt": "cf8d3fd342a15f409ebc2a1fc76b91a0f06390bd21f1e11410f3859331ab082b"
+            },
+            "windows": 128,
+            "window_keys_sha256": "29ce24bdb5d2be3fa84f4c1d3caf6169dd58cf5e4e6c6f94c3631ee1b05684f8",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 1.109375,
+            "zero_neighbor_windows": 57,
+            "partial_neighbor_histories": 34
+          },
+          "torch": "2.6.0",
+          "numpy": "1.26.4",
+          "python": "3.12.11",
+          "platform": "macOS-26.6.2-arm64-arm-64bit",
+          "device": "cpu",
+          "parameter_count": 87128
+        }
+      },
+      "history": [
+        {
+          "epoch": 1,
+          "train_smooth_l1": 0.2331720780392307,
+          "validation": {
+            "count": 128,
+            "ade_m": 1.0146605968475342,
+            "fde_m": 1.9233543872833252
+          },
+          "validation_smooth_l1": 0.3351341187953949,
+          "elapsed_s": 7.099917291663587
+        },
+        {
+          "epoch": 2,
+          "train_smooth_l1": 0.13891241274124935,
+          "validation": {
+            "count": 128,
+            "ade_m": 0.9668290019035339,
+            "fde_m": 1.8776001930236816
+          },
+          "validation_smooth_l1": 0.32010793685913086,
+          "elapsed_s": 14.203542249742895
+        },
+        {
+          "epoch": 3,
+          "train_smooth_l1": 0.132588178830122,
+          "validation": {
+            "count": 128,
+            "ade_m": 0.9558124542236328,
+            "fde_m": 1.9063334465026855
+          },
+          "validation_smooth_l1": 0.31845811009407043,
+          "elapsed_s": 21.38967025000602
+        },
+        {
+          "epoch": 4,
+          "train_smooth_l1": 0.12954792256318082,
+          "validation": {
+            "count": 128,
+            "ade_m": 0.9597569704055786,
+            "fde_m": 1.9307092428207397
+          },
+          "validation_smooth_l1": 0.32954323291778564,
+          "elapsed_s": 28.53340945765376
+        },
+        {
+          "epoch": 5,
+          "train_smooth_l1": 0.1290587546068918,
+          "validation": {
+            "count": 128,
+            "ade_m": 1.0035247802734375,
+            "fde_m": 2.0489444732666016
+          },
+          "validation_smooth_l1": 0.3528785705566406,
+          "elapsed_s": 35.68498208280653
+        },
+        {
+          "epoch": 6,
+          "train_smooth_l1": 0.12604680924793835,
+          "validation": {
+            "count": 128,
+            "ade_m": 0.9760077595710754,
+            "fde_m": 1.97464919090271
+          },
+          "validation_smooth_l1": 0.33710622787475586,
+          "elapsed_s": 43.04178541665897
+        },
+        {
+          "epoch": 7,
+          "train_smooth_l1": 0.12407452201347202,
+          "validation": {
+            "count": 128,
+            "ade_m": 0.9957711100578308,
+            "fde_m": 2.0306055545806885
+          },
+          "validation_smooth_l1": 0.345060259103775,
+          "elapsed_s": 50.05965874996036
+        },
+        {
+          "epoch": 8,
+          "train_smooth_l1": 0.12419519059951036,
+          "validation": {
+            "count": 128,
+            "ade_m": 0.9825928807258606,
+            "fde_m": 1.9742650985717773
+          },
+          "validation_smooth_l1": 0.33825817704200745,
+          "elapsed_s": 56.335691082756966
+        },
+        {
+          "epoch": 9,
+          "train_smooth_l1": 0.1249344095258316,
+          "validation": {
+            "count": 128,
+            "ade_m": 1.0002942085266113,
+            "fde_m": 2.018977403640747
+          },
+          "validation_smooth_l1": 0.34611621499061584,
+          "elapsed_s": 62.661255249753594
+        }
+      ],
+      "config": {
+        "dataset": {
+          "root": "data/public/eth_ucy/datasets",
+          "manifest": "configs/forecasting/eth_ucy_manifest.yaml",
+          "train": [
+            "hotel",
+            "univ",
+            "zara1"
+          ],
+          "validation": [
+            "eth"
+          ],
+          "test": [
+            "zara2"
+          ],
+          "obs_steps": 8,
+          "pred_steps": 12,
+          "cohort_obs": 12,
+          "cohort_pred": 12,
+          "stride": 2,
+          "dt": 0.4
+        },
+        "model": {
+          "d_model": 64,
+          "heads": 4,
+          "layers": 2,
+          "feedforward": 128,
+          "dropout": 0.1,
+          "representation": "displacement",
+          "heading_align": false
+        },
+        "baseline": {
+          "method": "mean",
+          "recent_intervals": 3
+        },
+        "training": {
+          "seed": 44,
+          "device": "cpu",
+          "threads": 4,
+          "batch_size": 128,
+          "epochs": 30,
+          "patience": 6,
+          "learning_rate": 0.001,
+          "weight_decay": 0.0001,
+          "clip_grad_norm": 1.0,
+          "accumulate_steps": 1
+        },
+        "social": {
+          "radius": 3.0,
+          "max_neighbors": 8
+        },
+        "augmentation": {
+          "noise_std": 0.0,
+          "mask_probability": 0.0
+        }
+      }
+    },
+    "social_seed44/eth/training": {
+      "summary": {
+        "epochs": 13,
+        "best_validation_ade_m": 0.3325445055961609,
+        "wall_s": 96.89734429167584,
+        "checkpoint_sha256": "7beed5fa7dd2cad7bf6b882f316e5cd82f5d16de0e178af8b8e5f3dbaea8a8bc",
+        "test_evaluated": false,
+        "metadata": {
+          "train": {
+            "split": "train",
+            "scenes": [
+              "univ",
+              "zara1",
+              "zara2"
+            ],
+            "recording_sha256": {
+              "univ/test/students001.txt": "a6d87f278d94136fe39b8be91555487a29ac77259ae403b9dba2d5c18caf7b5b",
+              "univ/test/students003.txt": "e25798b660634330aa89f8bb259425de720e84d0873902726c1d1f4ccff21d6c",
+              "zara1/test/crowds_zara01.txt": "1147a1962a09abfb86f28c6cddcac862e095a0cf129b3016385b69eacdd09d85",
+              "zara2/test/crowds_zara02.txt": "8a649d0f8c9ae75c87c4d23a85f892786b0aa30266e996c7be03e69dafff22ff"
+            },
+            "windows": 14508,
+            "window_keys_sha256": "46bc38338ad96eb1512b942ce56abcbaaa407ca11fab2b04a57836ab48362de0",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 5.894334160463193,
+            "zero_neighbor_windows": 324,
+            "partial_neighbor_histories": 4318
+          },
+          "validation": {
+            "split": "validation",
+            "scenes": [
+              "hotel"
+            ],
+            "recording_sha256": {
+              "hotel/test/biwi_hotel.txt": "9caa771bb9153d6b809dd0916b6f86761b641e6bbb15e766c1de3133fbbb7fcf"
+            },
+            "windows": 425,
+            "window_keys_sha256": "6df1769533f1aa76cbe59779b0ebeff35d582475fe553f80f7b058d281658b68",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 2.0164705882352942,
+            "zero_neighbor_windows": 55,
+            "partial_neighbor_histories": 163
+          },
+          "torch": "2.6.0",
+          "numpy": "1.26.4",
+          "python": "3.12.11",
+          "platform": "macOS-26.6.2-arm64-arm-64bit",
+          "device": "cpu",
+          "parameter_count": 87128
+        }
+      },
+      "history": [
+        {
+          "epoch": 1,
+          "train_smooth_l1": 0.2098296912274546,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.41227996349334717,
+            "fde_m": 0.7653190493583679
+          },
+          "validation_smooth_l1": 0.09030751138925552,
+          "elapsed_s": 10.145458332728595
+        },
+        {
+          "epoch": 2,
+          "train_smooth_l1": 0.12849940915047908,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.4055563509464264,
+            "fde_m": 0.7476651668548584
+          },
+          "validation_smooth_l1": 0.08392208069562912,
+          "elapsed_s": 17.854824000038207
+        },
+        {
+          "epoch": 3,
+          "train_smooth_l1": 0.12340256045073032,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.3502909243106842,
+            "fde_m": 0.6505525708198547
+          },
+          "validation_smooth_l1": 0.06922437250614166,
+          "elapsed_s": 24.99431149987504
+        },
+        {
+          "epoch": 4,
+          "train_smooth_l1": 0.12130118134529885,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.3460009694099426,
+            "fde_m": 0.654719352722168
+          },
+          "validation_smooth_l1": 0.06563693284988403,
+          "elapsed_s": 32.29246520809829
+        },
+        {
+          "epoch": 5,
+          "train_smooth_l1": 0.12081457474424322,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.36872991919517517,
+            "fde_m": 0.6923384070396423
+          },
+          "validation_smooth_l1": 0.07959939539432526,
+          "elapsed_s": 39.52270962484181
+        },
+        {
+          "epoch": 6,
+          "train_smooth_l1": 0.11897907360077628,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.38653549551963806,
+            "fde_m": 0.7052693963050842
+          },
+          "validation_smooth_l1": 0.0840759202837944,
+          "elapsed_s": 46.85668774973601
+        },
+        {
+          "epoch": 7,
+          "train_smooth_l1": 0.11784514817680115,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.3325445055961609,
+            "fde_m": 0.6152151226997375
+          },
+          "validation_smooth_l1": 0.06416142731904984,
+          "elapsed_s": 53.872536208014935
+        },
+        {
+          "epoch": 8,
+          "train_smooth_l1": 0.11786790218010137,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.3832378685474396,
+            "fde_m": 0.7164552211761475
+          },
+          "validation_smooth_l1": 0.08254025131464005,
+          "elapsed_s": 61.086582750082016
+        },
+        {
+          "epoch": 9,
+          "train_smooth_l1": 0.1164809891161657,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.4003491997718811,
+            "fde_m": 0.7384728789329529
+          },
+          "validation_smooth_l1": 0.07997996360063553,
+          "elapsed_s": 68.30264612473547
+        },
+        {
+          "epoch": 10,
+          "train_smooth_l1": 0.11552617400021864,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.4003531038761139,
+            "fde_m": 0.7296462655067444
+          },
+          "validation_smooth_l1": 0.0877871885895729,
+          "elapsed_s": 75.66210620803759
+        },
+        {
+          "epoch": 11,
+          "train_smooth_l1": 0.11613836070624863,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.39764726161956787,
+            "fde_m": 0.7439357042312622
+          },
+          "validation_smooth_l1": 0.0875961184501648,
+          "elapsed_s": 82.76328362477943
+        },
+        {
+          "epoch": 12,
+          "train_smooth_l1": 0.11550473316431638,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.38809734582901,
+            "fde_m": 0.72370845079422
+          },
+          "validation_smooth_l1": 0.08786322176456451,
+          "elapsed_s": 89.8107352918014
+        },
+        {
+          "epoch": 13,
+          "train_smooth_l1": 0.11369830991652737,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.4080781042575836,
+            "fde_m": 0.7651980519294739
+          },
+          "validation_smooth_l1": 0.09283840656280518,
+          "elapsed_s": 96.8969340827316
+        }
+      ],
+      "config": {
+        "dataset": {
+          "root": "data/public/eth_ucy/datasets",
+          "manifest": "configs/forecasting/eth_ucy_manifest.yaml",
+          "train": [
+            "univ",
+            "zara1",
+            "zara2"
+          ],
+          "validation": [
+            "hotel"
+          ],
+          "test": [
+            "eth"
+          ],
+          "obs_steps": 8,
+          "pred_steps": 12,
+          "cohort_obs": 12,
+          "cohort_pred": 12,
+          "stride": 2,
+          "dt": 0.4
+        },
+        "model": {
+          "d_model": 64,
+          "heads": 4,
+          "layers": 2,
+          "feedforward": 128,
+          "dropout": 0.1,
+          "representation": "displacement",
+          "heading_align": false
+        },
+        "baseline": {
+          "method": "mean",
+          "recent_intervals": 3
+        },
+        "training": {
+          "seed": 44,
+          "device": "cpu",
+          "threads": 4,
+          "batch_size": 128,
+          "epochs": 30,
+          "patience": 6,
+          "learning_rate": 0.001,
+          "weight_decay": 0.0001,
+          "clip_grad_norm": 1.0,
+          "accumulate_steps": 1
+        },
+        "social": {
+          "radius": 3.0,
+          "max_neighbors": 8
+        },
+        "augmentation": {
+          "noise_std": 0.0,
+          "mask_probability": 0.0
+        }
+      }
+    },
+    "social_seed42/hotel/training": {
+      "summary": {
+        "epochs": 17,
+        "best_validation_ade_m": 0.5654340386390686,
+        "wall_s": 43.99335020780563,
+        "checkpoint_sha256": "ef4e2a5bb5df0a1fe7fab7e4768caef546d00bb951fdcd3a0fcd994ecea48e26",
+        "test_evaluated": false,
+        "metadata": {
+          "train": {
+            "split": "train",
+            "scenes": [
+              "eth",
+              "zara1",
+              "zara2"
+            ],
+            "recording_sha256": {
+              "eth/test/biwi_eth.txt": "cf8d3fd342a15f409ebc2a1fc76b91a0f06390bd21f1e11410f3859331ab082b",
+              "zara1/test/crowds_zara01.txt": "1147a1962a09abfb86f28c6cddcac862e095a0cf129b3016385b69eacdd09d85",
+              "zara2/test/crowds_zara02.txt": "8a649d0f8c9ae75c87c4d23a85f892786b0aa30266e996c7be03e69dafff22ff"
+            },
+            "windows": 3693,
+            "window_keys_sha256": "147b1adff46266b5c47b2582d7064c1bd970a014ff54cc39ed48a14b0af9fec1",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 3.577579203899269,
+            "zero_neighbor_windows": 316,
+            "partial_neighbor_histories": 373
+          },
+          "validation": {
+            "split": "validation",
+            "scenes": [
+              "univ"
+            ],
+            "recording_sha256": {
+              "univ/test/students001.txt": "a6d87f278d94136fe39b8be91555487a29ac77259ae403b9dba2d5c18caf7b5b",
+              "univ/test/students003.txt": "e25798b660634330aa89f8bb259425de720e84d0873902726c1d1f4ccff21d6c"
+            },
+            "windows": 10943,
+            "window_keys_sha256": "23d33102919741226715fa96ed88c2635bdfca10e290f7653d4bc1e9dffd0a24",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 6.620213835328521,
+            "zero_neighbor_windows": 65,
+            "partial_neighbor_histories": 3979
+          },
+          "torch": "2.6.0",
+          "numpy": "1.26.4",
+          "python": "3.12.11",
+          "platform": "macOS-26.6.2-arm64-arm-64bit",
+          "device": "cpu",
+          "parameter_count": 87128
+        }
+      },
+      "history": [
+        {
+          "epoch": 1,
+          "train_smooth_l1": 0.3999112765704459,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.9136801958084106,
+            "fde_m": 1.6561143398284912
+          },
+          "validation_smooth_l1": 0.3038082420825958,
+          "elapsed_s": 2.613412957638502
+        },
+        {
+          "epoch": 2,
+          "train_smooth_l1": 0.1218791303214522,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.7873976230621338,
+            "fde_m": 1.5274231433868408
+          },
+          "validation_smooth_l1": 0.2501397728919983,
+          "elapsed_s": 5.101165457628667
+        },
+        {
+          "epoch": 3,
+          "train_smooth_l1": 0.10601640199335036,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.7573146224021912,
+            "fde_m": 1.4714810848236084
+          },
+          "validation_smooth_l1": 0.23572245240211487,
+          "elapsed_s": 7.583373916801065
+        },
+        {
+          "epoch": 4,
+          "train_smooth_l1": 0.09781159979240571,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.7404763698577881,
+            "fde_m": 1.4829775094985962
+          },
+          "validation_smooth_l1": 0.22561979293823242,
+          "elapsed_s": 10.240710707847029
+        },
+        {
+          "epoch": 5,
+          "train_smooth_l1": 0.09469937881963737,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.6608102321624756,
+            "fde_m": 1.3816756010055542
+          },
+          "validation_smooth_l1": 0.19007864594459534,
+          "elapsed_s": 12.759511707816273
+        },
+        {
+          "epoch": 6,
+          "train_smooth_l1": 0.08868223193890674,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.6063042879104614,
+            "fde_m": 1.2946817874908447
+          },
+          "validation_smooth_l1": 0.17186753451824188,
+          "elapsed_s": 15.287775166798383
+        },
+        {
+          "epoch": 7,
+          "train_smooth_l1": 0.08482776687755644,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5919970273971558,
+            "fde_m": 1.2599519491195679
+          },
+          "validation_smooth_l1": 0.16525639593601227,
+          "elapsed_s": 17.779725666623563
+        },
+        {
+          "epoch": 8,
+          "train_smooth_l1": 0.08618432665311836,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5829542875289917,
+            "fde_m": 1.2534832954406738
+          },
+          "validation_smooth_l1": 0.16283653676509857,
+          "elapsed_s": 20.287653957959265
+        },
+        {
+          "epoch": 9,
+          "train_smooth_l1": 0.08479346424107173,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5912852883338928,
+            "fde_m": 1.2686606645584106
+          },
+          "validation_smooth_l1": 0.16781240701675415,
+          "elapsed_s": 23.580427249893546
+        },
+        {
+          "epoch": 10,
+          "train_smooth_l1": 0.08606626008653137,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.6140556931495667,
+            "fde_m": 1.2972077131271362
+          },
+          "validation_smooth_l1": 0.17181360721588135,
+          "elapsed_s": 26.153390707913786
+        },
+        {
+          "epoch": 11,
+          "train_smooth_l1": 0.08204006853786032,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5654340386390686,
+            "fde_m": 1.218307375907898
+          },
+          "validation_smooth_l1": 0.15837284922599792,
+          "elapsed_s": 28.664933916646987
+        },
+        {
+          "epoch": 12,
+          "train_smooth_l1": 0.08067937879430999,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5722528696060181,
+            "fde_m": 1.2217631340026855
+          },
+          "validation_smooth_l1": 0.1581670492887497,
+          "elapsed_s": 31.24251566687599
+        },
+        {
+          "epoch": 13,
+          "train_smooth_l1": 0.08327171670092885,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5730031728744507,
+            "fde_m": 1.2348934412002563
+          },
+          "validation_smooth_l1": 0.15933381021022797,
+          "elapsed_s": 33.76479833293706
+        },
+        {
+          "epoch": 14,
+          "train_smooth_l1": 0.08190506114050718,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5671542882919312,
+            "fde_m": 1.222859263420105
+          },
+          "validation_smooth_l1": 0.15646716952323914,
+          "elapsed_s": 36.421107582747936
+        },
+        {
+          "epoch": 15,
+          "train_smooth_l1": 0.07962065962976213,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.573466420173645,
+            "fde_m": 1.2348299026489258
+          },
+          "validation_smooth_l1": 0.1589527428150177,
+          "elapsed_s": 38.98568183276802
+        },
+        {
+          "epoch": 16,
+          "train_smooth_l1": 0.07872708154110414,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5896215438842773,
+            "fde_m": 1.2555994987487793
+          },
+          "validation_smooth_l1": 0.16548702120780945,
+          "elapsed_s": 41.46171945799142
+        },
+        {
+          "epoch": 17,
+          "train_smooth_l1": 0.07814880902733934,
+          "validation": {
+            "count": 10943,
+            "ade_m": 0.5660121440887451,
+            "fde_m": 1.221291184425354
+          },
+          "validation_smooth_l1": 0.15852905809879303,
+          "elapsed_s": 43.99285933282226
+        }
+      ],
+      "config": {
+        "dataset": {
+          "root": "data/public/eth_ucy/datasets",
+          "manifest": "configs/forecasting/eth_ucy_manifest.yaml",
+          "train": [
+            "eth",
+            "zara1",
+            "zara2"
+          ],
+          "validation": [
+            "univ"
+          ],
+          "test": [
+            "hotel"
+          ],
+          "obs_steps": 8,
+          "pred_steps": 12,
+          "cohort_obs": 12,
+          "cohort_pred": 12,
+          "stride": 2,
+          "dt": 0.4
+        },
+        "model": {
+          "d_model": 64,
+          "heads": 4,
+          "layers": 2,
+          "feedforward": 128,
+          "dropout": 0.1,
+          "representation": "displacement",
+          "heading_align": false
+        },
+        "baseline": {
+          "method": "mean",
+          "recent_intervals": 3
+        },
+        "training": {
+          "seed": 42,
+          "device": "cpu",
+          "threads": 4,
+          "batch_size": 128,
+          "epochs": 30,
+          "patience": 6,
+          "learning_rate": 0.001,
+          "weight_decay": 0.0001,
+          "clip_grad_norm": 1.0,
+          "accumulate_steps": 1
+        },
+        "social": {
+          "radius": 3.0,
+          "max_neighbors": 8
+        },
+        "augmentation": {
+          "noise_std": 0.0,
+          "mask_probability": 0.0
+        }
+      }
+    },
+    "social_seed42/zara1/training": {
+      "summary": {
+        "epochs": 12,
+        "best_validation_ade_m": 0.3554689288139343,
+        "wall_s": 74.46857849974185,
+        "checkpoint_sha256": "a330a5ed9845ac6357b55515311cb6cea0ff1f0ae9501cd9c6cd80d6047a3450",
+        "test_evaluated": false,
+        "metadata": {
+          "train": {
+            "split": "train",
+            "scenes": [
+              "eth",
+              "hotel",
+              "univ"
+            ],
+            "recording_sha256": {
+              "eth/test/biwi_eth.txt": "cf8d3fd342a15f409ebc2a1fc76b91a0f06390bd21f1e11410f3859331ab082b",
+              "hotel/test/biwi_hotel.txt": "9caa771bb9153d6b809dd0916b6f86761b641e6bbb15e766c1de3133fbbb7fcf",
+              "univ/test/students001.txt": "a6d87f278d94136fe39b8be91555487a29ac77259ae403b9dba2d5c18caf7b5b",
+              "univ/test/students003.txt": "e25798b660634330aa89f8bb259425de720e84d0873902726c1d1f4ccff21d6c"
+            },
+            "windows": 11496,
+            "window_keys_sha256": "c140ea4f48a61ad79c07b6c71fb98a4252528ffbcbc49c171ad7ae5a5d0f5ad2",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 6.388656924147529,
+            "zero_neighbor_windows": 177,
+            "partial_neighbor_histories": 4176
+          },
+          "validation": {
+            "split": "validation",
+            "scenes": [
+              "zara2"
+            ],
+            "recording_sha256": {
+              "zara2/test/crowds_zara02.txt": "8a649d0f8c9ae75c87c4d23a85f892786b0aa30266e996c7be03e69dafff22ff"
+            },
+            "windows": 2629,
+            "window_keys_sha256": "bf3a324f3d7b015d58c0644c5c059d272b5609089f84181db82ae3f02741eb41",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 4.053252187143401,
+            "zero_neighbor_windows": 153,
+            "partial_neighbor_histories": 239
+          },
+          "torch": "2.6.0",
+          "numpy": "1.26.4",
+          "python": "3.12.11",
+          "platform": "macOS-26.6.2-arm64-arm-64bit",
+          "device": "cpu",
+          "parameter_count": 87128
+        }
+      },
+      "history": [
+        {
+          "epoch": 1,
+          "train_smooth_l1": 0.21693296359285516,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.4126686155796051,
+            "fde_m": 0.8316695690155029
+          },
+          "validation_smooth_l1": 0.09254113584756851,
+          "elapsed_s": 6.2290147501043975
+        },
+        {
+          "epoch": 2,
+          "train_smooth_l1": 0.13996821009374444,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.4641290307044983,
+            "fde_m": 0.929472029209137
+          },
+          "validation_smooth_l1": 0.11231964081525803,
+          "elapsed_s": 12.549797708168626
+        },
+        {
+          "epoch": 3,
+          "train_smooth_l1": 0.13295751681490417,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.3892187476158142,
+            "fde_m": 0.8095959424972534
+          },
+          "validation_smooth_l1": 0.09320122003555298,
+          "elapsed_s": 18.723419124726206
+        },
+        {
+          "epoch": 4,
+          "train_smooth_l1": 0.1335931455375589,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.40530407428741455,
+            "fde_m": 0.8354547023773193
+          },
+          "validation_smooth_l1": 0.09852579981088638,
+          "elapsed_s": 24.850209082942456
+        },
+        {
+          "epoch": 5,
+          "train_smooth_l1": 0.12950061632886725,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.38990333676338196,
+            "fde_m": 0.8209829926490784
+          },
+          "validation_smooth_l1": 0.09536775946617126,
+          "elapsed_s": 30.766012624837458
+        },
+        {
+          "epoch": 6,
+          "train_smooth_l1": 0.12883627050210805,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.3554689288139343,
+            "fde_m": 0.7479517459869385
+          },
+          "validation_smooth_l1": 0.08501052856445312,
+          "elapsed_s": 36.9206356247887
+        },
+        {
+          "epoch": 7,
+          "train_smooth_l1": 0.1285255861804978,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.4292158782482147,
+            "fde_m": 0.8819807767868042
+          },
+          "validation_smooth_l1": 0.10174154490232468,
+          "elapsed_s": 43.09861895814538
+        },
+        {
+          "epoch": 8,
+          "train_smooth_l1": 0.13056877508458778,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.4000330865383148,
+            "fde_m": 0.8365918397903442
+          },
+          "validation_smooth_l1": 0.09609811753034592,
+          "elapsed_s": 49.85342108272016
+        },
+        {
+          "epoch": 9,
+          "train_smooth_l1": 0.12790488738958092,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.4091327488422394,
+            "fde_m": 0.8426513075828552
+          },
+          "validation_smooth_l1": 0.09760908782482147,
+          "elapsed_s": 56.2913978327997
+        },
+        {
+          "epoch": 10,
+          "train_smooth_l1": 0.12698630200505837,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.41764965653419495,
+            "fde_m": 0.8597012162208557
+          },
+          "validation_smooth_l1": 0.10431636869907379,
+          "elapsed_s": 62.339262375142425
+        },
+        {
+          "epoch": 11,
+          "train_smooth_l1": 0.12676468454223586,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.3660677373409271,
+            "fde_m": 0.791639506816864
+          },
+          "validation_smooth_l1": 0.08673090487718582,
+          "elapsed_s": 68.46604720782489
+        },
+        {
+          "epoch": 12,
+          "train_smooth_l1": 0.12586075787691084,
+          "validation": {
+            "count": 2629,
+            "ade_m": 0.39823636412620544,
+            "fde_m": 0.839671790599823
+          },
+          "validation_smooth_l1": 0.0998350977897644,
+          "elapsed_s": 74.46817379072309
+        }
+      ],
+      "config": {
+        "dataset": {
+          "root": "data/public/eth_ucy/datasets",
+          "manifest": "configs/forecasting/eth_ucy_manifest.yaml",
+          "train": [
+            "eth",
+            "hotel",
+            "univ"
+          ],
+          "validation": [
+            "zara2"
+          ],
+          "test": [
+            "zara1"
+          ],
+          "obs_steps": 8,
+          "pred_steps": 12,
+          "cohort_obs": 12,
+          "cohort_pred": 12,
+          "stride": 2,
+          "dt": 0.4
+        },
+        "model": {
+          "d_model": 64,
+          "heads": 4,
+          "layers": 2,
+          "feedforward": 128,
+          "dropout": 0.1,
+          "representation": "displacement",
+          "heading_align": false
+        },
+        "baseline": {
+          "method": "mean",
+          "recent_intervals": 3
+        },
+        "training": {
+          "seed": 42,
+          "device": "cpu",
+          "threads": 4,
+          "batch_size": 128,
+          "epochs": 30,
+          "patience": 6,
+          "learning_rate": 0.001,
+          "weight_decay": 0.0001,
+          "clip_grad_norm": 1.0,
+          "accumulate_steps": 1
+        },
+        "social": {
+          "radius": 3.0,
+          "max_neighbors": 8
+        },
+        "augmentation": {
+          "noise_std": 0.0,
+          "mask_probability": 0.0
+        }
+      }
+    },
+    "social_seed42/univ/training": {
+      "summary": {
+        "epochs": 13,
+        "best_validation_ade_m": 0.45422467589378357,
+        "wall_s": 16.00256250007078,
+        "checkpoint_sha256": "0ad5ed882dafc3704dd8b7c2d449ded5ce94ddabb324e17d651207e5a58848ec",
+        "test_evaluated": false,
+        "metadata": {
+          "train": {
+            "split": "train",
+            "scenes": [
+              "eth",
+              "hotel",
+              "zara2"
+            ],
+            "recording_sha256": {
+              "eth/test/biwi_eth.txt": "cf8d3fd342a15f409ebc2a1fc76b91a0f06390bd21f1e11410f3859331ab082b",
+              "hotel/test/biwi_hotel.txt": "9caa771bb9153d6b809dd0916b6f86761b641e6bbb15e766c1de3133fbbb7fcf",
+              "zara2/test/crowds_zara02.txt": "8a649d0f8c9ae75c87c4d23a85f892786b0aa30266e996c7be03e69dafff22ff"
+            },
+            "windows": 3182,
+            "window_keys_sha256": "179dc317eee31d5daad0f43961a51a84bb2645705720d5cef759d545421f7b28",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 3.6627906976744184,
+            "zero_neighbor_windows": 265,
+            "partial_neighbor_histories": 436
+          },
+          "validation": {
+            "split": "validation",
+            "scenes": [
+              "zara1"
+            ],
+            "recording_sha256": {
+              "zara1/test/crowds_zara01.txt": "1147a1962a09abfb86f28c6cddcac862e095a0cf129b3016385b69eacdd09d85"
+            },
+            "windows": 936,
+            "window_keys_sha256": "e3ecea9a1b976a16bde30f66e97c9f1d934a750154772379ac4469c6d5298a66",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 2.5790598290598292,
+            "zero_neighbor_windows": 106,
+            "partial_neighbor_histories": 100
+          },
+          "torch": "2.6.0",
+          "numpy": "1.26.4",
+          "python": "3.12.11",
+          "platform": "macOS-26.6.2-arm64-arm-64bit",
+          "device": "cpu",
+          "parameter_count": 87128
+        }
+      },
+      "history": [
+        {
+          "epoch": 1,
+          "train_smooth_l1": 0.35194201062191666,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.9836813807487488,
+            "fde_m": 2.3690686225891113
+          },
+          "validation_smooth_l1": 0.32765811681747437,
+          "elapsed_s": 1.112105084117502
+        },
+        {
+          "epoch": 2,
+          "train_smooth_l1": 0.1444792830479512,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.543784499168396,
+            "fde_m": 1.0580997467041016
+          },
+          "validation_smooth_l1": 0.1277237832546234,
+          "elapsed_s": 2.5142762921750546
+        },
+        {
+          "epoch": 3,
+          "train_smooth_l1": 0.10391424618319547,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.5154719352722168,
+            "fde_m": 1.0212900638580322
+          },
+          "validation_smooth_l1": 0.11419714987277985,
+          "elapsed_s": 3.8031517090275884
+        },
+        {
+          "epoch": 4,
+          "train_smooth_l1": 0.09243122152024137,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.49200817942619324,
+            "fde_m": 1.0036818981170654
+          },
+          "validation_smooth_l1": 0.10946591943502426,
+          "elapsed_s": 5.058007250074297
+        },
+        {
+          "epoch": 5,
+          "train_smooth_l1": 0.08917653184128886,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.4717212915420532,
+            "fde_m": 0.9591741561889648
+          },
+          "validation_smooth_l1": 0.1032959595322609,
+          "elapsed_s": 6.503324542194605
+        },
+        {
+          "epoch": 6,
+          "train_smooth_l1": 0.08322478222030277,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.47536253929138184,
+            "fde_m": 0.9691519737243652
+          },
+          "validation_smooth_l1": 0.10426032543182373,
+          "elapsed_s": 7.815363791771233
+        },
+        {
+          "epoch": 7,
+          "train_smooth_l1": 0.08015395993616205,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.45422467589378357,
+            "fde_m": 0.93907630443573
+          },
+          "validation_smooth_l1": 0.0994672179222107,
+          "elapsed_s": 9.06687870901078
+        },
+        {
+          "epoch": 8,
+          "train_smooth_l1": 0.07847245394162679,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.4602520167827606,
+            "fde_m": 0.9434052109718323
+          },
+          "validation_smooth_l1": 0.1002584919333458,
+          "elapsed_s": 10.297343458980322
+        },
+        {
+          "epoch": 9,
+          "train_smooth_l1": 0.07814494172013982,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.4998939335346222,
+            "fde_m": 1.0047682523727417
+          },
+          "validation_smooth_l1": 0.1112591102719307,
+          "elapsed_s": 11.393409499898553
+        },
+        {
+          "epoch": 10,
+          "train_smooth_l1": 0.07551985381066911,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.4724136292934418,
+            "fde_m": 0.97908616065979
+          },
+          "validation_smooth_l1": 0.10491791367530823,
+          "elapsed_s": 12.483851499855518
+        },
+        {
+          "epoch": 11,
+          "train_smooth_l1": 0.07480019529067368,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.4690812826156616,
+            "fde_m": 0.9649878740310669
+          },
+          "validation_smooth_l1": 0.10264651477336884,
+          "elapsed_s": 13.717271834146231
+        },
+        {
+          "epoch": 12,
+          "train_smooth_l1": 0.0741727782084386,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.4656524062156677,
+            "fde_m": 0.9626439809799194
+          },
+          "validation_smooth_l1": 0.10218140482902527,
+          "elapsed_s": 14.887284459080547
+        },
+        {
+          "epoch": 13,
+          "train_smooth_l1": 0.07166246000717152,
+          "validation": {
+            "count": 936,
+            "ade_m": 0.4593631625175476,
+            "fde_m": 0.9564740061759949
+          },
+          "validation_smooth_l1": 0.10040724277496338,
+          "elapsed_s": 16.002164625097066
+        }
+      ],
+      "config": {
+        "dataset": {
+          "root": "data/public/eth_ucy/datasets",
+          "manifest": "configs/forecasting/eth_ucy_manifest.yaml",
+          "train": [
+            "eth",
+            "hotel",
+            "zara2"
+          ],
+          "validation": [
+            "zara1"
+          ],
+          "test": [
+            "univ"
+          ],
+          "obs_steps": 8,
+          "pred_steps": 12,
+          "cohort_obs": 12,
+          "cohort_pred": 12,
+          "stride": 2,
+          "dt": 0.4
+        },
+        "model": {
+          "d_model": 64,
+          "heads": 4,
+          "layers": 2,
+          "feedforward": 128,
+          "dropout": 0.1,
+          "representation": "displacement",
+          "heading_align": false
+        },
+        "baseline": {
+          "method": "mean",
+          "recent_intervals": 3
+        },
+        "training": {
+          "seed": 42,
+          "device": "cpu",
+          "threads": 4,
+          "batch_size": 128,
+          "epochs": 30,
+          "patience": 6,
+          "learning_rate": 0.001,
+          "weight_decay": 0.0001,
+          "clip_grad_norm": 1.0,
+          "accumulate_steps": 1
+        },
+        "social": {
+          "radius": 3.0,
+          "max_neighbors": 8
+        },
+        "augmentation": {
+          "noise_std": 0.0,
+          "mask_probability": 0.0
+        }
+      }
+    },
+    "social_seed42/zara2/training": {
+      "summary": {
+        "epochs": 10,
+        "best_validation_ade_m": 0.9587920904159546,
+        "wall_s": 65.69126574974507,
+        "checkpoint_sha256": "3b161555277990c5b500c6e7f5c9f0896ebf9557dfb6342cc7f0918f4b4b9a64",
+        "test_evaluated": false,
+        "metadata": {
+          "train": {
+            "split": "train",
+            "scenes": [
+              "hotel",
+              "univ",
+              "zara1"
+            ],
+            "recording_sha256": {
+              "hotel/test/biwi_hotel.txt": "9caa771bb9153d6b809dd0916b6f86761b641e6bbb15e766c1de3133fbbb7fcf",
+              "univ/test/students001.txt": "a6d87f278d94136fe39b8be91555487a29ac77259ae403b9dba2d5c18caf7b5b",
+              "univ/test/students003.txt": "e25798b660634330aa89f8bb259425de720e84d0873902726c1d1f4ccff21d6c",
+              "zara1/test/crowds_zara01.txt": "1147a1962a09abfb86f28c6cddcac862e095a0cf129b3016385b69eacdd09d85"
+            },
+            "windows": 12304,
+            "window_keys_sha256": "11f2cd354b7b95980b870d9311abb84f84a17b0c7c990ab684bce071cde1d1f7",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 6.1537711313394015,
+            "zero_neighbor_windows": 226,
+            "partial_neighbor_histories": 4242
+          },
+          "validation": {
+            "split": "validation",
+            "scenes": [
+              "eth"
+            ],
+            "recording_sha256": {
+              "eth/test/biwi_eth.txt": "cf8d3fd342a15f409ebc2a1fc76b91a0f06390bd21f1e11410f3859331ab082b"
+            },
+            "windows": 128,
+            "window_keys_sha256": "29ce24bdb5d2be3fa84f4c1d3caf6169dd58cf5e4e6c6f94c3631ee1b05684f8",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 1.109375,
+            "zero_neighbor_windows": 57,
+            "partial_neighbor_histories": 34
+          },
+          "torch": "2.6.0",
+          "numpy": "1.26.4",
+          "python": "3.12.11",
+          "platform": "macOS-26.6.2-arm64-arm-64bit",
+          "device": "cpu",
+          "parameter_count": 87128
+        }
+      },
+      "history": [
+        {
+          "epoch": 1,
+          "train_smooth_l1": 0.22173238889603683,
+          "validation": {
+            "count": 128,
+            "ade_m": 0.9709160327911377,
+            "fde_m": 1.8943538665771484
+          },
+          "validation_smooth_l1": 0.32132139801979065,
+          "elapsed_s": 6.072657624725252
+        },
+        {
+          "epoch": 2,
+          "train_smooth_l1": 0.13716893911516712,
+          "validation": {
+            "count": 128,
+            "ade_m": 1.003896951675415,
+            "fde_m": 1.9333808422088623
+          },
+          "validation_smooth_l1": 0.3428977429866791,
+          "elapsed_s": 12.242251332849264
+        },
+        {
+          "epoch": 3,
+          "train_smooth_l1": 0.13046661127838263,
+          "validation": {
+            "count": 128,
+            "ade_m": 1.0113087892532349,
+            "fde_m": 1.962554693222046
+          },
+          "validation_smooth_l1": 0.3570235073566437,
+          "elapsed_s": 18.490706499665976
+        },
+        {
+          "epoch": 4,
+          "train_smooth_l1": 0.1294530279575926,
+          "validation": {
+            "count": 128,
+            "ade_m": 0.9587920904159546,
+            "fde_m": 1.915531873703003
+          },
+          "validation_smooth_l1": 0.3213576376438141,
+          "elapsed_s": 24.89871283294633
+        },
+        {
+          "epoch": 5,
+          "train_smooth_l1": 0.12754590994398676,
+          "validation": {
+            "count": 128,
+            "ade_m": 1.006321907043457,
+            "fde_m": 2.020197629928589
+          },
+          "validation_smooth_l1": 0.35392189025878906,
+          "elapsed_s": 31.09618437476456
+        },
+        {
+          "epoch": 6,
+          "train_smooth_l1": 0.125334412469898,
+          "validation": {
+            "count": 128,
+            "ade_m": 1.00421142578125,
+            "fde_m": 2.028696060180664
+          },
+          "validation_smooth_l1": 0.35252848267555237,
+          "elapsed_s": 37.231318708043545
+        },
+        {
+          "epoch": 7,
+          "train_smooth_l1": 0.12456858060256093,
+          "validation": {
+            "count": 128,
+            "ade_m": 1.002543568611145,
+            "fde_m": 2.0405068397521973
+          },
+          "validation_smooth_l1": 0.3494492471218109,
+          "elapsed_s": 43.379616249818355
+        },
+        {
+          "epoch": 8,
+          "train_smooth_l1": 0.1260218360934828,
+          "validation": {
+            "count": 128,
+            "ade_m": 0.9851003885269165,
+            "fde_m": 1.9860765933990479
+          },
+          "validation_smooth_l1": 0.34414899349212646,
+          "elapsed_s": 49.88787891669199
+        },
+        {
+          "epoch": 9,
+          "train_smooth_l1": 0.1250083148867008,
+          "validation": {
+            "count": 128,
+            "ade_m": 1.0212198495864868,
+            "fde_m": 2.0770249366760254
+          },
+          "validation_smooth_l1": 0.3542282283306122,
+          "elapsed_s": 58.32590404199436
+        },
+        {
+          "epoch": 10,
+          "train_smooth_l1": 0.1259590114366326,
+          "validation": {
+            "count": 128,
+            "ade_m": 0.9837764501571655,
+            "fde_m": 2.0229387283325195
+          },
+          "validation_smooth_l1": 0.34293434023857117,
+          "elapsed_s": 65.69082804210484
+        }
+      ],
+      "config": {
+        "dataset": {
+          "root": "data/public/eth_ucy/datasets",
+          "manifest": "configs/forecasting/eth_ucy_manifest.yaml",
+          "train": [
+            "hotel",
+            "univ",
+            "zara1"
+          ],
+          "validation": [
+            "eth"
+          ],
+          "test": [
+            "zara2"
+          ],
+          "obs_steps": 8,
+          "pred_steps": 12,
+          "cohort_obs": 12,
+          "cohort_pred": 12,
+          "stride": 2,
+          "dt": 0.4
+        },
+        "model": {
+          "d_model": 64,
+          "heads": 4,
+          "layers": 2,
+          "feedforward": 128,
+          "dropout": 0.1,
+          "representation": "displacement",
+          "heading_align": false
+        },
+        "baseline": {
+          "method": "mean",
+          "recent_intervals": 3
+        },
+        "training": {
+          "seed": 42,
+          "device": "cpu",
+          "threads": 4,
+          "batch_size": 128,
+          "epochs": 30,
+          "patience": 6,
+          "learning_rate": 0.001,
+          "weight_decay": 0.0001,
+          "clip_grad_norm": 1.0,
+          "accumulate_steps": 1
+        },
+        "social": {
+          "radius": 3.0,
+          "max_neighbors": 8
+        },
+        "augmentation": {
+          "noise_std": 0.0,
+          "mask_probability": 0.0
+        }
+      }
+    },
+    "social_seed42/eth/training": {
+      "summary": {
+        "epochs": 11,
+        "best_validation_ade_m": 0.35772308707237244,
+        "wall_s": 76.43883933313191,
+        "checkpoint_sha256": "04ac5ba31a2cab32b0f0f1b9bf66fa3669006680d79236a09abb618d442f9cbd",
+        "test_evaluated": false,
+        "metadata": {
+          "train": {
+            "split": "train",
+            "scenes": [
+              "univ",
+              "zara1",
+              "zara2"
+            ],
+            "recording_sha256": {
+              "univ/test/students001.txt": "a6d87f278d94136fe39b8be91555487a29ac77259ae403b9dba2d5c18caf7b5b",
+              "univ/test/students003.txt": "e25798b660634330aa89f8bb259425de720e84d0873902726c1d1f4ccff21d6c",
+              "zara1/test/crowds_zara01.txt": "1147a1962a09abfb86f28c6cddcac862e095a0cf129b3016385b69eacdd09d85",
+              "zara2/test/crowds_zara02.txt": "8a649d0f8c9ae75c87c4d23a85f892786b0aa30266e996c7be03e69dafff22ff"
+            },
+            "windows": 14508,
+            "window_keys_sha256": "46bc38338ad96eb1512b942ce56abcbaaa407ca11fab2b04a57836ab48362de0",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 5.894334160463193,
+            "zero_neighbor_windows": 324,
+            "partial_neighbor_histories": 4318
+          },
+          "validation": {
+            "split": "validation",
+            "scenes": [
+              "hotel"
+            ],
+            "recording_sha256": {
+              "hotel/test/biwi_hotel.txt": "9caa771bb9153d6b809dd0916b6f86761b641e6bbb15e766c1de3133fbbb7fcf"
+            },
+            "windows": 425,
+            "window_keys_sha256": "6df1769533f1aa76cbe59779b0ebeff35d582475fe553f80f7b058d281658b68",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 2.0164705882352942,
+            "zero_neighbor_windows": 55,
+            "partial_neighbor_histories": 163
+          },
+          "torch": "2.6.0",
+          "numpy": "1.26.4",
+          "python": "3.12.11",
+          "platform": "macOS-26.6.2-arm64-arm-64bit",
+          "device": "cpu",
+          "parameter_count": 87128
+        }
+      },
+      "history": [
+        {
+          "epoch": 1,
+          "train_smooth_l1": 0.20235237914700135,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.4342622756958008,
+            "fde_m": 0.7841154336929321
+          },
+          "validation_smooth_l1": 0.09044420719146729,
+          "elapsed_s": 6.848560125101358
+        },
+        {
+          "epoch": 2,
+          "train_smooth_l1": 0.12832485011598774,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.3993919789791107,
+            "fde_m": 0.7524216175079346
+          },
+          "validation_smooth_l1": 0.08662402629852295,
+          "elapsed_s": 13.929041041992605
+        },
+        {
+          "epoch": 3,
+          "train_smooth_l1": 0.12466723024475368,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.3615899980068207,
+            "fde_m": 0.6664360761642456
+          },
+          "validation_smooth_l1": 0.06864418089389801,
+          "elapsed_s": 20.85558274993673
+        },
+        {
+          "epoch": 4,
+          "train_smooth_l1": 0.12076818912621533,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.3855906128883362,
+            "fde_m": 0.7138469219207764
+          },
+          "validation_smooth_l1": 0.07593551278114319,
+          "elapsed_s": 27.769175082910806
+        },
+        {
+          "epoch": 5,
+          "train_smooth_l1": 0.12079343204043738,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.35772308707237244,
+            "fde_m": 0.6728028655052185
+          },
+          "validation_smooth_l1": 0.07188112288713455,
+          "elapsed_s": 34.57612824998796
+        },
+        {
+          "epoch": 6,
+          "train_smooth_l1": 0.11883823709371893,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.4303252100944519,
+            "fde_m": 0.7899203896522522
+          },
+          "validation_smooth_l1": 0.09399441629648209,
+          "elapsed_s": 41.803718582727015
+        },
+        {
+          "epoch": 7,
+          "train_smooth_l1": 0.11871173195407382,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.37136346101760864,
+            "fde_m": 0.6945855617523193
+          },
+          "validation_smooth_l1": 0.08249924331903458,
+          "elapsed_s": 48.64725962514058
+        },
+        {
+          "epoch": 8,
+          "train_smooth_l1": 0.11962737701576473,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.396361380815506,
+            "fde_m": 0.7412792444229126
+          },
+          "validation_smooth_l1": 0.09147817641496658,
+          "elapsed_s": 55.89615087490529
+        },
+        {
+          "epoch": 9,
+          "train_smooth_l1": 0.11765186978554903,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.377734512090683,
+            "fde_m": 0.7201128005981445
+          },
+          "validation_smooth_l1": 0.08323947340250015,
+          "elapsed_s": 62.64477345813066
+        },
+        {
+          "epoch": 10,
+          "train_smooth_l1": 0.11814869628864312,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.5108000636100769,
+            "fde_m": 0.9478285312652588
+          },
+          "validation_smooth_l1": 0.12437126785516739,
+          "elapsed_s": 69.58124029170722
+        },
+        {
+          "epoch": 11,
+          "train_smooth_l1": 0.11699738976940295,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.38770219683647156,
+            "fde_m": 0.7489789128303528
+          },
+          "validation_smooth_l1": 0.08836556226015091,
+          "elapsed_s": 76.43842945806682
+        }
+      ],
+      "config": {
+        "dataset": {
+          "root": "data/public/eth_ucy/datasets",
+          "manifest": "configs/forecasting/eth_ucy_manifest.yaml",
+          "train": [
+            "univ",
+            "zara1",
+            "zara2"
+          ],
+          "validation": [
+            "hotel"
+          ],
+          "test": [
+            "eth"
+          ],
+          "obs_steps": 8,
+          "pred_steps": 12,
+          "cohort_obs": 12,
+          "cohort_pred": 12,
+          "stride": 2,
+          "dt": 0.4
+        },
+        "model": {
+          "d_model": 64,
+          "heads": 4,
+          "layers": 2,
+          "feedforward": 128,
+          "dropout": 0.1,
+          "representation": "displacement",
+          "heading_align": false
+        },
+        "baseline": {
+          "method": "mean",
+          "recent_intervals": 3
+        },
+        "training": {
+          "seed": 42,
+          "device": "cpu",
+          "threads": 4,
+          "batch_size": 128,
+          "epochs": 30,
+          "patience": 6,
+          "learning_rate": 0.001,
+          "weight_decay": 0.0001,
+          "clip_grad_norm": 1.0,
+          "accumulate_steps": 1
+        },
+        "social": {
+          "radius": 3.0,
+          "max_neighbors": 8
+        },
+        "augmentation": {
+          "noise_std": 0.0,
+          "mask_probability": 0.0
+        }
+      }
+    }
+  },
+  "augmentation": {
+    "epochs": 9,
+    "best_validation_ade_m": 0.34514445066452026,
+    "wall_s": 75.14810208277777,
+    "checkpoint_sha256": "d97a6630258ea8de740db3a68717d99856fee81e46e4dbf443a9da82f551186e",
+    "test_evaluated": false,
+    "metadata": {
+      "train": {
+        "split": "train",
+        "scenes": [
+          "univ",
+          "zara1",
+          "zara2"
+        ],
+        "recording_sha256": {
+          "univ/test/students001.txt": "a6d87f278d94136fe39b8be91555487a29ac77259ae403b9dba2d5c18caf7b5b",
+          "univ/test/students003.txt": "e25798b660634330aa89f8bb259425de720e84d0873902726c1d1f4ccff21d6c",
+          "zara1/test/crowds_zara01.txt": "1147a1962a09abfb86f28c6cddcac862e095a0cf129b3016385b69eacdd09d85",
+          "zara2/test/crowds_zara02.txt": "8a649d0f8c9ae75c87c4d23a85f892786b0aa30266e996c7be03e69dafff22ff"
+        },
+        "windows": 14508,
+        "window_keys_sha256": "46bc38338ad96eb1512b942ce56abcbaaa407ca11fab2b04a57836ab48362de0",
+        "units": "m",
+        "dt": 0.4,
+        "social": {
+          "radius": 3.0,
+          "max_neighbors": 8
+        },
+        "neighbor_count_mean": 5.894334160463193,
+        "zero_neighbor_windows": 324,
+        "partial_neighbor_histories": 4318
+      },
+      "validation": {
+        "split": "validation",
+        "scenes": [
+          "hotel"
+        ],
+        "recording_sha256": {
+          "hotel/test/biwi_hotel.txt": "9caa771bb9153d6b809dd0916b6f86761b641e6bbb15e766c1de3133fbbb7fcf"
+        },
+        "windows": 425,
+        "window_keys_sha256": "6df1769533f1aa76cbe59779b0ebeff35d582475fe553f80f7b058d281658b68",
+        "units": "m",
+        "dt": 0.4,
+        "social": {
+          "radius": 3.0,
+          "max_neighbors": 8
+        },
+        "neighbor_count_mean": 2.0164705882352942,
+        "zero_neighbor_windows": 55,
+        "partial_neighbor_histories": 163
+      },
+      "torch": "2.6.0",
+      "numpy": "1.26.4",
+      "python": "3.12.11",
+      "platform": "macOS-26.6.2-arm64-arm-64bit",
+      "device": "cpu",
+      "parameter_count": 87128
+    }
+  },
+  "code_sha256": {
+    "src/go2_perception/forecasting/social_evaluation.py": "be7d96d7dbeca271ce0fe4dcd6e778fb1197baf5edf5acc4857118162521ed0c",
+    "src/go2_perception/forecasting/metrics.py": "e7d10f5ddda6aa135731e04092949428149d425300f443b400a87614f3956dda",
+    "src/go2_perception/forecasting/social_model.py": "42f1aa9de2c041172b49caa9b0b266a3345eefd45f00c4a8f1fc270c87b377c5",
+    "src/go2_perception/forecasting/baseline.py": "4029fd94f4d1ffbbc867354cba89996a996e7c7e44d2741b4198d9fad4c38e9a",
+    "src/go2_perception/forecasting/adapter.py": "76bf6cebfffe5623b7f99eb83d7ccd6a6f226dbdfbeb995e95292d52fd303f53",
+    "src/go2_perception/forecasting/evaluation.py": "9f7bcd0b9d5707aa8dc690780bda921ab958ccf70cc688fc8be119c953b268bd",
+    "src/go2_perception/forecasting/social_training.py": "ea75ee9715ae49da15b7d5b68037591b525d8b1f742c519d3aa2e537d68fdb2b",
+    "src/go2_perception/forecasting/__init__.py": "ec65b204a27740e1a0c8674404932473cbf9471f62066677c79d1421e2b1224b",
+    "src/go2_perception/forecasting/visualization.py": "b902cbae8cfc1aaaa9655630c05ac236ac5b082d1c583a19fb7499957d25cef9",
+    "src/go2_perception/forecasting/social_visualization.py": "97cfb9e7cd6ee70e64e00546332fdf5a92eb01ed08a5240b5108fe047f99042d",
+    "src/go2_perception/forecasting/model.py": "2d8d413f54c33e2c2f46ee0f5cc52b347dcf16e4a1055ff2fbe8e70b46a038a6",
+    "src/go2_perception/forecasting/geometry.py": "de66bb53cde2452b14aec3b88e875075bb47be7c622b7b16c3afc74578ef4cbf",
+    "src/go2_perception/forecasting/social_data.py": "b628820076db36d12de52f5f9ecb7fbae0625b03e3a93e5c3fd75f97997baa1d",
+    "src/go2_perception/forecasting/social_adapter.py": "258a4adc961919e7fb3a4dc4fce817bbdf4cf896cb2c82ea6e8a27fd2c32957a",
+    "src/go2_perception/forecasting/training.py": "46e3ef40110627dc12ce2d548f09ce47dafed955755a48e64440dd54f2a648e0",
+    "src/go2_perception/forecasting/data.py": "9cca09ffa60e8081cf1cc20af7fdf638af49fe2dfc3d459feb27edb6bcfb949e",
+    "scripts/visualize_forecasting.py": "ff343de755fcf6cc5d3ada0583c52cb93a255c3ffbc930767653ce058f75b725",
+    "scripts/benchmark_social_forecasting.py": "1f1159d455b163054daba3f23f77b599af7c3441b6c14f1fd2bc2de284b261ee",
+    "scripts/diagnose_forecasting.py": "1476eb2286d351ee886964fdd9bed39014f0ebda7f2bfe385cd5de78b4ab3ce2",
+    "scripts/download_forecasting_data.py": "117363d5ebd883ebd914d705c4cd9d5ba38866558eb0af2a14b54df817a6d424",
+    "scripts/visualize_social_forecasting.py": "0b8301151e06ce900f186d6050b17dc580699bd497d04540cef5d5aa2e81b89f",
+    "scripts/summarize_social_forecasting.py": "e8ed0419057991c870578e521cc7dde79b52f53e99d7cb43979bef62da1dd07f",
+    "scripts/train_forecasting.py": "731fe0997832ce44fe6a434c02279f48970caa18ed3ec8e332e1b1eef984f030",
+    "scripts/demo_go2_forecasting.py": "ba6797b2e485716028c0b50164bce12bca73b58048ca19065031a9fbf803e9fd",
+    "scripts/run_social_forecasting.py": "5c9cde38e227c546a7019cd0aec8fdd6604e0268c824f3e31e803eceee938930",
+    "scripts/run_forecasting_crossvalidation.py": "75616e21f61ff2a816a5737ea5ac6ac336b93f3fe938e75f259dbf6423f81579",
+    "scripts/run_forecasting_ablation.py": "0d5195909e3536446f75f6e4f61dc961248a0e22a15b760008c6eea4c3f594f1",
+    "scripts/evaluate_forecasting.py": "5030a59382e4d7086ad69dc196154b93fa56c41748dd9e4faa07d0490f954354",
+    "configs/forecasting_baseline.yaml": "2a72e816bd203a5617e1638ad067620aa6926aae04f4849840179dcee0bb9712",
+    "configs/forecasting_social.yaml": "d6378d901aaf7af7df3199f071382abd5a95b84ee0decea7ce3b69df02d98354",
+    "configs/forecasting_transformer.yaml": "c1c2236c6d5ac356b01750c53cfceafa6d48cfba38d88e64ab378997e44072df",
+    "configs/forecasting_smoke.yaml": "d6a94624abe811155657fdb9460066f8f8d77b4c000a1e269be1f105d721b1b5",
+    "tests/test_social_forecasting.py": "181c095d63dd199557060a450dbd2a4e5495d1bf87329c5a6e0f628deb5243aa",
+    "tests/test_forecasting.py": "b44da057dd9b0bc136a51f36e4d4e0e765e4ed2a8ea96568d97bb54da75e2c5c"
+  },
+  "validation_controls": {
+    "augmented": {
+      "summary": {
+        "epochs": 9,
+        "best_validation_ade_m": 0.34514445066452026,
+        "wall_s": 75.14810208277777,
+        "checkpoint_sha256": "d97a6630258ea8de740db3a68717d99856fee81e46e4dbf443a9da82f551186e",
+        "test_evaluated": false,
+        "metadata": {
+          "train": {
+            "split": "train",
+            "scenes": [
+              "univ",
+              "zara1",
+              "zara2"
+            ],
+            "recording_sha256": {
+              "univ/test/students001.txt": "a6d87f278d94136fe39b8be91555487a29ac77259ae403b9dba2d5c18caf7b5b",
+              "univ/test/students003.txt": "e25798b660634330aa89f8bb259425de720e84d0873902726c1d1f4ccff21d6c",
+              "zara1/test/crowds_zara01.txt": "1147a1962a09abfb86f28c6cddcac862e095a0cf129b3016385b69eacdd09d85",
+              "zara2/test/crowds_zara02.txt": "8a649d0f8c9ae75c87c4d23a85f892786b0aa30266e996c7be03e69dafff22ff"
+            },
+            "windows": 14508,
+            "window_keys_sha256": "46bc38338ad96eb1512b942ce56abcbaaa407ca11fab2b04a57836ab48362de0",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 5.894334160463193,
+            "zero_neighbor_windows": 324,
+            "partial_neighbor_histories": 4318
+          },
+          "validation": {
+            "split": "validation",
+            "scenes": [
+              "hotel"
+            ],
+            "recording_sha256": {
+              "hotel/test/biwi_hotel.txt": "9caa771bb9153d6b809dd0916b6f86761b641e6bbb15e766c1de3133fbbb7fcf"
+            },
+            "windows": 425,
+            "window_keys_sha256": "6df1769533f1aa76cbe59779b0ebeff35d582475fe553f80f7b058d281658b68",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 2.0164705882352942,
+            "zero_neighbor_windows": 55,
+            "partial_neighbor_histories": 163
+          },
+          "torch": "2.6.0",
+          "numpy": "1.26.4",
+          "python": "3.12.11",
+          "platform": "macOS-26.6.2-arm64-arm-64bit",
+          "device": "cpu",
+          "parameter_count": 87128
+        }
+      },
+      "history": [
+        {
+          "epoch": 1,
+          "train_smooth_l1": 0.253210451658317,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.4080307185649872,
+            "fde_m": 0.7381857633590698
+          },
+          "validation_smooth_l1": 0.09791897982358932,
+          "elapsed_s": 8.715511207934469
+        },
+        {
+          "epoch": 2,
+          "train_smooth_l1": 0.18453841114754121,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.398451566696167,
+            "fde_m": 0.7403455376625061
+          },
+          "validation_smooth_l1": 0.08226823806762695,
+          "elapsed_s": 17.077586667146534
+        },
+        {
+          "epoch": 3,
+          "train_smooth_l1": 0.18138716203682606,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.34514445066452026,
+            "fde_m": 0.613330602645874
+          },
+          "validation_smooth_l1": 0.07101400196552277,
+          "elapsed_s": 25.350675208028406
+        },
+        {
+          "epoch": 4,
+          "train_smooth_l1": 0.17829023240797112,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.4469245374202728,
+            "fde_m": 0.8005496263504028
+          },
+          "validation_smooth_l1": 0.09557274729013443,
+          "elapsed_s": 33.766572332940996
+        },
+        {
+          "epoch": 5,
+          "train_smooth_l1": 0.17880758443071326,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.35314708948135376,
+            "fde_m": 0.6621135473251343
+          },
+          "validation_smooth_l1": 0.07164990156888962,
+          "elapsed_s": 41.73016587505117
+        },
+        {
+          "epoch": 6,
+          "train_smooth_l1": 0.17226622420662785,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.3745588958263397,
+            "fde_m": 0.6945499181747437
+          },
+          "validation_smooth_l1": 0.07948289811611176,
+          "elapsed_s": 50.04694295814261
+        },
+        {
+          "epoch": 7,
+          "train_smooth_l1": 0.16970100134882285,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.392175555229187,
+            "fde_m": 0.7295755743980408
+          },
+          "validation_smooth_l1": 0.09350931644439697,
+          "elapsed_s": 58.455000875052065
+        },
+        {
+          "epoch": 8,
+          "train_smooth_l1": 0.16834759979265138,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.39179888367652893,
+            "fde_m": 0.7178773880004883
+          },
+          "validation_smooth_l1": 0.0903780534863472,
+          "elapsed_s": 66.90886933309957
+        },
+        {
+          "epoch": 9,
+          "train_smooth_l1": 0.16623469825237291,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.3684488534927368,
+            "fde_m": 0.7097402215003967
+          },
+          "validation_smooth_l1": 0.08440595865249634,
+          "elapsed_s": 75.14767333306372
+        }
+      ],
+      "config": {
+        "dataset": {
+          "root": "data/public/eth_ucy/datasets",
+          "manifest": "configs/forecasting/eth_ucy_manifest.yaml",
+          "train": [
+            "univ",
+            "zara1",
+            "zara2"
+          ],
+          "validation": [
+            "hotel"
+          ],
+          "test": [
+            "eth"
+          ],
+          "obs_steps": 8,
+          "pred_steps": 12,
+          "cohort_obs": 12,
+          "cohort_pred": 12,
+          "stride": 2,
+          "dt": 0.4
+        },
+        "model": {
+          "d_model": 64,
+          "heads": 4,
+          "layers": 2,
+          "feedforward": 128,
+          "dropout": 0.1,
+          "representation": "displacement",
+          "heading_align": false
+        },
+        "baseline": {
+          "method": "mean",
+          "recent_intervals": 3
+        },
+        "training": {
+          "seed": 42,
+          "device": "cpu",
+          "threads": 4,
+          "batch_size": 128,
+          "epochs": 30,
+          "patience": 6,
+          "learning_rate": 0.001,
+          "weight_decay": 0.0001,
+          "clip_grad_norm": 1.0,
+          "accumulate_steps": 1
+        },
+        "social": {
+          "radius": 3.0,
+          "max_neighbors": 8
+        },
+        "augmentation": {
+          "noise_std": 0.05,
+          "mask_probability": 0.2
+        }
+      }
+    },
+    "noise_only": {
+      "summary": {
+        "epochs": 9,
+        "best_validation_ade_m": 0.3167898952960968,
+        "wall_s": 76.43585895886645,
+        "checkpoint_sha256": "ba6bbf11380f15c8c7b49a16dea37f0623b968bd7064f9a41b44856805931b0c",
+        "test_evaluated": false,
+        "metadata": {
+          "train": {
+            "split": "train",
+            "scenes": [
+              "univ",
+              "zara1",
+              "zara2"
+            ],
+            "recording_sha256": {
+              "univ/test/students001.txt": "a6d87f278d94136fe39b8be91555487a29ac77259ae403b9dba2d5c18caf7b5b",
+              "univ/test/students003.txt": "e25798b660634330aa89f8bb259425de720e84d0873902726c1d1f4ccff21d6c",
+              "zara1/test/crowds_zara01.txt": "1147a1962a09abfb86f28c6cddcac862e095a0cf129b3016385b69eacdd09d85",
+              "zara2/test/crowds_zara02.txt": "8a649d0f8c9ae75c87c4d23a85f892786b0aa30266e996c7be03e69dafff22ff"
+            },
+            "windows": 14508,
+            "window_keys_sha256": "46bc38338ad96eb1512b942ce56abcbaaa407ca11fab2b04a57836ab48362de0",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 5.894334160463193,
+            "zero_neighbor_windows": 324,
+            "partial_neighbor_histories": 4318
+          },
+          "validation": {
+            "split": "validation",
+            "scenes": [
+              "hotel"
+            ],
+            "recording_sha256": {
+              "hotel/test/biwi_hotel.txt": "9caa771bb9153d6b809dd0916b6f86761b641e6bbb15e766c1de3133fbbb7fcf"
+            },
+            "windows": 425,
+            "window_keys_sha256": "6df1769533f1aa76cbe59779b0ebeff35d582475fe553f80f7b058d281658b68",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 2.0164705882352942,
+            "zero_neighbor_windows": 55,
+            "partial_neighbor_histories": 163
+          },
+          "torch": "2.6.0",
+          "numpy": "1.26.4",
+          "python": "3.12.11",
+          "platform": "macOS-26.6.2-arm64-arm-64bit",
+          "device": "cpu",
+          "parameter_count": 87128
+        }
+      },
+      "history": [
+        {
+          "epoch": 1,
+          "train_smooth_l1": 0.21894991369715136,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.38339653611183167,
+            "fde_m": 0.710503101348877
+          },
+          "validation_smooth_l1": 0.08526357263326645,
+          "elapsed_s": 8.029825292062014
+        },
+        {
+          "epoch": 2,
+          "train_smooth_l1": 0.15304098829425725,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.3510684072971344,
+            "fde_m": 0.6590600609779358
+          },
+          "validation_smooth_l1": 0.07369603961706161,
+          "elapsed_s": 16.254249999765307
+        },
+        {
+          "epoch": 3,
+          "train_smooth_l1": 0.15207980297914642,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.3167898952960968,
+            "fde_m": 0.5916416049003601
+          },
+          "validation_smooth_l1": 0.05987950786948204,
+          "elapsed_s": 25.04422349995002
+        },
+        {
+          "epoch": 4,
+          "train_smooth_l1": 0.14779034430309534,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.3862574100494385,
+            "fde_m": 0.7077161073684692
+          },
+          "validation_smooth_l1": 0.07511183619499207,
+          "elapsed_s": 33.99293587496504
+        },
+        {
+          "epoch": 5,
+          "train_smooth_l1": 0.1496009043763747,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.3350090980529785,
+            "fde_m": 0.6165459752082825
+          },
+          "validation_smooth_l1": 0.0704265609383583,
+          "elapsed_s": 42.825948166660964
+        },
+        {
+          "epoch": 6,
+          "train_smooth_l1": 0.14621095822341915,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.33825966715812683,
+            "fde_m": 0.6295141577720642
+          },
+          "validation_smooth_l1": 0.0730643942952156,
+          "elapsed_s": 51.44704695884138
+        },
+        {
+          "epoch": 7,
+          "train_smooth_l1": 0.14680630450969168,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.36501631140708923,
+            "fde_m": 0.6826147437095642
+          },
+          "validation_smooth_l1": 0.08138076215982437,
+          "elapsed_s": 59.87795912474394
+        },
+        {
+          "epoch": 8,
+          "train_smooth_l1": 0.1451831455808518,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.3730841875076294,
+            "fde_m": 0.6955573558807373
+          },
+          "validation_smooth_l1": 0.08506056666374207,
+          "elapsed_s": 68.2365199169144
+        },
+        {
+          "epoch": 9,
+          "train_smooth_l1": 0.14309617355445348,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.3471630811691284,
+            "fde_m": 0.666255533695221
+          },
+          "validation_smooth_l1": 0.07715903222560883,
+          "elapsed_s": 76.43554633390158
+        }
+      ],
+      "config": {
+        "dataset": {
+          "root": "data/public/eth_ucy/datasets",
+          "manifest": "configs/forecasting/eth_ucy_manifest.yaml",
+          "train": [
+            "univ",
+            "zara1",
+            "zara2"
+          ],
+          "validation": [
+            "hotel"
+          ],
+          "test": [
+            "eth"
+          ],
+          "obs_steps": 8,
+          "pred_steps": 12,
+          "cohort_obs": 12,
+          "cohort_pred": 12,
+          "stride": 2,
+          "dt": 0.4
+        },
+        "model": {
+          "d_model": 64,
+          "heads": 4,
+          "layers": 2,
+          "feedforward": 128,
+          "dropout": 0.1,
+          "representation": "displacement",
+          "heading_align": false
+        },
+        "baseline": {
+          "method": "mean",
+          "recent_intervals": 3
+        },
+        "training": {
+          "seed": 42,
+          "device": "cpu",
+          "threads": 4,
+          "batch_size": 128,
+          "epochs": 30,
+          "patience": 6,
+          "learning_rate": 0.001,
+          "weight_decay": 0.0001,
+          "clip_grad_norm": 1.0,
+          "accumulate_steps": 1
+        },
+        "social": {
+          "radius": 3.0,
+          "max_neighbors": 8
+        },
+        "augmentation": {
+          "noise_std": 0.05,
+          "mask_probability": 0.0
+        }
+      }
+    },
+    "mask_only": {
+      "summary": {
+        "epochs": 9,
+        "best_validation_ade_m": 0.3562900424003601,
+        "wall_s": 73.81880183285102,
+        "checkpoint_sha256": "65f61191c6cf268542cba5ad7b76e2350c328299b69a0d414c2a2edf2be33e56",
+        "test_evaluated": false,
+        "metadata": {
+          "train": {
+            "split": "train",
+            "scenes": [
+              "univ",
+              "zara1",
+              "zara2"
+            ],
+            "recording_sha256": {
+              "univ/test/students001.txt": "a6d87f278d94136fe39b8be91555487a29ac77259ae403b9dba2d5c18caf7b5b",
+              "univ/test/students003.txt": "e25798b660634330aa89f8bb259425de720e84d0873902726c1d1f4ccff21d6c",
+              "zara1/test/crowds_zara01.txt": "1147a1962a09abfb86f28c6cddcac862e095a0cf129b3016385b69eacdd09d85",
+              "zara2/test/crowds_zara02.txt": "8a649d0f8c9ae75c87c4d23a85f892786b0aa30266e996c7be03e69dafff22ff"
+            },
+            "windows": 14508,
+            "window_keys_sha256": "46bc38338ad96eb1512b942ce56abcbaaa407ca11fab2b04a57836ab48362de0",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 5.894334160463193,
+            "zero_neighbor_windows": 324,
+            "partial_neighbor_histories": 4318
+          },
+          "validation": {
+            "split": "validation",
+            "scenes": [
+              "hotel"
+            ],
+            "recording_sha256": {
+              "hotel/test/biwi_hotel.txt": "9caa771bb9153d6b809dd0916b6f86761b641e6bbb15e766c1de3133fbbb7fcf"
+            },
+            "windows": 425,
+            "window_keys_sha256": "6df1769533f1aa76cbe59779b0ebeff35d582475fe553f80f7b058d281658b68",
+            "units": "m",
+            "dt": 0.4,
+            "social": {
+              "radius": 3.0,
+              "max_neighbors": 8
+            },
+            "neighbor_count_mean": 2.0164705882352942,
+            "zero_neighbor_windows": 55,
+            "partial_neighbor_histories": 163
+          },
+          "torch": "2.6.0",
+          "numpy": "1.26.4",
+          "python": "3.12.11",
+          "platform": "macOS-26.6.2-arm64-arm-64bit",
+          "device": "cpu",
+          "parameter_count": 87128
+        }
+      },
+      "history": [
+        {
+          "epoch": 1,
+          "train_smooth_l1": 0.23995630031434637,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.3656178116798401,
+            "fde_m": 0.6671245098114014
+          },
+          "validation_smooth_l1": 0.07930359989404678,
+          "elapsed_s": 8.17056595813483
+        },
+        {
+          "epoch": 2,
+          "train_smooth_l1": 0.16556877752769608,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.35751816630363464,
+            "fde_m": 0.6699798107147217
+          },
+          "validation_smooth_l1": 0.07746440917253494,
+          "elapsed_s": 16.274889749940485
+        },
+        {
+          "epoch": 3,
+          "train_smooth_l1": 0.15944287879328312,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.3562900424003601,
+            "fde_m": 0.6620010733604431
+          },
+          "validation_smooth_l1": 0.06929896771907806,
+          "elapsed_s": 24.454237583093345
+        },
+        {
+          "epoch": 4,
+          "train_smooth_l1": 0.151774623512663,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.3865984380245209,
+            "fde_m": 0.7059676647186279
+          },
+          "validation_smooth_l1": 0.07768509536981583,
+          "elapsed_s": 32.44685141602531
+        },
+        {
+          "epoch": 5,
+          "train_smooth_l1": 0.15170344864414978,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.3614517152309418,
+            "fde_m": 0.6754776835441589
+          },
+          "validation_smooth_l1": 0.07230807095766068,
+          "elapsed_s": 40.62347074970603
+        },
+        {
+          "epoch": 6,
+          "train_smooth_l1": 0.14976665562494812,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.37245914340019226,
+            "fde_m": 0.7108129858970642
+          },
+          "validation_smooth_l1": 0.07768908888101578,
+          "elapsed_s": 48.871390250045806
+        },
+        {
+          "epoch": 7,
+          "train_smooth_l1": 0.14550198928478963,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.4193730652332306,
+            "fde_m": 0.7909142971038818
+          },
+          "validation_smooth_l1": 0.10663776844739914,
+          "elapsed_s": 57.0714010829106
+        },
+        {
+          "epoch": 8,
+          "train_smooth_l1": 0.14569594599111435,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.39037999510765076,
+            "fde_m": 0.7417964339256287
+          },
+          "validation_smooth_l1": 0.09217332303524017,
+          "elapsed_s": 65.27007862506434
+        },
+        {
+          "epoch": 9,
+          "train_smooth_l1": 0.14259910211686033,
+          "validation": {
+            "count": 425,
+            "ade_m": 0.35643985867500305,
+            "fde_m": 0.6971131563186646
+          },
+          "validation_smooth_l1": 0.08216410130262375,
+          "elapsed_s": 73.81837645778432
+        }
+      ],
+      "config": {
+        "dataset": {
+          "root": "data/public/eth_ucy/datasets",
+          "manifest": "configs/forecasting/eth_ucy_manifest.yaml",
+          "train": [
+            "univ",
+            "zara1",
+            "zara2"
+          ],
+          "validation": [
+            "hotel"
+          ],
+          "test": [
+            "eth"
+          ],
+          "obs_steps": 8,
+          "pred_steps": 12,
+          "cohort_obs": 12,
+          "cohort_pred": 12,
+          "stride": 2,
+          "dt": 0.4
+        },
+        "model": {
+          "d_model": 64,
+          "heads": 4,
+          "layers": 2,
+          "feedforward": 128,
+          "dropout": 0.1,
+          "representation": "displacement",
+          "heading_align": false
+        },
+        "baseline": {
+          "method": "mean",
+          "recent_intervals": 3
+        },
+        "training": {
+          "seed": 42,
+          "device": "cpu",
+          "threads": 4,
+          "batch_size": 128,
+          "epochs": 30,
+          "patience": 6,
+          "learning_rate": 0.001,
+          "weight_decay": 0.0001,
+          "clip_grad_norm": 1.0,
+          "accumulate_steps": 1
+        },
+        "social": {
+          "radius": 3.0,
+          "max_neighbors": 8
+        },
+        "augmentation": {
+          "noise_std": 0.0,
+          "mask_probability": 0.2
+        }
+      }
+    }
+  }
+}

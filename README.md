@@ -1,3 +1,15 @@
+## Phase 4.1 social forecasting (2026-11-09)
+
+The separate `phase4-social-forecasting` branch adds masked multi-pedestrian context, an 87,128-parameter social Transformer, three-seed/five-scene comparisons, validation robustness controls and an optional offline multi-track adapter. **The social model loses overall:** macro ADE 0.5812 m vs original 0.5565 m and CV 0.5214 m. Full suite: 259 passed/one hardware skipped. No tracker/hardware changes or navigation control.
+
+See [social architecture](docs/SOCIAL_FORECASTING_ARCHITECTURE.md), [results and exact commands](docs/SOCIAL_FORECASTING_EXPERIMENTS.md), and [integration requirements](docs/FORECASTING_INTEGRATION.md). Earlier milestones remain documented below.
+
+## Phase 4 offline forecasting (2026-11-09)
+
+Public annotated pedestrian forecasting is implemented on `phase4-trajectory-forecasting`; tracking and Go2 sensor APIs remain unchanged. A 78,680-parameter Transformer was trained and evaluated against constant velocity across five held-out scene identifiers. It did not win overall (macro ADE 0.5701 m vs CV 0.5214 m). Full suite: 231 passed, one hardware test skipped. No live forecasting validation or navigation control is claimed.
+
+See [architecture](docs/FORECASTING_ARCHITECTURE.md), [datasets](docs/FORECASTING_DATASETS.md), [installation, commands and results](docs/FORECASTING_EXPERIMENTS.md), and [Claude integration contract](docs/FORECASTING_INTEGRATION.md). Existing phase descriptions below retain their historical validation scope.
+
 # Go2 Dynamic Perception and Navigation
 
 Phase 3.7 adds a separate experimental tracking refinement profile. See

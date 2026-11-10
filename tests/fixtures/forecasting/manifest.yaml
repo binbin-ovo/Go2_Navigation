@@ -1,0 +1,12 @@
+name: synthetic-tests-only
+coordinate_system: metric_world_xy
+units: m
+step_seconds: 0.4
+frame_stride: 10
+scenes:
+  train_scene:
+  - train_scene.txt
+  validation_scene:
+  - validation_scene.txt
+  test_scene:
+  - test_scene.txt

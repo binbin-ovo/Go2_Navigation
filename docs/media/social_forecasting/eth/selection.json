@@ -1,0 +1,140 @@
+{
+  "straight": {
+    "key": "eth/test/biwi_eth.txt:357:490.00000000",
+    "category": "straight",
+    "selection": "median CV ADE in category",
+    "metrics": {
+      "constant_velocity": {
+        "ade_m": 0.3305457390124744,
+        "fde_m": 0.553624715991587
+      },
+      "single": {
+        "ade_m": 0.6238260865211487,
+        "fde_m": 1.128515601158142
+      },
+      "social": {
+        "ade_m": 0.49820971488952637,
+        "fde_m": 0.7888678312301636
+      },
+      "social_disabled": {
+        "ade_m": 0.6718806624412537,
+        "fde_m": 1.2778956890106201
+      }
+    }
+  },
+  "turning": {
+    "key": "eth/test/biwi_eth.txt:171:352.40000000",
+    "category": "turning",
+    "selection": "median CV ADE in category",
+    "metrics": {
+      "constant_velocity": {
+        "ade_m": 1.808966464475169,
+        "fde_m": 4.331108433775971
+      },
+      "single": {
+        "ade_m": 0.7326125502586365,
+        "fde_m": 1.2963193655014038
+      },
+      "social": {
+        "ade_m": 0.7863595485687256,
+        "fde_m": 1.7348573207855225
+      },
+      "social_disabled": {
+        "ade_m": 0.7863595485687256,
+        "fde_m": 1.7348573207855225
+      }
+    }
+  },
+  "stopping": {
+    "key": "eth/test/biwi_eth.txt:171:335.60000000",
+    "category": "stopping",
+    "selection": "median CV ADE in category",
+    "metrics": {
+      "constant_velocity": {
+        "ade_m": 1.4842489256798987,
+        "fde_m": 3.0172843796653805
+      },
+      "single": {
+        "ade_m": 1.985775113105774,
+        "fde_m": 3.775960922241211
+      },
+      "social": {
+        "ade_m": 1.8549667596817017,
+        "fde_m": 3.6545703411102295
+      },
+      "social_disabled": {
+        "ade_m": 1.8549667596817017,
+        "fde_m": 3.6545703411102295
+      }
+    }
+  },
+  "starting": {
+    "key": "eth/test/biwi_eth.txt:216:390.80000000",
+    "category": "starting",
+    "selection": "median CV ADE in category",
+    "metrics": {
+      "constant_velocity": {
+        "ade_m": 1.0477008757930717,
+        "fde_m": 2.0349455328461046
+      },
+      "single": {
+        "ade_m": 0.6985383629798889,
+        "fde_m": 2.3929355144500732
+      },
+      "social": {
+        "ade_m": 0.7572428584098816,
+        "fde_m": 2.1140058040618896
+      },
+      "social_disabled": {
+        "ade_m": 0.7572428584098816,
+        "fde_m": 2.1140058040618896
+      }
+    }
+  },
+  "social_win": {
+    "key": "eth/test/biwi_eth.txt:231:393.20000000",
+    "category": "stopping",
+    "selection": "largest absolute social-minus-CV ADE difference within win/loss",
+    "metrics": {
+      "constant_velocity": {
+        "ade_m": 3.4446155144286124,
+        "fde_m": 7.872802126669513
+      },
+      "single": {
+        "ade_m": 1.9794429540634155,
+        "fde_m": 4.80316162109375
+      },
+      "social": {
+        "ade_m": 1.7844089269638062,
+        "fde_m": 4.268955230712891
+      },
+      "social_disabled": {
+        "ade_m": 2.0684564113616943,
+        "fde_m": 4.661759853363037
+      }
+    }
+  },
+  "social_failure": {
+    "key": "eth/test/biwi_eth.txt:216:377.20000000",
+    "category": "other",
+    "selection": "largest absolute social-minus-CV ADE difference within win/loss",
+    "metrics": {
+      "constant_velocity": {
+        "ade_m": 1.0536473612968622,
+        "fde_m": 1.39283795130604
+      },
+      "single": {
+        "ade_m": 3.1860265731811523,
+        "fde_m": 5.253086566925049
+      },
+      "social": {
+        "ade_m": 2.9847357273101807,
+        "fde_m": 5.12516450881958
+      },
+      "social_disabled": {
+        "ade_m": 2.9847357273101807,
+        "fde_m": 5.12516450881958
+      }
+    }
+  }
+}
