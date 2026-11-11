@@ -4,6 +4,24 @@
 ([GO2_CAMERA_CALIBRATION](GO2_CAMERA_CALIBRATION.md)); this step still needs a large flat board and
 captures. No hand-tuned or visually aligned transform exists or may be added.
 
+## Progress (2026-11-11, paused by the user)
+- Solver: `go2_perception.vln.extrinsics` (Kabsch on plane normals + least squares on offsets, then a
+  plane-to-plane refinement weighted by expected noise; refuses normals that span < 3 directions) and
+  `scripts/phase5d_solve_extrinsics.py` (still-period detection from ChArUco poses, background
+  subtraction, LiDAR plane per pose, leave-one-pose-out validation, overlays). Synthetic tests:
+  `tests/test_vln_extrinsics.py` (exact recovery < 0.3° / 1 cm; with 0.5° / 5 mm camera-plane noise
+  < 1° / 2 cm and a matching reported σ). A point-to-plane refinement was tried first and **rejected**:
+  on a 0.4 m board it let rotation trade against translation (0.6–3° worse than closed form).
+- Captures (local): `p5d_extr_background` (10 s, empty scene), `p5d_extr_test` (15 s, board upright
+  1.1 m: 198/198 frames detected, ~2 000 LiDAR board inliers, plane σ 11 mm), `p5d_extr_main` (stopped at
+  ~82 s: only 2 usable still poses, both upright at ~1.1 m).
+- Board: 43.5 × 28.5 cm with the A4 ChArUco (29 mm squares). It cannot stand turned or leaned on its
+  own, so the next capture is **hand-held**: the user kneels behind it holding the side edges; the
+  LiDAR sees mostly the board (body occluded), and points are restricted to the camera-predicted
+  board plane. Still periods: ≥ 3 s within 10 mm / 2.5° (above single-frame PnP noise of 3.5 mm /
+  1.4° p95 measured on the static test).
+- **No `T_base_camera` exists yet.** ≥ 6 poses with yaw ±30° and backward lean 15–30° are needed.
+
 ## What is known
 | Transform | Value | Status |
 |---|---|---|
