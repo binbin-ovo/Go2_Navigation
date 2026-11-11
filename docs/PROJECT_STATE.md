@@ -1,3 +1,46 @@
+## Phase 5B FSD-style visualization and real validation — 2026-11-11 (Claude)
+
+Branch `phase5-fsd-visualization`, from Phase 5A `be4b9deb3d3f0f8fc7e111c45464a1922db761ef`, which contains
+`phase3-visual-groundtruth`. Main is not merged. No default changed; no robot control.
+
+**Built:**
+- A go2-scene-v1 viewer: a NumPy/OpenCV software 3D renderer. Open3D offscreen fails on macOS, and
+  rerun has no headless export.
+- Clean, Hybrid and Debug modes with keyed layers; split view with recorded RGB.
+- Causal playback with optional delayed pose interpolation, and a smoothed camera.
+- An instrumented replay of the unchanged 5A pipeline for Debug layers: rows match the 5A release
+  exactly on all 3,926 scans.
+- Walking-person failure attribution, original-vs-5A comparison, reels.
+- Planner-readiness queries (occupied or unknown, never free).
+
+Read [FSD_STYLE_VISUALIZATION](FSD_STYLE_VISUALIZATION.md), then
+[PHASE5_REAL_VALIDATION](PHASE5_REAL_VALIDATION.md).
+
+**Results:**
+- 5A removes almost all false MOVING: unsupported MOVING frames/min fall from about 600–840 to 0–5.
+  Static-box step p95 falls from 51–69 mm to 20–38 mm.
+- Fresh coverage and moving recall regress: B person 0.905/0.575 → 0.499/0.058. Median MOVING delay
+  rises from 0.23 s to about 1.35 s.
+- 69% of emitted boxes are stale; much of the steadiness is held stale geometry.
+- Test B diagnosis: 38% of walking frames have **no person returns in the latest ~62 ms scan**,
+  although 0.3 s windows contain the person. 5A's freshness rule (≥3 latest-message points) turns this
+  sampling gap into stale boxes.
+- Fresh but not MOVING: the speed − 2σ gate is the top cause (heuristic σ median 0.23 m/s), followed
+  by object rebirth (too young) and the activation streak. A2 replicates the pattern.
+- 5A also reports a fresh object inside the robot footprint in about 98% of frames (self/near-field
+  returns).
+
+**Tests:** 351 passed, 3 skipped in 25 s (1 hardware; 2 need the optional `av` package from the `go2` extra); 43 new viewer tests. Ruff passes on
+the new files; the 33 pre-existing findings in the old hardware scripts are unchanged.
+
+**Videos (private, local):** `/Users/yushan/Desktop/Go2_Navigation/data/outputs/phase5b/videos/`.
+
+**Next:**
+1. Codex: freshness from recent coverage, a motion gate robust to σ, history inheritance, a self-filter.
+2. Record held-out H1–H3 under `configs/phase5_heldout_protocol.yaml`.
+3. Calibrate the camera.
+4. Build and measure a live read-only viewer.
+
 ## Phase 5A implementation — 2026-11-11 (experimental)
 
 Branch `phase5-stable-lidar-perception`, based on integrated `9068088542067fc117535279b412fbf2f808fdf6`. Scene accumulation, expiring background voxels, observation-supported filtered boxes, uncertainty-aware motion rules and JSONL replay are implemented. Existing tracking, adapters, forecasting and operational configs remain unchanged. No main merge.

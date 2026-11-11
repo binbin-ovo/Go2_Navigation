@@ -1,0 +1,67 @@
+# Phase 5 held-out protocol (prepared 2026-11-11, NOT recorded, NOT used for tuning).
+# A1, A2, B and C are development data: every Phase 5A/5B observation came from them.
+# Freeze this file and the code commits below before recording; score once; report as is.
+# Any change after looking at held-out output requires a new held-out recording.
+version: 1
+status: prepared_not_recorded
+inherits: docs/TRACKING_GROUND_TRUTH.md#held-out-evaluation-protocol-task-5
+recordings:
+  H1:
+    duration_s: 90
+    robot: standing still (human holds or leaves it; no commanded motion)
+    scene: one person; the A-C stacked box at ~2.4 m
+    script:
+      - walk in, stop 3 s, walk diagonally toward the robot, stop, turn on the spot
+      - accelerate slowly, cross in front of the box at 0.3-0.5 m, walk out
+      - repeat with a 1 s stop (brief-stop test)
+      - "Phase 5 addition: walk a full circle at ~2 m around the robot at normal pace (azimuth sampling test)"
+  H2:
+    duration_s: 90
+    robot: standing still
+    scene: two people
+    script:
+      - cross in front of the robot at 0.5-1.0 m separation, then walk side by side
+      - one stands still while the other passes behind (1-2 s full occlusion)
+  H3:
+    duration_s: 90
+    robot: turned and walked BY HAND by a person (no motion commands of any kind)
+    scene: three stationary objects (free-standing at 1.5 m; within 0.3 m of a wall; partly behind another)
+    script:
+      - yaw +-45 deg in place at two speeds, then 1 m forward and back
+      - tape start/end footprint; tape-measure object positions from the start footprint
+frozen_before_recording:
+  pipelines:
+    original: {config: configs/tracking.yaml, window_s: 0.3, note: original operational default}
+    phase5a: {config: configs/stable_lidar.yaml, commit: be4b9deb3d3f0f8fc7e111c45464a1922db761ef}
+    phase5a_fix: {config: TBD by Codex, commit: TBD, note: freeze before recording or omit}
+  renderer:
+    commit: TBD (this branch head when recording starts)
+    stale_max_s: 0.6
+    ghost_hold_s: 1.0
+    cv_horizon_s: 1.5
+  annotation: same tool and thresholds as A-C (scripts/annotate_ground_truth.py); >=10% human-reviewed
+metrics:
+  perception:  # reported separately from visual stability; never combined into one score
+    - fresh_coverage per object (Hungarian, 0.5 m person / 0.15 m box polygon)
+    - moving_recall per person (all scorable moving frames, misses included)
+    - false_moving_rate on stationary matched truth
+    - velocity_error_mps (conditional on match)
+    - moving_delay_s per event (null = never activated; report the list)
+    - walking-frame attribution (scripts/phase5b_diagnose_walking.py categories)
+  visual_stability:
+    - static_box_step_m median/p95 (displayed geometry, frame to frame)
+    - appear/disappear per minute within 3.5 m
+    - unsupported MOVING frames per minute
+    - stale/coasting run length mean/p95/max
+    - detection-gap held fraction (stale/coasting displayed while no fresh match)
+  runtime:
+    - perception ms/scan mean/p95 (sequential run, no other load)
+    - render fps (clean and debug, 1920x1080)
+  planner_readiness:
+    - fraction of objects with prior (unmeasured) velocity
+    - fraction of stale boxes; self-return objects within 0.45 m of base_link
+pre_declared_success_criteria:  # descriptive gates for deciding whether to propose a default change
+  - moving_recall must not be lower than the original pipeline on H1 and H2
+  - fresh_coverage must not be lower than the original pipeline by more than 0.05 on any object
+  - unsupported MOVING frames per minute lower than original
+  - no fresh object reported inside the robot footprint in >5% of frames

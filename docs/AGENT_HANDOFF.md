@@ -1,3 +1,58 @@
+## Phase 5B → Codex handoff (Claude, 2026-11-11)
+
+- **Branch:** `phase5-fsd-visualization`, based on `be4b9de` (Phase 5A).
+- **Do not merge main.** Nothing in `scene/`, any existing config or any default was changed; the only new config is the prepared held-out protocol.
+- **Read:** [PHASE5_REAL_VALIDATION](PHASE5_REAL_VALIDATION.md) for the evidence and the fix list;
+  [FSD_STYLE_VISUALIZATION](FSD_STYLE_VISUALIZATION.md) for the viewer.
+
+**Fixes for Codex, ordered by evidence (development data A1–C; validate on held-out H1–H3):**
+1. **Freshness from recent coverage.** Refresh an object from ≥3 returns in the last 2–3 messages, or
+   by swept-sector coverage, rather than the latest ~62 ms message alone. In B, 88 of 91 "absent"
+   walking frames have zero person returns in the latest message, yet ≥8 non-ground points at 0.3 s
+   (89/91). At the person's bearing the message has no non-floor returns in 94.5% of them: a sampling
+   gap, not occlusion.
+2. **Motion gate robust to σ.** `speed − 2σ > 0.25` blocks 56 fresh walking frames: median speed
+   0.44 m/s, median σ 0.23 m/s. Use a displacement/direction test, `speed − 1σ`, or σ from
+   `observed_box` centres.
+3. **Inherit motion history** when a reborn object re-associates within 1 s of an expired one (23 B
+   frames).
+4. **Robot self-filter** in proposal generation (fresh object within 0.45 m of `base_link` in about
+   98% of frames).
+5. **Leg clustering** (14 B frames left as noise or merged off-centre).
+6. **Vectorize `BackgroundMap.stable_mask`.** With `object_window_s=0.3` a replay ran at about
+   9–18 s/frame, so the counterfactual was stopped.
+
+**Reproduce (on this Mac):**
+
+```bash
+cd /Users/yushan/Desktop/Go2_Navigation-phase5b    # worktree on phase5-fsd-visualization
+uv venv --python 3.12 .venv && uv pip install --python .venv/bin/python -e '.[test,forecasting]'
+export PYTHONPATH=src
+D=/Users/yushan/Desktop/Go2_Navigation/data
+O=$D/outputs/phase5b
+.venv/bin/python scripts/phase5b_scene_tap.py --input $D/recordings/test_b --output $O/tap_new/test_b   # fresh dir; optional --set key=value diagnostics
+.venv/bin/python scripts/phase5b_diagnose_walking.py --recording test_b --data $D --tap $O/tap_new/test_b --output $O/diagnosis_new/test_b.json
+.venv/bin/python scripts/phase5b_compare.py --data $D --variant 5A=$O/tap --variant fix=$O/tap_new --output $O/comparison_new.json
+.venv/bin/python scripts/fsd_viewer.py --recording test_b --data $D --mode debug --tap $O/tap_new/test_b --scene $O/tap_new/test_b/scene.jsonl
+.venv/bin/python -m pytest -q
+```
+
+`phase5b_compare.py` expects all four recordings under each variant directory. `phase5b_scene_tap.py`
+writes the same `scene.jsonl` as `run_stable_scene.py` plus Debug sidecars, and `--reference` checks
+row identity.
+
+**Claude/user next:**
+1. Record held-out H1–H3 per `configs/phase5_heldout_protocol.yaml` (robot moved by hand only).
+2. Verify `cloud_base` sector coverage on hardware.
+3. Calibrate the camera.
+4. Build a live read-only viewer with end-to-end latency measurement.
+
+**Limitations:**
+- Annotations are not human-verified; everything here is development data.
+- The camera sync is approximate.
+- The viewer's floor is assumed at robot z − 0.32 m.
+- The 0.3 s 5A counterfactual was not completed.
+
 ## Phase 5A → Phase 5B Claude Handoff
 
 - **Branch:** `phase5-stable-lidar-perception`.
