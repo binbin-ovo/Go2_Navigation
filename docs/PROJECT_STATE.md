@@ -1,6 +1,6 @@
 ## Phase 5A.1 detection recovery — experimental candidate
 
-Branch `phase5-detection-recovery` from Phase 5B `89d901d`. Added current-plus-recent support, explicit sampling/recency evidence, direct-center robust motion regression, ambiguity-gated history retention, conservative configurable self-filter, runtime optimizations and a v1-compatible fixture/companion schema. Existing viewer, tracking, forecasting, adapters and live defaults are preserved; no main merge or autonomous control.
+Implementation commit `94115a42d0e70f756c8ae49b8a33e0f3cfced461` on branch `phase5-detection-recovery` from Phase 5B `89d901d`. Added current-plus-recent support, explicit sampling/recency evidence, direct-center robust motion regression, ambiguity-gated history retention, conservative configurable self-filter, runtime optimizations and a v1-compatible fixture/companion schema. Existing viewer, tracking, forecasting, adapters and live defaults are preserved; no main merge or autonomous control.
 
 Validation: **376 passed, 1 hardware skipped**, scoped Ruff passes. Full Ruff retains 33 inherited hardware-script issues. The previously incomplete 0.3 s Phase 5A counterfactual completed on all 3,926 scans. Recovery 0.1/0.3 s are evaluated on the same development recordings, with current support and bounded recent evidence reported separately. Ten synthetic scenarios × four variants completed; the unchanged viewer parsed/rendered the deterministic fixture.
 

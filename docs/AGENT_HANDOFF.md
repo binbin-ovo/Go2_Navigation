@@ -1,5 +1,7 @@
 ## Phase 5A.1 → Claude handoff (detection recovery)
 
+Implementation/candidate commit: `94115a42d0e70f756c8ae49b8a33e0f3cfced461` (this immutable commit includes the code, fixture, schemas and evaluated results; subsequent handoff documentation may advance branch HEAD).
+
 Branch: `phase5-detection-recovery`, based on fetched `phase5-fsd-visualization` at `89d901d`. The frozen source/config hashes are in `docs/DETECTION_RECOVERY_METRICS.json` under `freeze`. No main merge or operational-default change. Read DETECTION_RECOVERY_ARCHITECTURE.md, DETECTION_RECOVERY_EXPERIMENTS.md and NAVIGATION_SCENE_READINESS.md first.
 
 - New opt-in APIs: `scene.recovery.RecoveryScene`, `scene.recovery_objects.RecoveryObjects`. `StableScene`, original tracker, forecasting, sensor adapters and viewer remain available. Shared scene validation only has an equivalent scalar-age performance optimization.
