@@ -97,3 +97,7 @@ accept their own `--config`. Run scripts from repo root. Unknown constructor key
 rather than silently disappearing. Full direct pins are in pyproject.toml; the tested
 transitive environment is recorded separately. ROS adapter is intentionally documentation
 (Phase 2 uses the Unitree SDK directly because no system ROS 2 is installed; see `adapters/go2`).
+
+## Phase 5A experimental scene representation
+
+Independent opt-in accumulation, background voxels, filtered boxes and motion evidence are available on `phase5-stable-lidar-perception`. The original tracker and live defaults are preserved. Read [architecture](STABLE_LIDAR_ARCHITECTURE.md) and [measured limitations](STABLE_LIDAR_EXPERIMENTS.md) before use: real fresh coverage and moving recall regress, so this is not an operational replacement. Claude can consume the frozen [scene-v1 interface](SCENE_REPRESENTATION_INTERFACE.md) and synthetic fixture independently.

@@ -113,3 +113,7 @@ Start integration with [SENSOR_INTERFACE](docs/SENSOR_INTERFACE.md),
 [AGENT_HANDOFF](docs/AGENT_HANDOFF.md), and [ARCHITECTURE](docs/ARCHITECTURE.md).
 Ultralytics code/checkpoints carry upstream licensing requirements (AGPL-3.0 or an
 applicable enterprise license); review upstream terms before redistribution.
+
+## Phase 5A experimental scene representation
+
+Independent opt-in accumulation, background voxels, filtered boxes and motion evidence are available on `phase5-stable-lidar-perception`. The original tracker and live defaults are preserved. Read [architecture](docs/STABLE_LIDAR_ARCHITECTURE.md) and [measured limitations](docs/STABLE_LIDAR_EXPERIMENTS.md) before use: real fresh coverage and moving recall regress, so this is not an operational replacement. Claude can consume the frozen [scene-v1 interface](docs/SCENE_REPRESENTATION_INTERFACE.md) and synthetic fixture independently.

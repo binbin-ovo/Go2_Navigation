@@ -21,13 +21,21 @@ All scene geometry is already in `odom`, in meters, right-handed x-forward/y-lef
 
 `display_compact` controls drawing only; raw measurements must still enter perception. Scores are defined evidence/recency ratios, not probabilities. This delivery contains no camera calibration, private recordings, control commands or promise of real geometry accuracy. Claude may implement the renderer against v1 immediately. Codex will continue Phase 5A on the same branch, preserving required fields and semantics. Additive optional fields are allowed; a breaking change requires explicit coordination with Claude and a new version. User selected GitHub branch publication as the delivery channel; Claude acknowledgement remains pending.
 
-## Phase 5A interface delivery — 2026-11-10 (in progress)
+## Phase 5A perception continuation
 
-Branch `phase5-stable-lidar-perception` starts at integrated `9068088542067fc117535279b412fbf2f808fdf6`, preserving Phase 3.8 video/annotation and Phase 4.1 forecasting. First deliverable: [scene schema](SCENE_REPRESENTATION_INTERFACE.md), deterministic `tests/fixtures/scene/renderer.jsonl`, generator and NumPy-only JSONL validator. Seven interface tests passed. Claude can build a renderer from this fixture independently. Git publication is delivery; Claude acknowledgement is pending. No operational defaults, tracker internals or hardware code changed. Temporal accumulation investigation and stable perception implementation are still in progress; no Phase 5A real-data improvement is claimed.
+Implementation and experiments are complete as an **experimental** opt-in pipeline, not a validated perception upgrade. See STABLE_LIDAR_ARCHITECTURE.md and STABLE_LIDAR_EXPERIMENTS.md before consuming real output. `StableScene.process` accepts raw Nx3 base_link points, seconds, unique interval IDs, same-clock pose lookup and optional per-point second offsets. It emits the unchanged published v1 contract. Do not retransform scene geometry or feed accumulated cloud_deskewed data. Reset renderer history on epoch changes; stale boxes must stay visibly stale/UNCERTAIN.
+
+- Run: `PYTHONPATH=src .venv/bin/python scripts/run_stable_scene.py --input /path/to/recording --output data/outputs/scene_trial`. The output directory must be new and gitignored. No annotation input is accepted by runtime.
+- Synthetic comparison: `PYTHONPATH=src .venv/bin/python scripts/benchmark_stable_scene.py --output data/outputs/scene_synthetic_trial`.
+- Tests: `PYTHONPATH=src .venv/bin/python -m pytest -q`: **310 passed, 1 hardware skipped**. Full Ruff has 33 inherited hardware-script findings; Phase 5A scoped lint passes. Exact setup/report commands are in STABLE_LIDAR_EXPERIMENTS.md. New jsonschema test dependency is pinned to 4.26.0.
+- Baseline comparison and aggregate evidence: STABLE_LIDAR_RESULTS.md / STABLE_LIDAR_METRICS.json. Real Phase 5A moving recall A2=0.121, B=0.058; fresh box coverage is much lower than original. Roughly 69% of emitted boxes are stale. Do not promote defaults or describe smooth geometry as reliable pedestrian perception.
+- Source ownership: Codex added `scene/`, stable scene scripts, config and tests. Claude retains Go2 access, timing verification, annotation review and renderer. Existing tracker/adapter/forecasting code was not rewritten. No raw private data was committed.
+- Next steps: consume the fixture on the branch; verify stale/epoch rendering; human-review development annotations; collect held-out scenes including nearby/occluded people; verify instantaneous point-frame semantics before enabling deskew; improve proposal coverage and compare observed-only metrics before changing operational settings.
+- Known failure reproduction: run synthetic `near_furniture` through the benchmark (moving recall 0.189 at 0.1 s, 0 at 1.0 s). Replay A1/A2/B/C locally with the documented evaluator to reproduce low fresh coverage and low moving recall. Missing odometry emits empty geometry; weak evidence emits UNCERTAIN. Covariance is heuristic, not a calibrated safety bound. No live/held-out Phase 5A validation has been performed.
 
 # Agent handoff — 2026-11-09 (macOS update)
 
-## Phase 3.8 visual ground-truth handoff (current)
+## Phase 3.8 visual ground-truth handoff (integrated history)
 Branch `phase3-visual-groundtruth`. It contains `79bb0f9` (ground truth) and the merged Phase
 4.1 branch `5979a76`. Do not merge main or change defaults without approval. Read
 [VIDEO_ANNOTATION](VIDEO_ANNOTATION.md), then [TRACKING_GROUND_TRUTH](TRACKING_GROUND_TRUTH.md).

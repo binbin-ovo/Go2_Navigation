@@ -1,10 +1,18 @@
-## Phase 5A interface delivery — 2026-11-10 (in progress)
+## Phase 5A implementation — 2026-11-11 (experimental)
 
-Branch `phase5-stable-lidar-perception` starts at integrated `9068088542067fc117535279b412fbf2f808fdf6`, preserving Phase 3.8 video/annotation and Phase 4.1 forecasting. First deliverable: [scene schema](SCENE_REPRESENTATION_INTERFACE.md), deterministic `tests/fixtures/scene/renderer.jsonl`, generator and NumPy-only JSONL validator. Eight interface tests passed; machine-readable JSON Schema and a standard-library consumer are published at `5e269061c3da70ffe3d00798eb9bf05977869797`. Claude can build a renderer from this fixture independently. Git publication is delivery; Claude acknowledgement is pending. No operational defaults, tracker internals or hardware code changed. Temporal accumulation investigation and stable perception implementation are still in progress; no Phase 5A real-data improvement is claimed.
+Branch `phase5-stable-lidar-perception`, based on integrated `9068088542067fc117535279b412fbf2f808fdf6`. Scene accumulation, expiring background voxels, observation-supported filtered boxes, uncertainty-aware motion rules and JSONL replay are implemented. Existing tracking, adapters, forecasting and operational configs remain unchanged. No main merge.
+
+**Verified:** 310 tests passed, one hardware test skipped (39.65 s); new Phase 5A files pass Ruff 0.11.2. Full-repository Ruff finds 33 pre-existing issues in four unchanged hardware diagnostic scripts. Six synthetic scenarios × five variants and 3,926 real raw scans were processed. Python 3.12.11, NumPy 1.26.4, SciPy 1.15.2, Open3D 0.19.0, torch 2.6.0, pytest 8.3.5, jsonschema 4.26.0; report Matplotlib 3.11.2. This used existing dependency files through an isolated runtime, not a new clean install.
+
+**Results and limitations:** some static jitter/false-motion metrics improve, but fresh box coverage falls substantially. Person moving recall is only 0.121 on A2 and 0.058 on B, versus original 0.620/0.575. Approximately 69% of scene boxes are stale. Reduced merges often become misses. This profile is not recommended as an operational replacement. Real annotations are development-only and not human-verified; no held-out or live Phase 5A validation. Midpoint pose is used on real scans; point-level deskew is synthetic-tested only. Overlap separation, odometry drift and covariance calibration remain unresolved.
+
+**Read:** [architecture](STABLE_LIDAR_ARCHITECTURE.md), [experiments and exact commands](STABLE_LIDAR_EXPERIMENTS.md), [full tables](STABLE_LIDAR_RESULTS.md), [aggregate JSON](STABLE_LIDAR_METRICS.json), [scene interface](SCENE_REPRESENTATION_INTERFACE.md). Runtime: `src/go2_perception/scene/`; opt-in config: `configs/stable_lidar.yaml`; replay: `scripts/run_stable_scene.py`. Raw outputs and private recordings remain gitignored.
+
+**Next:** Claude can consume the published v1 fixture immediately. Review annotations, collect held-out two-object scenes, verify point-frame timing during robot motion, and improve current-observation coverage before tuning thresholds or promoting defaults. No new motion/control code or training labels are provided.
 
 # Project state — 2026-11-09
 
-## Phase 3.8 visual ground truth (current)
+## Phase 3.8 visual ground truth (integrated history)
 Branch `phase3-visual-groundtruth`. It contains the Phase 3.8 ground-truth work (`79bb0f9`)
 plus a merge of `phase4-social-forecasting` (`5979a76`; code and documents only, no tracker
 default changed). Main is unchanged. Read [VIDEO_ANNOTATION](VIDEO_ANNOTATION.md).
