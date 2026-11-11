@@ -80,3 +80,32 @@ def test_duplicate_views_dropped_and_too_few_refused(detections):
     assert held == [3, 7] and len(fit) == 6
     with pytest.raises(ValueError, match="Too few distinct views"):
         calibrate(dup, SIZE)
+
+
+def test_validity_and_ray_angle_helpers():
+    from go2_perception.vln.calibration import CameraIntrinsics
+    from go2_perception.vln.intrinsics import monotonic_to_corner, ray_angle_difference
+
+    good = CameraIntrinsics(*SIZE, K_TRUE, "fisheye_equidistant", D_TRUE, "synthetic")
+    folded = CameraIntrinsics(*SIZE, K_TRUE, "fisheye_equidistant", [0.0, -0.9, 0.0, 0.0], "synthetic")
+    assert monotonic_to_corner(good)[0] and not monotonic_to_corner(folded)[0]
+    assert ray_angle_difference(good, good)["max_deg"] < 1e-3
+    shifted_k = K_TRUE.copy()
+    shifted_k[0, 2] += 3  # a pure principal-point shift is nearly a rotation, which is removed
+    shifted = CameraIntrinsics(*SIZE, shifted_k, "fisheye_equidistant", D_TRUE, "synthetic")
+    scaled = CameraIntrinsics(*SIZE, K_TRUE * [[1.05], [1.05], [1]], "fisheye_equidistant", D_TRUE, "synthetic")
+    assert ray_angle_difference(good, shifted)["median_deg"] < ray_angle_difference(good, scaled)["median_deg"]
+
+
+def test_shipped_go2_calibration_is_measured_and_valid():
+    from pathlib import Path
+
+    from go2_perception.vln.calibration import load_calibration
+    from go2_perception.vln.intrinsics import monotonic_to_corner
+
+    intr, ext = load_calibration(Path(__file__).parents[1] / "configs" / "go2_front_camera_calibration.yaml")
+    assert intr.status == "measured" and intr.model == "fisheye_equidistant" and ext is None
+    assert (intr.width, intr.height) == (1280, 720)
+    assert intr.provenance["heldout_rms_px"] < 0.5 and intr.provenance["views_heldout"] >= 30
+    assert intr.provenance["square_mm_measured"] == 29.0
+    assert monotonic_to_corner(intr)[0]

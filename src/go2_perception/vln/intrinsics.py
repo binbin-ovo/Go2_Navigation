@@ -142,3 +142,71 @@ def calibrate(detections, size, models=("fisheye_equidistant", "pinhole_radtan")
     return {"views_detected": len(detections), "views_distinct": len(views), "fit_views": len(fit),
             "heldout_views": len(held), "coverage_fit": coverage(fit, size),
             "coverage_heldout": coverage(held, size), "models": results, "recommended": best}
+
+
+def monotonic_to_corner(intr):
+    """True if the distortion keeps image radius increasing with ray angle out to the image corner."""
+    corner = np.hypot(max(intr.K[0, 2], intr.width - intr.K[0, 2]), max(intr.K[1, 2], intr.height - intr.K[1, 2]))
+    th = np.linspace(0, np.radians(89), 4000)
+    if intr.model == "fisheye_equidistant":
+        k = intr.D
+        r = intr.K[0, 0] * th * (1 + k[0] * th**2 + k[1] * th**4 + k[2] * th**6 + k[3] * th**8)
+    else:
+        k1, k2, _, _, k3 = intr.D
+        x = np.tan(th)
+        r = intr.K[0, 0] * x * (1 + k1 * x**2 + k2 * x**4 + k3 * x**6)
+    increasing = np.diff(r) > 0
+    reach = r[np.argmin(increasing)] if not increasing.all() else r[-1]
+    return bool(reach >= corner), float(reach), float(corner)
+
+
+def _rays(intr, pts):
+    pts = pts.reshape(-1, 1, 2).astype(np.float64)
+    if intr.model == "fisheye_equidistant":
+        n = cv2.fisheye.undistortPoints(pts, intr.K, intr.D)
+    else:
+        n = cv2.undistortPointsIter(pts, intr.K, intr.D, None, None,
+                                    (cv2.TERM_CRITERIA_COUNT | cv2.TERM_CRITERIA_EPS, 50, 1e-10))
+    v = np.c_[n.reshape(-1, 2), np.ones(len(pts))]
+    return v / np.linalg.norm(v, axis=1, keepdims=True)
+
+
+def ray_angle_difference(a, b, grid=(33, 19)):
+    """Per-pixel ray angle (deg) between two intrinsics after removing their best common rotation,
+    which board-pose estimation cannot distinguish from a principal-point shift."""
+    u, v = np.meshgrid(np.linspace(0, a.width - 1, grid[0]), np.linspace(0, a.height - 1, grid[1]))
+    pts = np.c_[u.ravel(), v.ravel()]
+    ra, rb = _rays(a, pts), _rays(b, pts)
+    U, _, Vt = np.linalg.svd(rb.T @ ra)
+    R = (U @ Vt).T
+    ang = np.degrees(np.arccos(np.clip(((rb @ R.T) * ra).sum(1), -1, 1)))
+    return {"median_deg": float(np.median(ang)), "p95_deg": float(np.percentile(ang, 95)),
+            "max_deg": float(ang.max())}
+
+
+def bootstrap(views, model, size, reference, n=20, seed=0):
+    rng = np.random.default_rng(seed)
+    params, angles = [], []
+    for _ in range(n):
+        sample = [views[j] for j in rng.integers(0, len(views), len(views))]
+        _, K, D = fit_model(model, sample, size)
+        intr = CameraIntrinsics(size[0], size[1], K, model, D, "measured")
+        params.append([K[0, 0], K[1, 1], K[0, 2], K[1, 2], *D])
+        angles.append(ray_angle_difference(reference, intr))
+    names = ["fx", "fy", "cx", "cy"] + [f"d{i}" for i in range(len(params[0]) - 4)]
+    return {"n": n, "seed": seed, "std": dict(zip(names, np.std(params, axis=0).tolist())),
+            "ray_angle_median_deg": float(np.median([a["median_deg"] for a in angles])),
+            "ray_angle_p95_deg": float(np.median([a["p95_deg"] for a in angles]))}
+
+
+def leave_one_group_out(groups, model, size, reference):
+    """Fit on all groups but one (e.g. recordings), score the whole left-out group."""
+    out = {}
+    for name in groups:
+        fit = [v for g, vs in groups.items() if g != name for v in vs]
+        _, K, D = fit_model(model, fit, size)
+        intr = CameraIntrinsics(size[0], size[1], K, model, D, "measured")
+        out[name] = {"fx": float(K[0, 0]), "fy": float(K[1, 1]), "cx": float(K[0, 2]), "cy": float(K[1, 2]),
+                     "heldout": summarize(intr, heldout_residuals(intr, groups[name]), size),
+                     "ray_angle_vs_all": ray_angle_difference(reference, intr)}
+    return out

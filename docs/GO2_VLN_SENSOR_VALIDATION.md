@@ -60,8 +60,10 @@ configuration is unchanged.
 | `voxel_map`, `grid_map`, `uslam/cloud_map` | advertised, 0 messages |
 
 ## Camera
-See [GO2_CAMERA_CALIBRATION](GO2_CAMERA_CALIBRATION.md). Intrinsics: **not measured** (no factory
-data; no printed target available to the user today). Screen and print ChArUco targets prepared.
+See [GO2_CAMERA_CALIBRATION](GO2_CAMERA_CALIBRATION.md). Intrinsics **measured** from three
+user-coordinated ChArUco captures (robot stationary): fisheye model, fx/fy 831.4/833.7 px,
+held-out RMS 0.47 px (58 views), border 0.43 px, bootstrap ray spread p95 0.29°, valid to the corners.
+Pass 1 alone missed the top third of the image and was rejected by the corner-validity check.
 
 ## Extrinsics
 See [GO2_LIDAR_CAMERA_EXTRINSICS](GO2_LIDAR_CAMERA_EXTRINSICS.md). **Not measured.** Method and
@@ -81,7 +83,7 @@ unavailable (calibration missing). Field report:
 |---|---|
 | visual.image | ok, 720×1280×3 RGB + 2 history frames |
 | visual.stamp_robot | estimated, σ 16 ms |
-| visual.intrinsics | **missing** |
+| visual.intrinsics | **missing** without `--calibration`; `measured` with `configs/go2_front_camera_calibration.yaml` |
 | geometric.points / grid | ok: 11 292 points from 8 scans; 8 674 unknown / 1 017 floor seen / 309 occupied cells |
 | geometric.sector_range | partial: 45 of 72 sectors have an obstacle return |
 | geometric.projected_depth | **missing** (needs calibration) |
@@ -113,11 +115,12 @@ transforms and invalid transforms, projection and both distortion models, intrin
 resize/letterbox, tensors, missing calibration, synthetic-calibration opt-in, projected depth, missing
 odometry, missing RGB, clock-domain mismatch, validation, npz round trip, unknown schema,
 calibration metadata/units, recorded user choice, fixture reproducibility).
-Full suite (`PYTHONPATH=src .venv/bin/python -m pytest -q`): **381 passed, 3 skipped** (351 + 3
-before this phase).
+`tests/test_vln_intrinsics.py`: 5 passed (synthetic fisheye recovery, square-size invariance,
+duplicate views, corner validity, shipped calibration). Full suite (`PYTHONPATH=src .venv/bin/python
+-m pytest -q`): **386 passed, 3 skipped** (351 + 3 before this phase).
 
 ## Limitations
-- No camera intrinsics, no extrinsics, no projected depth or RGB–LiDAR fusion on real data.
+- No extrinsics, so no projected depth or RGB–LiDAR fusion on real data (intrinsics are measured).
 - Camera latency measured once (one boot, yaw only).
 - Robot stationary for all new data; nothing validates behaviour while walking.
 - Floor height −0.33 m assumes a standing robot.

@@ -1,0 +1,60 @@
+schema: go2-camera-calibration-v1
+status: measured
+camera_frame: go2_front_camera_optical
+image_size:
+- 1280
+- 720
+model: fisheye_equidistant
+K:
+- - 831.3760685302616
+  - 0.0
+  - 646.1811195748941
+- - 0.0
+  - 833.6937807386869
+  - 369.5519007953234
+- - 0.0
+  - 0.0
+  - 1.0
+D:
+- -0.05476936938718516
+- -0.10788038712969657
+- 0.08116020683770479
+- -0.011939524850495374
+reprojection_rms_px: 0.52755068015136
+units:
+  K: pixels
+  translation: metres
+provenance:
+  date: '2026-11-11'
+  recording:
+  - p5d_charuco_01
+  - p5d_charuco_02
+  - p5d_charuco_03
+  target: charuco_a4_9x6_30mm.json
+  square_mm_measured: 29.0
+  views_fit: 177
+  views_heldout: 58
+  heldout_rms_px: 0.46877671705684854
+  heldout_centre_rms_px: 0.480294041225626
+  heldout_border_rms_px: 0.42596687620698903
+  heldout_p95_px: 0.9461512963975577
+  model_selection: lowest held-out RMS of fisheye_equidistant / pinhole_radtan
+  other_model_heldout_rms_px:
+    pinhole_radtan: 0.8202573872431391
+  bootstrap_std:
+    fx: 7.366371922895866
+    fy: 7.389471193349591
+    cx: 1.519472464523513
+    cy: 2.060174530552847
+    d0: 0.017452666011879614
+    d1: 0.06802795929347387
+    d2: 0.12276770696438959
+    d3: 0.07703445182607116
+  bootstrap_ray_angle_p95_deg: 0.29006621984887415
+  leave_one_recording_out_heldout_rms_px:
+    p5d_charuco_01: 0.4743572072762066
+    p5d_charuco_02: 0.8117180640442733
+    p5d_charuco_03: 0.5389089784163152
+  image_size_note: raw 1280x720 H.264 frames, unrectified; pixel-centre origin
+  tool: scripts/phase5d_calibrate_intrinsics.py
+T_base_camera: null

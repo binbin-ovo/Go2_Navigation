@@ -23,8 +23,8 @@ does not plan, command or move the robot. Code: `src/go2_perception/vln/`; tests
 | `frame_id` | str | `go2_front_camera_unrectified` until calibrated |
 | `stamp_host` | Stamp | first RTP packet receipt, `host_receipt` clock |
 | `stamp_robot` | Stamp or None | `exposure_estimated` in `go2_robot`: host − offset − 48 ms; σ ≈ 16 ms |
-| `intrinsics_status` | `unknown` / `synthetic` / `measured` | currently `unknown` on real data |
-| `K`, `D`, `distortion_model`, `intrinsics_size` | arrays / str / (w, h) | all `None` while unknown |
+| `intrinsics_status` | `unknown` / `synthetic` / `measured` | `measured` when replayed with `calibration=configs/go2_front_camera_calibration.yaml` |
+| `K`, `D`, `distortion_model`, `intrinsics_size` | arrays / str / (w, h) | fisheye_equidistant, (1280, 720); all `None` without a calibration file |
 | `history` | list[VisualObservation] | oldest first, `observation(k, history=n)` |
 
 ### B. `GeometricObservation` (may be `None`)
@@ -38,7 +38,7 @@ does not plan, command or move the robot. Code: `src/go2_perception/vln/`; tests
 | `sector_range` | float (72,) | nearest obstacle per 5° sector CCW from +x, NaN = no return (unknown) |
 | `sector_clear_to` | float (72,) | farthest floor return before that obstacle, NaN = no evidence |
 | `blind_radius_m` | 0.30 | `cloud_base` has no points inside; always unknown |
-| `projected_depth` | float32 (H, W) or None | only with calibration; currently `None` |
+| `projected_depth` | float32 (H, W) or None | needs intrinsics **and** `T_base_camera`; `None` until extrinsics are measured |
 
 FREE means "floor was seen and nothing in the obstacle band", not "traversable": obstacles lower than
 10 cm above the floor, glass, black or very thin objects may be missed.
@@ -57,7 +57,8 @@ from go2_perception.vln import validate, save, load
 from go2_perception.vln.replay import Go2RecordingReplay
 from go2_perception.vln.tensors import resize, to_tensor, stack_history
 
-replay = Go2RecordingReplay("data/recordings/p5d_static_02")       # add calibration=... once measured
+replay = Go2RecordingReplay("data/recordings/p5d_static_02",
+                            calibration="configs/go2_front_camera_calibration.yaml")  # measured intrinsics
 obs = replay.observation(200, history=2, instruction="Go to the kitchen")
 assert validate(obs) == []                                          # list of issues; strict=True raises
 small, K_small, info = resize(obs.visual.image, (448, 448), None)   # pass intrinsics when known

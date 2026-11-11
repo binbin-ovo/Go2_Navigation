@@ -1,7 +1,8 @@
 # Go2 LiDAR–camera extrinsics (Phase 5D)
 
-**Status (2026-11-11): NOT measured.** It depends on measured intrinsics, which are pending (no
-printed target yet). No hand-tuned or visually aligned transform exists or may be added.
+**Status (2026-11-11): NOT measured.** Intrinsics are now measured
+([GO2_CAMERA_CALIBRATION](GO2_CAMERA_CALIBRATION.md)); this step still needs a large flat board and
+captures. No hand-tuned or visually aligned transform exists or may be added.
 
 ## What is known
 | Transform | Value | Status |

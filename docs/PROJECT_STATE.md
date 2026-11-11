@@ -16,17 +16,21 @@ session on the Go2 with the robot stationary, read-only subscribers only, no con
   robot state, explicit clocks, frames and calibration status; replay from recordings; conservative
   grid (unknown / floor seen / occupied), 2.5D elevation, sector ranges; npz serialization; validation;
   tensor/resize helpers that carry intrinsics; synthetic fixture; 30 tests.
-- ChArUco targets (print PDFs and screen PNGs) and calibration / extrinsics procedures.
+- ChArUco targets (print PDFs and screen PNGs), `scripts/phase5d_calibrate_intrinsics.py` (held-out,
+  leave-one-recording-out, bootstrap, corner-validity checks) and the extrinsics procedure.
 - VLN compatibility report (RGB-only, RGB + map preferred, RGB-D).
 
-**Not done (blocked on equipment):** camera intrinsics and LiDAR–camera extrinsics. No calibration
-exists; projected depth and fusion remain unavailable on real data.
+- **Camera intrinsics measured** (three ChArUco passes, robot stationary): fisheye, fx/fy 831.4/833.7 px,
+  held-out RMS 0.47 px, ≈ 94° × 50° FOV → `configs/go2_front_camera_calibration.yaml`.
+
+**Not done:** LiDAR–camera extrinsics (needs a large flat board); projected depth and fusion remain
+unavailable on real data.
 
 Read [GO2_VLN_SENSOR_VALIDATION](GO2_VLN_SENSOR_VALIDATION.md), [GO2_VLN_INPUT_INTERFACE](GO2_VLN_INPUT_INTERFACE.md),
 [VLN_MODEL_COMPATIBILITY](VLN_MODEL_COMPATIBILITY.md), [GO2_SENSOR_TIMING](GO2_SENSOR_TIMING.md),
 [GO2_CAMERA_CALIBRATION](GO2_CAMERA_CALIBRATION.md), [GO2_LIDAR_CAMERA_EXTRINSICS](GO2_LIDAR_CAMERA_EXTRINSICS.md).
 
-Tests: 381 passed, 3 skipped.
+Tests: 386 passed, 3 skipped.
 
 ## Phase 5B FSD-style visualization and real validation — 2026-11-11 (Claude)
 

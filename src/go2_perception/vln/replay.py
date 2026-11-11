@@ -159,8 +159,11 @@ class Go2RecordingReplay:
             host_minus_robot_s=self.offset, calibration=calib, warnings=warnings)
 
     def _projected_depth(self, pts, warnings):
-        if self.intrinsics is None or self.extrinsics is None:
+        if self.intrinsics is None:
             warnings.append("projected depth unavailable: camera calibration missing")
+            return None
+        if self.extrinsics is None:
+            warnings.append("projected depth unavailable: LiDAR-camera extrinsics (T_base_camera) missing")
             return None
         from .calibration import project_points
         cam = self.extrinsics.inverse().apply(pts.astype(float))
