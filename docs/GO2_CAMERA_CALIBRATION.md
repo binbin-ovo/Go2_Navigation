@@ -57,6 +57,16 @@ Steps, robot stationary, one capture at a time with the user:
 
 Acceptance target: held-out RMS < 0.5 px centre, < 1.0 px border. Anything worse is reported, not hidden.
 
+Tool (steps 2–5): `scripts/phase5d_calibrate_intrinsics.py --recording … --board <target>.json
+--square-mm <measured> --output configs/go2_front_camera_calibration.yaml --report …json`
+(`go2_perception.vln.intrinsics`). It drops near-duplicate views, holds out every 4th distinct view,
+fits both models, re-estimates only the board pose on held-out views, and reports RMS / p95 / max,
+centre vs border error and a 4×3 image coverage grid. Synthetic check
+(`tests/test_vln_intrinsics.py`): ChArUco views rendered through a known fisheye camera are recovered
+to fx/fy within 1% and principal point within 1.5 px, held-out RMS < 0.45 px. In that test both
+models fit equally well over a ~100° field, so model choice on the real camera must come from the
+held-out border error, not from the shape of the lens.
+
 ## File format (`go2-camera-calibration-v1`)
 ```yaml
 schema: go2-camera-calibration-v1
