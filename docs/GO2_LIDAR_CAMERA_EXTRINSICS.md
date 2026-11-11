@@ -20,7 +20,19 @@ captures. No hand-tuned or visually aligned transform exists or may be added.
   LiDAR sees mostly the board (body occluded), and points are restricted to the camera-predicted
   board plane. Still periods: ≥ 3 s within 10 mm / 2.5° (above single-frame PnP noise of 3.5 mm /
   1.4° p95 measured on the static test).
-- **No `T_base_camera` exists yet.** ≥ 6 poses with yaw ±30° and backward lean 15–30° are needed.
+- Hand-held capture `p5d_extr_handheld` (73 s): board detected only at 0.8–1.0 m (t < 29 s; at ~1.7 m
+  the 21 mm markers are ~10 px and not detected, later the board lay flat, edge-on). 7 still windows of
+  1.1–3.0 s (≤ 2 cm / 3°), well spread (normal singular values 2.37 / 0.92 / 0.73). LiDAR points are
+  restricted to the printed grid in board coordinates (hands and the water-bottle pack below the board
+  contaminated a radius-based crop), coarse-to-fine over six passes.
+  **Result rejected by the acceptance gate:** leave-one-pose-out median 11.7 mm but signed offset
+  10.4 mm and normal error 2.8° median (1.0–6.3°), reduced χ² 11.7, σ ≈ 1–1.4° / 8–22 mm, and the
+  translation still moved several cm between passes. Short swaying holds with ~200 noisy points per pose
+  are not enough.
+- **No `T_base_camera` exists yet.** Next capture: static poses of ≥ 6 s with nobody in view, the board
+  leaned against a heavy object (e.g. the water-bottle pack) at different yaw / lean angles, 0.7–1.2 m.
+  `scripts/phase5d_solve_extrinsics.py` refuses to save unless held-out plane distance and offset are
+  ≤ 15 mm and the held-out normal error is ≤ 2° (`--max-loo-m`, `--max-loo-deg`).
 
 ## What is known
 | Transform | Value | Status |

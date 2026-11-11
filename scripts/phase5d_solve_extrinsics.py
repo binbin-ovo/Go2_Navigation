@@ -82,67 +82,70 @@ def background_set(root):
     return {(a + i, b + j, c + k) for a, b, c in keys for i, j, k in offs}
 
 
-def lidar_window(root, scans, t0, t1):
-    parts = []
-    for r in scans:
-        tpath = root / "lidar" / "utlidar_cloud_base" / r["file"].replace(".npy", "_time.npy")
-        mid = r["stamp"] + 0.5 * float(np.load(tpath).max())
-        if t0 <= mid <= t1:
-            parts.append(np.load(root / "lidar" / "utlidar_cloud_base" / r["file"])[:, :3].astype(float))
+def load_scans(root):
+    """All cloud_base scans with their midpoint time (robot clock), loaded once."""
+    out = []
+    for r in jsonl(root / "lidar" / "utlidar_cloud_base" / "index.jsonl"):
+        base = root / "lidar" / "utlidar_cloud_base"
+        mid = r["stamp"] + 0.5 * float(np.load(base / r["file"].replace(".npy", "_time.npy")).max())
+        out.append((mid, np.load(base / r["file"])[:, :3].astype(float)))
+    return out
+
+
+def lidar_window(scans, t0, t1):
+    parts = [p for mid, p in scans if t0 <= mid <= t1]
     return np.concatenate(parts) if parts else np.empty((0, 3)), len(parts)
 
 
-def pick_board_cluster(fg, grid_centre_b=None):
-    """Board points among the foreground: near the predicted centre when T is known, otherwise the
-    connected 10 cm voxel component whose plane fit has the most inliers and a board-like extent."""
-    if grid_centre_b is not None:
-        return fg[np.linalg.norm(fg - grid_centre_b, axis=1) < 0.40]
-    keys = np.floor(fg / 0.10).astype(int)
-    lookup = {}
-    for i, k in enumerate(map(tuple, keys)):
-        lookup.setdefault(k, []).append(i)
-    seen, best = set(), np.empty((0, 3))
-    for start in lookup:
-        if start in seen:
-            continue
-        stack, comp = [start], []
-        seen.add(start)
-        while stack:
-            k = stack.pop()
-            comp.extend(lookup[k])
-            for d in [(i, j, l) for i in (-1, 0, 1) for j in (-1, 0, 1) for l in (-1, 0, 1)]:
-                nb = (k[0] + d[0], k[1] + d[1], k[2] + d[2])
-                if nb in lookup and nb not in seen:
-                    seen.add(nb)
-                    stack.append(nb)
-        pts = fg[comp]
-        if len(pts) < 100:
-            continue
-        ext = np.ptp(pts, axis=0)
-        if np.sort(ext)[-1] > 0.9:
-            continue
-        if len(pts) > len(best):
-            best = pts
-    return best
+# Coarse camera -> base_link guess used ONLY to crop LiDAR points for the first pass (optical z forward
+# = base x, optical x right = -base y, optical y down = -base z; camera ~0.3 m ahead). Never reported.
+T_SEED = np.array([[0, 0, 1, 0.30], [-1, 0, 0, 0.0], [0, -1, 0, 0.05], [0, 0, 0, 1.0]])
 
 
-def collect(args, intr, board, T=None):
+def pick_grid_points(fg, R_cb, t_cb, grid_wh, T, band, margin=0.0):
+    """Foreground points inside the printed grid rectangle (board coordinates) and within ``band`` of the
+    board plane, using camera board pose (R_cb, t_cb) and the current T. Hands holding the board edges
+    and objects next to or below it fall outside the grid and are dropped."""
+    R, t = T[:3, :3], T[:3, 3]
+    cam = (fg - t) @ R                       # base -> camera
+    brd = (cam - t_cb) @ R_cb                # camera -> board (x right, y down, z into board)
+    keep = (brd[:, 0] > -margin) & (brd[:, 0] < grid_wh[0] + margin) & \
+           (brd[:, 1] > -margin) & (brd[:, 1] < grid_wh[1] + margin) & (np.abs(brd[:, 2]) < band)
+    return fg[keep]
+
+
+def pick_board_points(fg, n_c, d_c, centre_c, T, radius, band):
+    """Foreground points near the board as predicted by the camera plane mapped through T: within
+    ``radius`` of the grid centre and ``band`` of the plane. Excludes a person holding the board from
+    behind, whose body lies off the plane."""
+    R, t = T[:3, :3], T[:3, 3]
+    centre_b = R @ centre_c + t
+    n_b = R @ n_c
+    d_b = d_c + n_b @ t
+    near = np.linalg.norm(fg - centre_b, axis=1) < radius
+    on = np.abs(fg @ n_b - d_b) < band
+    return fg[near & on]
+
+
+def collect(args, intr, board, T=None, margin=0.0, band=0.05):
     root = args.capture
     poses = board_poses(root, intr, board) if not hasattr(args, "_poses") else args._poses
     args._poses = poses
-    segs = still_segments(poses)
+    segs = still_segments(poses, args.still_move_m, args.still_rot_deg, args.still_min_s)
     odom = jsonl(root / "state" / "utlidar_robot_odom.jsonl")
     offset = min(r["host_recv"] - r["stamp"] for r in odom)
     latency = yaml.safe_load(Path("configs/go2_vln_sensors.yaml").read_text())["timing"]["camera_latency_s"]["value"]
-    scans = jsonl(root / "lidar" / "utlidar_cloud_base" / "index.jsonl")
+    scans = args._scans if hasattr(args, "_scans") else load_scans(root)
+    args._scans = scans
     bg = args._bg if hasattr(args, "_bg") else background_set(args.background)
     args._bg = bg
     grid_centre_board = np.r_[board.getChessboardSize()] * board.getSquareLength() / 2
     out = []
     for i, seg in enumerate(segs):
-        h0, h1 = seg[0]["t_host"] + 0.5, seg[-1]["t_host"] - 0.5
+        margin = min(0.5, 0.2 * (seg[-1]["t_host"] - seg[0]["t_host"]))
+        h0, h1 = seg[0]["t_host"] + margin, seg[-1]["t_host"] - margin
         r0, r1 = h0 - offset - latency, h1 - offset - latency
-        pts, nscans = lidar_window(root, scans, r0, r1)
+        pts, nscans = lidar_window(scans, r0, r1)
         fg = pts[[k not in bg for k in map(tuple, np.floor(pts / VOXEL).astype(int))]] if len(pts) else pts
         R = np.mean([p["R"] for p in seg], axis=0)
         U, _, Vt = np.linalg.svd(R)
@@ -150,19 +153,22 @@ def collect(args, intr, board, T=None):
         t = np.median([p["t"] for p in seg], axis=0)
         n_c, d_c = camera_plane(R, t)
         centre_c = R @ np.r_[grid_centre_board, 0.0] + t
-        centre_b = None if T is None else T[:3, :3] @ centre_c + T[:3, 3]
-        cand = pick_board_cluster(fg, centre_b)
+        grid_wh = np.r_[board.getChessboardSize()] * board.getSquareLength()
+        if T is None:
+            cand = pick_board_points(fg, n_c, d_c, centre_c, T_SEED, radius=0.6, band=0.25)
+        else:
+            cand = pick_grid_points(fg, R, t, grid_wh, T, band=band, margin=margin)
         entry = {"segment": i, "host_start": seg[0]["t_host"], "duration_s": seg[-1]["t_host"] - seg[0]["t_host"],
                  "frames": len(seg), "scans": nscans, "foreground": int(len(fg)), "candidates": int(len(cand)),
                  "camera_distance_m": float(np.linalg.norm(t)), "n_c": n_c, "d_c": d_c,
                  "camera_t_std_mm": (np.std([p["t"] for p in seg], axis=0) * 1000).tolist(),
                  "frame": seg[len(seg) // 2]["file"], "centre_c": centre_c}
-        if len(cand) < 60:
+        if len(cand) < 40:
             entry["rejected"] = f"only {len(cand)} LiDAR board candidates"
             out.append(entry)
             continue
         n_b, d_b, inl, res = fit_plane(cand)
-        if inl.sum() < 60:
+        if inl.sum() < 40:
             entry["rejected"] = f"only {int(inl.sum())} plane inliers"
             out.append(entry)
             continue
@@ -195,6 +201,11 @@ def main():
     ap.add_argument("--output", type=Path, required=True)
     ap.add_argument("--report", type=Path, required=True)
     ap.add_argument("--overlays", type=Path)
+    ap.add_argument("--still-move-m", type=float, default=0.010)
+    ap.add_argument("--still-rot-deg", type=float, default=2.5)
+    ap.add_argument("--still-min-s", type=float, default=3.0)
+    ap.add_argument("--max-loo-m", type=float, default=0.015, help="acceptance: held-out plane distance")
+    ap.add_argument("--max-loo-deg", type=float, default=2.0, help="acceptance: held-out normal angle")
     a = ap.parse_args()
     intr, _ = load_calibration(a.intrinsics)
     if intr.status != "measured" or intr.model != "fisheye_equidistant":
@@ -204,16 +215,27 @@ def main():
     entries, offset, latency = collect(a, intr, board)
     good = [e for e in entries if "n_b" in e]
     first = solve(good)
-    # Second pass: re-select LiDAR points around the board centre predicted by the first solution.
-    entries, _, _ = collect(a, intr, board, first["T"])
-    good = [e for e in entries if "n_b" in e]
-    result = solve(good)
+    # Re-select LiDAR points around the board predicted by the previous solution until stable.
+    # Coarse-to-fine: a generous grid margin and plane band first, then the exact printed grid.
+    T = first["T"]
+    schedule = [(0.10, 0.15), (0.06, 0.10), (0.03, 0.06), (0.0, 0.04), (0.0, 0.04), (0.0, 0.04)]
+    for margin, band in schedule:
+        entries, _, _ = collect(a, intr, board, T, margin, band)
+        good = [e for e in entries if "n_b" in e]
+        result = solve(good)
+        print(f"margin {margin:.2f} band {band:.2f}: poses {len(good)}, "
+              f"t {np.round(result['T'][:3, 3], 3).tolist()}, "
+              f"median plane err {result['residual_abs_median_m'] * 1000:.1f} mm")
+        T = result["T"]
     loo = leave_one_out(good)
 
     def clean(e):
         return {k: (v.tolist() if isinstance(v, np.ndarray) else v) for k, v in e.items() if k != "points_b"}
 
+    pos = lambda root: np.mean([r["position"] for r in jsonl(root / "state" / "utlidar_robot_odom.jsonl")], axis=0)  # noqa: E731
+    robot_shift = float(np.linalg.norm(pos(a.capture) - pos(a.background)))
     report = {
+        "robot_shift_vs_background_m": robot_shift,
         "capture": a.capture.name, "background": a.background.name, "square_mm_measured": a.square_mm,
         "host_minus_robot_s": offset, "camera_latency_s": latency,
         "segments": [clean(e) for e in entries], "poses_used": len(good),
@@ -238,9 +260,17 @@ def main():
                "loo_abs_median_mm": [round(x["abs_median_m"] * 1000, 1) for x in loo_ok],
                "loo_mean_mm": [round(x["mean_m"] * 1000, 1) for x in loo_ok],
                "loo_normal_deg": [round(x["normal_angle_deg"], 2) for x in loo_ok]}
+    summary["robot_shift_vs_background_m"] = round(robot_shift, 4)
     print(json.dumps(summary, indent=1))
     if len(loo_ok) < 5:
         raise SystemExit("Fewer than 5 leave-one-out checks; nothing saved")
+    loo_med = float(np.median([x["abs_median_m"] for x in loo_ok]))
+    loo_bias = float(np.median([abs(x["mean_m"]) for x in loo_ok]))
+    loo_ang = float(np.median([x["normal_angle_deg"] for x in loo_ok]))
+    if loo_med > a.max_loo_m or loo_bias > a.max_loo_m or loo_ang > a.max_loo_deg:
+        raise SystemExit(f"Rejected: leave-one-out median {loo_med * 1000:.1f} mm, offset {loo_bias * 1000:.1f} mm, "
+                         f"normal {loo_ang:.2f} deg exceed {a.max_loo_m * 1000:.0f} mm / {a.max_loo_deg} deg; "
+                         "nothing saved")
     T = RigidTransform(result["T"], intr.camera_frame, "base_link", "measured", {
         "date": datetime.date.today().isoformat(), "method": "ChArUco plane vs background-subtracted "
         "cloud_base plane, Kabsch + plane-to-plane refinement", "capture": a.capture.name,
