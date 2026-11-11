@@ -1,0 +1,51 @@
+schema: go2-camera-calibration-v1
+status: synthetic
+camera_frame: go2_front_camera_optical
+image_size:
+- 160
+- 120
+model: pinhole_radtan
+K:
+- - 80.0
+  - 0.0
+  - 79.5
+- - 0.0
+  - 80.0
+  - 59.5
+- - 0.0
+  - 0.0
+  - 1.0
+D:
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+reprojection_rms_px: 0.0
+units:
+  K: pixels
+  translation: metres
+provenance:
+  generator: go2_perception.vln.synthetic
+T_base_camera:
+  matrix:
+  - - 0.0
+    - 0.0
+    - 1.0
+    - 0.3
+  - - -1.0
+    - 0.0
+    - 0.0
+    - 0.0
+  - - 0.0
+    - -1.0
+    - 0.0
+    - 0.1
+  - - 0.0
+    - 0.0
+    - 0.0
+    - 1.0
+  status: synthetic
+  direction: p_base = T @ p_camera
+  provenance:
+    generator: go2_perception.vln.synthetic

@@ -1,0 +1,12 @@
+{"file": "000000.npy", "topic": "rt/utlidar/cloud_base", "stamp": 1000.0, "host_recv": 2000.07, "frame_id": "base_link", "points": 650, "has_intensity": true, "has_time": true, "ring_values": [1]}
+{"file": "000001.npy", "topic": "rt/utlidar/cloud_base", "stamp": 1000.065, "host_recv": 2000.135, "frame_id": "base_link", "points": 650, "has_intensity": true, "has_time": true, "ring_values": [1]}
+{"file": "000002.npy", "topic": "rt/utlidar/cloud_base", "stamp": 1000.13, "host_recv": 2000.2, "frame_id": "base_link", "points": 650, "has_intensity": true, "has_time": true, "ring_values": [1]}
+{"file": "000003.npy", "topic": "rt/utlidar/cloud_base", "stamp": 1000.195, "host_recv": 2000.265, "frame_id": "base_link", "points": 650, "has_intensity": true, "has_time": true, "ring_values": [1]}
+{"file": "000004.npy", "topic": "rt/utlidar/cloud_base", "stamp": 1000.26, "host_recv": 2000.33, "frame_id": "base_link", "points": 650, "has_intensity": true, "has_time": true, "ring_values": [1]}
+{"file": "000005.npy", "topic": "rt/utlidar/cloud_base", "stamp": 1000.325, "host_recv": 2000.395, "frame_id": "base_link", "points": 650, "has_intensity": true, "has_time": true, "ring_values": [1]}
+{"file": "000006.npy", "topic": "rt/utlidar/cloud_base", "stamp": 1000.39, "host_recv": 2000.4599999999998, "frame_id": "base_link", "points": 650, "has_intensity": true, "has_time": true, "ring_values": [1]}
+{"file": "000007.npy", "topic": "rt/utlidar/cloud_base", "stamp": 1000.455, "host_recv": 2000.5249999999999, "frame_id": "base_link", "points": 650, "has_intensity": true, "has_time": true, "ring_values": [1]}
+{"file": "000008.npy", "topic": "rt/utlidar/cloud_base", "stamp": 1000.52, "host_recv": 2000.59, "frame_id": "base_link", "points": 650, "has_intensity": true, "has_time": true, "ring_values": [1]}
+{"file": "000009.npy", "topic": "rt/utlidar/cloud_base", "stamp": 1000.585, "host_recv": 2000.655, "frame_id": "base_link", "points": 650, "has_intensity": true, "has_time": true, "ring_values": [1]}
+{"file": "000010.npy", "topic": "rt/utlidar/cloud_base", "stamp": 1000.65, "host_recv": 2000.72, "frame_id": "base_link", "points": 650, "has_intensity": true, "has_time": true, "ring_values": [1]}
+{"file": "000011.npy", "topic": "rt/utlidar/cloud_base", "stamp": 1000.715, "host_recv": 2000.785, "frame_id": "base_link", "points": 650, "has_intensity": true, "has_time": true, "ring_values": [1]}

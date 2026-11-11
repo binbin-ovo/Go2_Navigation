@@ -1,3 +1,33 @@
+## Phase 5D VLN sensor calibration and interface — 2026-11-11 (Claude)
+
+Branch `phase5-go2-vln-sensor-calibration`, from Phase 5B `89d901dc` (contains 5A `be4b9de`). Main is
+not merged; Codex's `phase5-detection-recovery` is untouched; no 5A config or default changed. Physical
+session on the Go2 with the robot stationary, read-only subscribers only, no control.
+
+**Done:**
+- Live re-verification of link, discovery and every stream; 20 s stationary recording `p5d_static_02`
+  (lossless PNG RGB).
+- LiDAR accumulation study. The user chose **1.0 s display / 0.5 s obstacle** windows
+  (`configs/go2_vln_sensors.yaml`).
+- Camera audit: H.264 High, no B-frames, 1280×720, no colour metadata, no published intrinsics.
+- Timing: the robot clock **resets each boot**. Host − robot offset is estimated per recording (~10 ppm
+  drift). Camera receipt latency is **48 ms** (26–58), measured by yaw cross-correlation on `test_c`.
+- New package `go2_perception.vln`: `Go2VLNObservation` (`go2-vln-obs-v1`) with visual / geometric /
+  robot state, explicit clocks, frames and calibration status; replay from recordings; conservative
+  grid (unknown / floor seen / occupied), 2.5D elevation, sector ranges; npz serialization; validation;
+  tensor/resize helpers that carry intrinsics; synthetic fixture; 30 tests.
+- ChArUco targets (print PDFs and screen PNGs) and calibration / extrinsics procedures.
+- VLN compatibility report (RGB-only, RGB + map preferred, RGB-D).
+
+**Not done (blocked on equipment):** camera intrinsics and LiDAR–camera extrinsics. No calibration
+exists; projected depth and fusion remain unavailable on real data.
+
+Read [GO2_VLN_SENSOR_VALIDATION](GO2_VLN_SENSOR_VALIDATION.md), [GO2_VLN_INPUT_INTERFACE](GO2_VLN_INPUT_INTERFACE.md),
+[VLN_MODEL_COMPATIBILITY](VLN_MODEL_COMPATIBILITY.md), [GO2_SENSOR_TIMING](GO2_SENSOR_TIMING.md),
+[GO2_CAMERA_CALIBRATION](GO2_CAMERA_CALIBRATION.md), [GO2_LIDAR_CAMERA_EXTRINSICS](GO2_LIDAR_CAMERA_EXTRINSICS.md).
+
+Tests: 381 passed, 3 skipped.
+
 ## Phase 5B FSD-style visualization and real validation — 2026-11-11 (Claude)
 
 Branch `phase5-fsd-visualization`, from Phase 5A `be4b9deb3d3f0f8fc7e111c45464a1922db761ef`, which contains

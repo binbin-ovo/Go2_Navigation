@@ -1,0 +1,33 @@
+# Phase 5D Go2 VLN sensor-interface defaults. New file: existing configs (stable_lidar.yaml,
+# go2_lidar.yaml) and their 0.3 s windows are unchanged and still own Phase 5A perception.
+lidar_accumulation:
+  source_topic: rt/utlidar/cloud_base   # single scans in base_link; never re-accumulate cloud_deskewed
+  # Ego-motion-compensated through rt/utlidar/robot_odom into the newest scan's base_link.
+  # Chosen by the user on 2026-11-11 from scripts/phase5d_lidar_accumulation.py on the stationary
+  # recording p5d_static_02 (metrics: completeness vs 20 s union / repeatability Jaccard):
+  #   0.5 s -> 45% / 0.49,  1.0 s -> 55% / 0.63. Static-scene evidence only; a 0.5 m/s mover
+  #   smears about 0.25 m at 0.5 s and 0.5 m at 1.0 s (plus the object's own extent).
+  display_window_s: 1.0
+  obstacle_window_s: 0.5
+  # Cells without returns are UNKNOWN, never free, at any window length.
+  unobserved_is_free: false
+timing:
+  # Robot clock (all DDS stamps) resets at each boot; host - robot is re-estimated per recording as
+  # the lower envelope of robot_odom (host_recv - stamp), which includes odom's minimum latency.
+  offset_sigma_s: 0.002
+  # Camera exposure-to-host-receipt latency relative to odometry stamps. Measured once by
+  # scripts/phase5d_timing_report.py on test_c (hand-driven yaw, 1118 frames, |corr| 0.979):
+  # 48 ms; halves 50 / 36 ms; 1%-correlation band 26-58 ms. Not yet re-measured on another boot.
+  camera_latency_s:
+    value: 0.048
+    sigma: 0.016
+    source: "test_c yaw cross-correlation, 2026-11-11 analysis of the 2026-11-07 recording"
+geometry:
+  cell_m: 0.10
+  extent_x: [-3.0, 7.0]
+  extent_y: [-5.0, 5.0]
+  floor_z: -0.33        # base_link floor while standing (SENSOR_VALIDATION.md); wrong if lying down
+  floor_tol: 0.10
+  obstacle_top: 1.20
+  sector_deg: 5.0
+  blind_radius_m: 0.30  # cloud_base drops all points with XY range < 0.3 m (measured)

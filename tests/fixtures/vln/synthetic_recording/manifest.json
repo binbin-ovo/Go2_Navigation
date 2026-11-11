@@ -1,0 +1,12 @@
+{
+  "schema": "go2-recording-v1",
+  "notes": "SYNTHETIC fixture, public-safe, no real sensor data",
+  "clocks": {
+    "stamp": "synthetic go2_robot",
+    "host_recv": "stamp + 1000.0"
+  },
+  "rgb_frames": 11,
+  "lidar_frames": {
+    "utlidar_cloud_base": 12
+  }
+}

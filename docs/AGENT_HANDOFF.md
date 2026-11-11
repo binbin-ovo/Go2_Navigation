@@ -1,3 +1,57 @@
+## Phase 5D → Codex handoff: Go2 VLN inputs (Claude, 2026-11-11)
+
+- **Branch:** `phase5-go2-vln-sensor-calibration`, based on `89d901dc` (5B). Do not merge main.
+  5A/5A.1 perception modules, configs and defaults are unchanged.
+- **Interface:** `go2_perception.vln`, schema `go2-vln-obs-v1`. Spec:
+  [GO2_VLN_INPUT_INTERFACE](GO2_VLN_INPUT_INTERFACE.md).
+
+**Available now (real data):**
+| Input | Shape / units | Frame | Time |
+|---|---|---|---|
+| RGB | uint8 (720, 1280, 3) **RGB**, raw/distorted, ~14.3 Hz, + history | `go2_front_camera_unrectified` | host receipt, and estimated robot-clock exposure (host − offset − 48 ms, σ 16 ms) |
+| Obstacle points | float32 (~11 k, 3) m, 0.5 s window, odom-compensated | `base_link` of the reference scan | scan midpoint, robot clock |
+| Display points | float32 (~21 k, 3) m, 1.0 s window | same | same |
+| Grid | int8 (100, 100), 0.1 m, x −3…7 m, y −5…5 m; −1 unknown / 0 floor seen / 1 occupied | `base_link` | same |
+| Elevation | float32 (100, 100) m, NaN unknown | `base_link` | same |
+| Sector ranges | (72,) m per 5° CCW from +x; NaN unknown; `sector_clear_to` floor evidence | `base_link` | same |
+| Pose / twist | 4×4 `T_odom_base`; twist frame unverified | `odom` ← `base_link` | robot clock |
+
+**Calibrated vs uncertain:** camera intrinsics **missing**; `T_base_camera` **missing**;
+`projected_depth` therefore `None`. `T_base_lidar` comes from firmware only. Camera latency was
+measured once. Odometry accuracy under motion is unverified. The floor-height assumption (−0.33 m)
+holds only while standing. The robot clock resets each boot: compare stamps only within one `clock_epoch`.
+
+**Feasible VLN types now:** RGB-only video models producing symbolic or mid-level actions
+(NaVid / NaVILA / StreamVLN style), gated by the LiDAR grid. After calibration: RGB + geometric map
+(VLFM-style value map on our grid, the preferred approach). RGB-D/3D models need calibration plus
+dense depth. See [VLN_MODEL_COMPATIBILITY](VLN_MODEL_COMPATIBILITY.md).
+
+**Model outputs → goals without inventing geometry:** a symbolic action becomes `T_odom_base · T(θ, d)`.
+Accept it only if the target cell and corridor are FREE (floor seen) and within `sector_clear_to`;
+UNKNOWN is not free. Pixel targets need measured calibration, so they are unsupported today. 3D boxes
+and model confidence never count as clearance. Nothing here sends commands.
+
+**Reproduce (this Mac):**
+```bash
+cd /Users/yushan/Desktop/Go2_Navigation-phase5d
+uv venv --python 3.12 .venv && uv pip install --python .venv/bin/python -e '.[test,forecasting]'
+export PYTHONPATH=src
+D=/Users/yushan/Desktop/Go2_Navigation/data
+.venv/bin/python -m pytest -q                                    # 381 passed, 3 skipped
+.venv/bin/python scripts/phase5d_vln_replay_demo.py --synthetic --output /tmp/vln_demo
+.venv/bin/python scripts/phase5d_vln_replay_demo.py --recording $D/recordings/p5d_static_02 --index 200 --output $D/outputs/phase5d/demo
+.venv/bin/python scripts/phase5d_lidar_accumulation.py --recording $D/recordings/p5d_static_02 --output $D/outputs/phase5d/accumulation
+.venv/bin/python scripts/phase5d_timing_report.py --data $D/recordings --recordings test_c p5d_static_02 --output $D/outputs/phase5d/timing.json
+.venv/bin/python scripts/phase5d_make_charuco.py --screen 2560x1600 --output $D/outputs/phase5d/targets
+```
+Live capture (robot stationary, user present): `.venv-go2` in the main checkout, `--iface en9`,
+see [MAC_CONNECTION](MAC_CONNECTION.md).
+
+**Claude/user next:**
+1. Camera intrinsics with the ChArUco target (screen or print): [GO2_CAMERA_CALIBRATION](GO2_CAMERA_CALIBRATION.md).
+2. Extrinsics with a large board: [GO2_LIDAR_CAMERA_EXTRINSICS](GO2_LIDAR_CAMERA_EXTRINSICS.md).
+3. Re-measure camera latency on a new boot (operator-driven yaw).
+
 ## Phase 5B → Codex handoff (Claude, 2026-11-11)
 
 - **Branch:** `phase5-fsd-visualization`, based on `be4b9de` (Phase 5A).
