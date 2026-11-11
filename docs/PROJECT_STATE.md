@@ -1,3 +1,13 @@
+## Phase 5A.1 detection recovery — experimental candidate
+
+Branch `phase5-detection-recovery` from Phase 5B `89d901d`. Added current-plus-recent support, explicit sampling/recency evidence, direct-center robust motion regression, ambiguity-gated history retention, conservative configurable self-filter, runtime optimizations and a v1-compatible fixture/companion schema. Existing viewer, tracking, forecasting, adapters and live defaults are preserved; no main merge or autonomous control.
+
+Validation: **376 passed, 1 hardware skipped**, scoped Ruff passes. Full Ruff retains 33 inherited hardware-script issues. The previously incomplete 0.3 s Phase 5A counterfactual completed on all 3,926 scans. Recovery 0.1/0.3 s are evaluated on the same development recordings, with current support and bounded recent evidence reported separately. Ten synthetic scenarios × four variants completed; the unchanged viewer parsed/rendered the deterministic fixture.
+
+Final candidate: A2 person current coverage/MOVING recall 0.596/0.417; B 0.553/0.267. Static box false MOVING stays zero; stationary-person false MOVING rises to 0.147/0.047. Recent-evidence coverage is reported separately. Self-filter excludes zero real returns, so the footprint artifact is unresolved. Global stale-box share remains about 75%.
+
+Read [architecture](DETECTION_RECOVERY_ARCHITECTURE.md), [experiments and limitations](DETECTION_RECOVERY_EXPERIMENTS.md), [tables](DETECTION_RECOVERY_RESULTS.md), [aggregate/freeze manifest](DETECTION_RECOVERY_METRICS.json), and [navigation readiness gaps](NAVIGATION_SCENE_READINESS.md). Python/dependency versions remain those documented below. No held-out, live or new clean-install validation. Stopping delay, mixed furniture/people, semantic identity, self-filter geometry and visibility calibration remain unresolved. Next: Claude hardware verification, human annotation review and frozen-candidate held-out evaluation; no operational promotion.
+
 ## Phase 5B FSD-style visualization and real validation — 2026-11-11 (Claude)
 
 Branch `phase5-fsd-visualization`, from Phase 5A `be4b9deb3d3f0f8fc7e111c45464a1922db761ef`, which contains

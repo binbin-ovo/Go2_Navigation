@@ -1,6 +1,7 @@
 """Versioned, finite JSONL scene snapshots usable without the perception pipeline."""
 
 import json
+import math
 from pathlib import Path
 import numpy as np
 from . import SCHEMA_VERSION
@@ -41,7 +42,9 @@ def validate_scene(row):
             or cell["observation_count"] < 1
             or not 0 <= cell["evidence_score"] <= 1
             or cell["last_observed"] > t
-            or not np.isclose(cell["age_s"], t - cell["last_observed"])
+            or not math.isfinite(t - cell["last_observed"])
+            or abs(cell["age_s"] - (t - cell["last_observed"]))
+            > 1e-8 + 1e-5 * abs(t - cell["last_observed"])
         ):
             raise ValueError("Invalid background evidence")
     ids = set()

@@ -1,0 +1,59 @@
+# Experimental opt-in profile; no live/default tracker configuration is changed.
+# Candidate 0.3 s object horizon; evidence and limits: DETECTION_RECOVERY_EXPERIMENTS.
+accumulation:
+  window_s: 1.0
+  reset_gap_s: 0.5
+  max_pose_jump_m: 0.5
+  max_pose_angle_deg: 45.0
+  max_points: 300000
+current_support_min: 1
+recent_support_min: 3
+object_window_s: 0.3
+recent_support_s: 0.2
+# Conservative INNER body volume, not a verified full Go2 hull. External near-field returns remain.
+self_filter:
+  low: [-0.25, -0.12, -0.20]
+  high: [0.25, 0.12, 0.12]
+voxel_size: 0.05
+max_range_m: 8.0
+sensor_height_m: 0.32
+ground:
+  distance_threshold: 0.06
+  iterations: 100
+  max_tilt_deg: 20
+  height_tolerance: 0.12
+  min_inliers: 20
+  seed: 7
+background:
+  voxel_size: 0.1
+  ttl_s: 2.0
+  min_observations: 3
+  min_span_s: 0.2
+  radius_m: 8.0
+proposals:
+  eps: 0.3
+  min_points: 8
+  max_xy: 1.5
+  max_height: 2.4
+  split_planes: true
+objects:
+  direct_window_s: 1.0
+  direct_min_span_s: 0.35
+  activation_speed: 0.28
+  release_speed_direct: 0.18
+  displacement_m: 0.18
+  coherence_min: 0.55
+  direct_activation_observations: 2
+  ttl_s: 1.0
+  association_m: 0.6
+  position_alpha: 0.35
+  dimension_alpha: 0.2
+  motion_window_s: 0.6
+  min_motion_span_s: 0.4
+  moving_speed: 0.25
+  release_speed: 0.12
+  stationary_speed: 0.16
+  min_displacement: 0.18
+  activation_frames: 3
+  release_frames: 4
+  measurement_floor_m: 0.025

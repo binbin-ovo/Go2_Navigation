@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Optional Phase 5A.1 fields; validate alongside go2-scene-v1.schema.json",
+  "type": "object",
+  "properties": {
+    "objects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "evidence_state": {"enum": ["observed_current", "observed_recently", "stale_unknown"]},
+          "recent_support_horizon_s": {"type": "number", "exclusiveMinimum": 0},
+          "last_direct_scan_timestamp": {"type": "number"},
+          "sector_evidence": {
+            "type": "object",
+            "properties": {
+              "state": {"enum": ["no_sector_returns", "foreground_returns_occlusion_possible", "sector_returns_without_object"]},
+              "returns": {"type": "integer", "minimum": 0},
+              "proves_visible": {"const": false}
+            },
+            "required": ["state", "returns", "proves_visible"]
+          },
+          "motion_evidence": {
+            "type": "object",
+            "properties": {
+              "state": {"enum": ["MOVING", "STATIONARY", "UNCERTAIN"]},
+              "valid": {"type": "boolean"},
+              "updated_at": {"type": "number"},
+              "coherence": {"type": "number", "minimum": 0, "maximum": 1},
+              "observations": {"type": "integer", "minimum": 0}
+            },
+            "required": ["state", "valid"],
+            "if": {"properties": {"valid": {"const": true}}},
+            "then": {"required": ["updated_at", "coherence", "observations", "span_s", "displacement_m", "speed_mps"]}
+          }
+        }
+      }
+    }
+  }
+}

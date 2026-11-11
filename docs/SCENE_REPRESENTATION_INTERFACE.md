@@ -48,3 +48,13 @@ python scripts/read_scene.py tests/fixtures/scene/renderer.jsonl
 It prints six summaries; the last two frames contain one directly supported filtered box and one stale box. Draw scene points/boxes directly in odom. Apply `T_odom_base` only to the robot model; applying it to scene points again would double-transform them. Treat `display_compact` as rendering guidance only. The source measurements must still reach perception unchanged. Optional new fields may be ignored; changes to existing fields, units, semantics or required structure require coordination with Claude and a new schema version.
 
 Runtime covariance starts as identity (m/s)^2 until regression has enough observations; it is a heuristic prior, not measured certainty. Runtime score parameters are `background_min_observations`, `background_ttl_s`, `object_min_observations` and `object_ttl_s` in diagnostics. The synthetic fixture uses its documented common `min_observations`/`ttl_s` values. These diagnostic additions do not change required v1 fields.
+
+## Phase 5A.1 optional evidence fields
+
+The required v1 schema and original fixture remain unchanged. Recovery producers add
+`evidence_state`, `recent_support_horizon_s`, `last_direct_scan_timestamp`, `sector_evidence`
+and timestamped `motion_evidence`. See [DETECTION_RECOVERY_ARCHITECTURE](DETECTION_RECOVERY_ARCHITECTURE.md)
+for exact meanings and [the optional companion schema](../schemas/go2-scene-v1-recovery.schema.json)
+for field types (validate alongside v1). Old consumers may ignore these fields. New consumers
+must not promote `observed_recently` to a current observation or infer free space from no returns.
+The deterministic `tests/fixtures/scene/recovery.jsonl` supplements the original renderer fixture.

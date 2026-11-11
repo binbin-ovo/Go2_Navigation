@@ -117,3 +117,7 @@ applicable enterprise license); review upstream terms before redistribution.
 ## Phase 5A experimental scene representation
 
 Independent opt-in accumulation, background voxels, filtered boxes and motion evidence are available on `phase5-stable-lidar-perception`. The original tracker and live defaults are preserved. Read [architecture](docs/STABLE_LIDAR_ARCHITECTURE.md) and [measured limitations](docs/STABLE_LIDAR_EXPERIMENTS.md) before use: real fresh coverage and moving recall regress, so this is not an operational replacement. Claude can consume the frozen [scene-v1 interface](docs/SCENE_REPRESENTATION_INTERFACE.md) and synthetic fixture independently.
+
+## Phase 5A.1 detection recovery (opt-in)
+
+The v1-compatible recovery candidate separates current and recent evidence, adds robust direct-center motion, conservative body filtering and offline comparisons. Read [architecture](docs/DETECTION_RECOVERY_ARCHITECTURE.md) and [measured results/limitations](docs/DETECTION_RECOVERY_EXPERIMENTS.md). Original pipelines and operational defaults remain unchanged; this is not validated autonomous navigation.
