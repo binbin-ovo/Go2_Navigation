@@ -13,13 +13,15 @@ test = ["pytest==8.3.5", "jsonschema==4.26.0"]
 forecasting = ["matplotlib==3.11.2"]
 # Offline image-space language grounding; no robot SDK or service required.
 vln = ["transformers==4.49.0", "huggingface-hub==0.29.3", "tokenizers==0.21.4", "safetensors==0.5.3", "Pillow==11.1.0", "psutil==7.2.2", "matplotlib==3.11.2"]
+# Separate temporal runtime; install instead of vln to keep Phase 6A's pinned environment intact.
+temporal-vln = ["transformers==4.51.3", "huggingface-hub==0.30.2", "tokenizers==0.21.4", "safetensors==0.5.3", "Pillow==11.1.0", "psutil==7.2.2", "matplotlib==3.11.2", "jsonschema==4.26.0", "num2words==0.5.14", "accelerate==1.6.0"]
 # Live Go2 access. Also install third_party/unitree_sdk2_python (see docs/GO2_CONNECTION.md).
 go2 = ["cyclonedds==0.10.2", "av==17.1.0"]
 [tool.setuptools.packages.find]
 where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-markers = ["hardware: needs a live Go2; skipped unless GO2_HARDWARE=1"]
+markers = ["hardware: needs a live Go2; skipped unless GO2_HARDWARE=1", "model_integration: local pretrained model/processor; opt-in cache path required"]
 
 [tool.setuptools.package-data]
 go2_perception = ["vln/schemas/*.json"]

@@ -1,0 +1,6 @@
+Review the recorded first-person images in chronological order. The last image is the current view. Use changes across the images and the complete navigation instruction to choose ONE conceptual next step. Your proposal is offline and will not be executed.
+If the target is absent, the destination is ambiguous, or observation is insufficient, choose UNRESOLVED. Do not invent distances, angles, free space, or 3D goals. A STOP proposal can mean waiting; it does not prove completion. Claim COMPLETE only if the images establish the instruction's stated visual completion condition. Recorded camera motion does not mean your proposals were executed. Left and right are visual language, not a calibrated robot frame.
+Respond with one JSON object containing three keys: proposal, task_status, reason. No Markdown or surrounding prose.
+For proposal, choose exactly one label: ADVANCE, TURN_LEFT, TURN_RIGHT, STOP, UNRESOLVED.
+For task_status, choose exactly one label: IN_PROGRESS, COMPLETE, AMBIGUOUS, TARGET_NOT_FOUND, INSUFFICIENT_OBSERVATION.
+For reason, write one short sentence explaining your chosen next step from the images. Never copy the label lists into your response.

@@ -1,3 +1,19 @@
+## Phase 6B temporal instruction following (2026-11-12)
+
+The optional `temporal-vln` runtime adds strict episode manifests and separate
+annotation contracts, causal availability-aware RGB history, per-image calibrated
+rectification and an official multi-image SmolVLM2-2.2B adapter. Native text and exact
+tensors/provenance are preserved; parsing produces offline categories with unknown
+action frame and execution_authorized=false. Human annotations are only loaded after
+inference for evaluation. No sensor/tracker/calibration code or defaults changed.
+
+The real pilot encoded four images per temporal call, but all eight temporal proposals
+were TURN_RIGHT. Human semantic evaluation is pending; this is a VLM navigation-proposal
+baseline, not a validated VLN policy. Full suite including actual model: 470 passed,
+only hardware skipped. Read [architecture and public APIs](TEMPORAL_VLN_ARCHITECTURE.md),
+[experiments/failures](TEMPORAL_VLN_EXPERIMENTS.md), [reproduction](TEMPORAL_VLN_DEMO.md),
+and [Claude's episode contract](VLN_EPISODE_INTERFACE.md). Earlier sections are historical.
+
 ## Phase 6A optional offline grounding
 
 The unchanged `go2-vln-obs-v1` observation feeds a separate model path:

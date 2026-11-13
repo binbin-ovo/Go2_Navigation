@@ -1,3 +1,20 @@
+## Phase 6B temporal instruction-following pilot (2026-11-12)
+
+`phase6-temporal-vln` adds a local pretrained **VLM navigation-proposal baseline** using
+calibrated Go2 RGB history, separate human annotation files, exact model/input evidence,
+and offline review videos. SmolVLM2-2.2B actually encoded four images per temporal call
+on CPU. Four episodes × two cutoffs × two input modes = 16 calls. All parsed, but every
+temporal proposal was TURN_RIGHT; reliable instruction following and history benefit
+are **not established**. Human action/progress evaluation is pending. No robot commands
+or main merge. **470 tests passed, only the hardware test skipped**, including actual
+pretrained model tests; existing Grounding DINO compatibility was checked on a real image.
+
+Start with [install/run/demo](docs/TEMPORAL_VLN_DEMO.md),
+[actual successes and failures](docs/TEMPORAL_VLN_EXPERIMENTS.md),
+[architecture/model audit](docs/TEMPORAL_VLN_ARCHITECTURE.md),
+[episode contract](docs/VLN_EPISODE_INTERFACE.md), and [handoff](docs/AGENT_HANDOFF.md).
+Earlier phase sections retain their historical branch results.
+
 ## Phase 6A calibrated offline grounding (2026-11-12)
 
 `phase6-vln-input-validation` adds a real pretrained Grounding DINO Tiny demonstration

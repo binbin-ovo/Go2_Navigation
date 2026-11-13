@@ -1,12 +1,61 @@
-## Phase 6B temporal VLN — contract published first (2026-11-12)
+## Phase 6B temporal VLN — completed offline pilot (2026-11-12)
 
-Branch `phase6-temporal-vln`, isolated from verified Phase 6A
-`c13f1dc442fa157b31043613d3cb2b0c30ceab8a`. Episode/annotation schemas,
-strict loader, causal selection, deterministic synthetic fixture and consumer example
-are implemented. **20 contract tests passed**. Model execution and pilot evaluation
-are still in progress; no temporal-model deployment is claimed at this point.
-See [VLN_EPISODE_INTERFACE](VLN_EPISODE_INTERFACE.md). No main merge, robot commands,
-calibration changes, operational-default changes or Phase 5A.1 modifications.
+Branch **`phase6-temporal-vln`**, based on verified Phase 6A
+`c13f1dc442fa157b31043613d3cb2b0c30ceab8a`. Contract was published first at
+`5c7f586aa2536a8eda9167e66d5050a4a91dbac2`; v1 schemas/fixture remain compatible.
+No main merge, hardware connection/control, shared-environment change, calibration
+change, operational-default change or Phase 5A.1 modification.
+
+**Implemented and verified:** versioned episode + separate annotation contracts,
+causal exposure/availability-aware history, measured calibration on each image,
+official multi-image preprocessing with complete provenance, pinned pretrained model,
+conservative native-text parsing, evidence panels/video and human-reference-only
+metrics. Actual SmolVLM2-2.2B inference ran locally on private Go2 RGB: four episodes,
+eight cutoffs, both current-only and temporal conditions, **16 calls**. Every temporal
+forward encoded four images (three history + current), not just a stored history list.
+
+**Result:** 16/16 outputs parsed, but all eight temporal proposals were TURN_RIGHT,
+including explicit left-turn instructions. Single-image outputs were TURN_RIGHT ×4,
+TURN_LEFT ×2, UNRESOLVED ×2. Agent review found instruction-direction failures,
+undemonstrated grounding and an unsupported completion claim in native prose despite
+IN_PROGRESS in the structured field. **Human action/progress/completion evaluation
+remains pending.** No reliable instruction following or temporal benefit is established.
+This is a **VLM navigation-proposal baseline**, not a reproduced VLN policy.
+
+**Validation:** final full suite including actual pretrained processor/model tests:
+**470 passed, 1 hardware skipped (36.12 s)**. Ruff check/format passed on 12 Phase 6B
+Python files. Existing Grounding DINO real-image smoke reproduced its prior label,
+score and box exactly in the new environment. A separate environment was installed;
+all 88 installed packages pass dependency compatibility checks. No existing tests
+were weakened. Published synthetic fixture/schema remain unchanged.
+
+**Runtime:** `HuggingFaceTB/SmolVLM2-2.2B-Instruct` and processor revision
+`be92141c8d0ceb98596a923c308ac2bbb4a7c466`; CPU FP32/eager, four threads, seed 0,
+384px unsplit multi-image input. Python 3.12.11, Torch 2.6.0, Transformers 4.51.3,
+HF Hub 0.30.2; exact constraints in
+[requirements-temporal-vln-tested.txt](../requirements-temporal-vln-tested.txt).
+Generation mean 10.171 s temporal vs 6.221 s single; replay image age at output mean
+10.848 vs 6.791 s. Process lifetime peak 9.684 GiB (not GPU memory or a per-mode measure).
+
+**Known limits:** same-home correlated pilot, no human action labels, no closed-loop
+outcomes, CPU latency, stretched 384×384 model images, estimated exposure/availability,
+missing T_base_camera/aligned depth, unvalidated moving odometry and traversability.
+No-image decisions fail explicitly. Model-native action frame is unknown; no distances
+or metric goals invented. Every result has execution_authorized=false. STOP is not
+completion. Zero structured COMPLETE fields does not rule out false claims in prose.
+
+**Read:** [architecture/model audit](TEMPORAL_VLN_ARCHITECTURE.md),
+[actual experiments/failures](TEMPORAL_VLN_EXPERIMENTS.md),
+[installation/demo](TEMPORAL_VLN_DEMO.md), [episode interface](VLN_EPISODE_INTERFACE.md),
+[current handoff](AGENT_HANDOFF.md). Persistent private evidence:
+`/Users/yushan/Desktop/Go2_Navigation/data/outputs/phase6b/`.
+
+**Next:** Claude/human reviewers prepare reviewed episode annotations without changing
+model inputs; evaluate held-out diverse environments and investigate the right-turn
+bias in a new declared experiment. Metric grounding needs measured registration,
+depth/timing/odometry validation and independent geometry checks. Navigation outcomes
+need a separately authorized controlled closed-loop experiment. Earlier sections
+below are historical milestone reports, not the current branch's full test count.
 
 ## Phase 6A calibrated RGB grounding — 2026-11-12 (Codex)
 
@@ -41,8 +90,8 @@ Read [validation and failures](VLN_INPUT_VALIDATION.md), [model audit](VLN_MODEL
 [installation and demo](VLN_OFFLINE_DEMO.md), and the Phase 6A handoff below
 [AGENT_HANDOFF](AGENT_HANDOFF.md). Next: human/held-out grounding review and separately
 validated registration/range before any metric or collision-aware planning work.
-Earlier phase sections below retain historical results; this section is the current
-state of this branch.
+This Phase 6A section retains its historical results; the Phase 6B section above
+describes the current state of this branch.
 
 ## Phase 5D VLN sensor calibration and interface — 2026-11-11 (Claude)
 

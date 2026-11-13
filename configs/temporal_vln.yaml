@@ -1,0 +1,17 @@
+model_id: HuggingFaceTB/SmolVLM2-2.2B-Instruct
+revision: be92141c8d0ceb98596a923c308ac2bbb4a7c466
+processor_id: HuggingFaceTB/SmolVLM2-2.2B-Instruct
+processor_revision: be92141c8d0ceb98596a923c308ac2bbb4a7c466
+device: cpu
+dtype: float32
+attention_implementation: eager
+cpu_threads: 4
+seed: 0
+max_new_tokens: 160
+max_frames: 4
+history_horizon_s: 6.0
+image_longest_edge: 384
+do_image_splitting: false
+prompt_file: temporal_vln_prompt.txt
+minimum_available_memory_gib: 11.0
+prompt_version: phase6b_v2_after_synthetic_format_smoke

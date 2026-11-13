@@ -1,24 +1,119 @@
-## Phase 6B → Claude: episode preparation contract
+## Phase 6B → Claude / next agent: temporal instruction-following pilot
 
-Published contract commit: `5c7f586aa2536a8eda9167e66d5050a4a91dbac2`.
+**Branch:** `phase6-temporal-vln`, verified base
+`c13f1dc442fa157b31043613d3cb2b0c30ceab8a`. Original checkout, Claude's calibration
+environment, Phase 5A.1 and main were left unchanged. No robot connection or commands.
+Implementation is local offline code plus a completed private pilot; human semantic
+validation and navigation success are not complete.
 
-Branch: `phase6-temporal-vln`; verified base `c13f1dc442fa157b31043613d3cb2b0c30ceab8a`.
-Read [VLN_EPISODE_INTERFACE](VLN_EPISODE_INTERFACE.md) first. Exact fixture:
-`tests/fixtures/vln/episode_v1/episode.json`; annotations are a separate
-`tests/fixtures/vln/episode_v1/annotations.json`. Versioned schemas live in
-`src/go2_perception/vln/schemas/`; loader is `vln/episodes.py`.
-Run `python scripts/inspect_vln_episode.py tests/fixtures/vln/episode_v1/episode.json --decision d0`
-after installing `.[test]`. Contract tests: 20 passed.
+**Read first:** [TEMPORAL_VLN_EXPERIMENTS](TEMPORAL_VLN_EXPERIMENTS.md) for actual
+failures/measurements, [TEMPORAL_VLN_ARCHITECTURE](TEMPORAL_VLN_ARCHITECTURE.md) for
+model/input/output semantics, [TEMPORAL_VLN_DEMO](TEMPORAL_VLN_DEMO.md) for exact commands,
+and [VLN_EPISODE_INTERFACE](VLN_EPISODE_INTERFACE.md) before preparing new episodes.
+The Phase 6A and earlier handoffs below retain their original historical scope.
 
-Preserve v1 compatibility. One episode = one recording, one boot/clock epoch;
-use distinct exposure and availability times, ordered images, explicit bounds/gaps,
-raw-image and calibration hashes. Camera optical axes right/down/forward; base_link
-forward/left/up. T_base_camera remains missing. All human action/progress/completion
-labels stay in separate annotations and never enter model inputs.
+### Published episode contract — stable v1
 
-Claude can now prepare private, human-reviewed episodes against this contract.
-Store them persistently outside Git (e.g. ignored `data/outputs/phase6b/episodes/`).
-No model inference has been verified yet in this first contract publication.
+Contract commit: **`5c7f586aa2536a8eda9167e66d5050a4a91dbac2`**, pushed before model
+implementation. Fixture: `tests/fixtures/vln/episode_v1/episode.json`; separate
+annotations: `tests/fixtures/vln/episode_v1/annotations.json`. Schemas:
+`src/go2_perception/vln/schemas/`; loader: `src/go2_perception/vln/episodes.py`.
+These bytes/schema remain compatible with the first publication. Fixture generator:
+`scripts/generate_vln_episode_fixture.py`; inspect with:
+
+```bash
+python scripts/inspect_vln_episode.py tests/fixtures/vln/episode_v1/episode.json --decision d0
+```
+
+One episode = one recording and boot/clock epoch. Preserve exposure versus availability,
+ordered images, explicit bounds/gaps and image/calibration hashes. Camera optical axes
+right/down/forward; base_link forward/left/up. T_base_camera remains missing. Never use
+identity as a placeholder or treat floor-seen cells as safe free space. Source timestamps
+are seconds with documented clock semantics; runtime host times remain separate.
+
+### Implemented and exercised by Codex
+
+- `vln/temporal_inputs.py`: causal four-frame/six-second policy, independent Phase 6A
+  calibrated rectification per image, official SmolVLM multi-image template/processor,
+  resized K/FOV/crop/padding metadata and exact tensors/hashes.
+- `vln/temporal_model.py`: one pinned SmolVLM2-2.2B checkpoint, CPU FP32/eager, deterministic
+  greedy inference; vision-encoder hook verifies every historical image enters the model.
+- `vln/temporal_proposals.py`: native text retained, strict JSON/anchored native field
+  parsing; action separate from task status, unknown frame/quantities preserved.
+- `vln/temporal_review.py`: current/history panels, native responses, labeled evaluation,
+  review video and metrics restricted to reviewed human references. Prose claims need
+  separate review; structured COMPLETE counts do not cover them.
+- `scripts/prepare_temporal_vln_pilot.py`, `scripts/run_temporal_vln.py`: deterministic
+  private packages and immutable run directories; configs `temporal_vln*.yaml` / prompt.
+
+**Actual model:** `HuggingFaceTB/SmolVLM2-2.2B-Instruct`, processor and checkpoint
+`be92141c8d0ceb98596a923c308ac2bbb4a7c466`. Generic **VLM navigation-proposal baseline**,
+not a reproduced VLN policy. No keyword navigation parser or training. Four episodes,
+eight decisions, 16 temporal/single-image calls, 16 valid structured responses.
+Every temporal call encoded [4,3,384,384] images / 324 image tokens; single calls
+encoded [1,3,384,384] / 81. No label data entered prompts or inference.
+
+**Important failure:** temporal always TURN_RIGHT (8/8), including left instruction;
+single outputs 4 right, 2 left, 2 unresolved. One native reason falsely implies task
+completion while structured status remains IN_PROGRESS. Human references are pending.
+Six panels/all native texts were agent-reviewed with explicit reviewer type; no human
+semantic score or closed-loop success is claimed. Frozen input/model/parser/prompt
+hashes are in the experiment report; do not silently retune and reuse this pilot as
+held-out evaluation. Generation mean 10.171/6.221 s temporal/single; process peak 9.684 GiB.
+
+### Installation, tests and private evidence
+
+Separate worktree: `/Users/yushan/Desktop/Go2_Navigation/data/outputs/phase6b-worktree`.
+Private evidence: `/Users/yushan/Desktop/Go2_Navigation/data/outputs/phase6b/`.
+This persistent location is independent of `/private/tmp`; all media and weights are
+Git-ignored. Source recordings were copied/read, not modified.
+
+```bash
+uv venv --python 3.12 .venv
+uv pip install --python .venv/bin/python -c requirements-temporal-vln-tested.txt \
+  -e '.[test,temporal-vln]' av==17.1.0 ruff==0.11.13
+export PYTHONPATH=src
+ARTIFACTS=/Users/yushan/Desktop/Go2_Navigation/data/outputs/phase6b
+SMOLVLM_MODEL_CACHE="$ARTIFACTS/hf_cache" HF_HUB_OFFLINE=1 \
+  TOKENIZERS_PARALLELISM=false MPLCONFIGDIR="$ARTIFACTS/mpl" \
+  .venv/bin/python -m pytest -q -rs
+```
+
+**470 passed, 1 hardware skipped, 36.12 s** including both actual model tests. Without
+SMOLVLM_MODEL_CACHE, the two heavyweight model tests skip; no automatic model download.
+Ruff check/format passed on 12 Phase 6B files. Grounding DINO compatibility was exercised
+on a real saved image and exactly reproduced the old candidate. Full constraints record
+this Mac/Python environment, not Linux/CUDA verification. Do not install the older
+`vln` extra and `temporal-vln` simultaneously (different Transformers pins).
+If a Mac editable `.pth` is hidden, `PYTHONPATH=src` works; the demo documents the isolated
+flag fix. No remaining installation blocker in the tested environment.
+
+Start demo review at `pilot_v1/review.mp4` (16 s, one panel per call, not robot timing).
+Successful literal-direction example: `pilot_v1/turn_to_racket/d00/current_only/review.png`;
+failed opposite direction: same episode/decision `temporal/review.png`; unresolved:
+`visible_refrigerator/d00/current_only/review.png`; ambiguous referent:
+`similar_cabinets/d00/temporal/review.png`; unsupported completion prose:
+`absent_red_door/d00/temporal/review.png`. Review findings are agent-only in
+`audit/agent_review.json`. `audit/full_tests_with_model.log` records the final suite.
+
+### Exact next steps / ownership
+
+1. Claude/human: prepare private real episodes using the published v1 contract.
+   Existing `episodes/*/annotations.pending.json` are empty human-review placeholders.
+   Write separate reviewed annotation files with reviewer identity/status and binding
+   manifest SHA. Do not change an evaluated manifest or insert labels into prompts.
+2. Score saved outputs using `temporal_review.summarize` with validated references
+   (example in the demo); human instruction-progress and prose-completion consistency
+   need separate adjudication. Do not count agent notes as human ground truth.
+3. Collect held-out diverse turn/landmark, ambiguous and absent-target episodes.
+   Diagnose right-turn bias in a separately named, predeclared development run;
+   checkpoint/input/prompt changes must get new output directories and explicit scope.
+4. Claude owns hardware/calibration/timing work. Missing T_base_camera and registered
+   depth remain blockers for metric goals; moving odometry and traversability still
+   require validation. No metric goal or action reference is invented here.
+5. Only a separately authorized closed-loop experiment can assess goal reaching,
+   collisions, safe execution or recovery after a proposed action. This baseline
+   provides no control interface and is not recommended for robot commands.
 
 ## Phase 6A → next agent: calibrated offline grounding (Codex, 2026-11-12)
 

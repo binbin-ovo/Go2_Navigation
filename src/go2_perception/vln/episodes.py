@@ -20,10 +20,18 @@ def file_sha256(path):
 
 def _validate_schema(data, name):
     from jsonschema import Draft202012Validator
-    errors = sorted(Draft202012Validator(json.loads((SCHEMAS / name).read_text())).iter_errors(data),
-                    key=lambda e: str(list(e.path)))
+
+    errors = sorted(
+        Draft202012Validator(json.loads((SCHEMAS / name).read_text())).iter_errors(
+            data
+        ),
+        key=lambda e: str(list(e.path)),
+    )
     if errors:
-        raise ValueError("Invalid contract: " + "; ".join(f"{list(e.path)}: {e.message}" for e in errors[:5]))
+        raise ValueError(
+            "Invalid contract: "
+            + "; ".join(f"{list(e.path)}: {e.message}" for e in errors[:5])
+        )
     # JSON Schema 'number' alone can accept Python's NaN; do not accept nonstandard JSON.
     json.dumps(data, allow_nan=False)
 
@@ -69,27 +77,52 @@ def load_episode(path, *, verify_files=True):
         ids.append(f["frame_id"])
         times.append(f["observation_s"])
         available.append(f["available_s"])
-        if f["recording_id"] != d["recording"]["recording_id"] or f["clock_epoch"] != d["clock"]["epoch"]:
+        if (
+            f["recording_id"] != d["recording"]["recording_id"]
+            or f["clock_epoch"] != d["clock"]["epoch"]
+        ):
             raise ValueError("Frame crosses recording or clock epoch boundary")
-        if not start <= f["observation_s"] <= end or f["available_s"] < f["observation_s"]:
-            raise ValueError("Frame time outside episode or availability before observation")
+        if (
+            not start <= f["observation_s"] <= end
+            or f["available_s"] < f["observation_s"]
+        ):
+            raise ValueError(
+                "Frame time outside episode or availability before observation"
+            )
         if (f["image"] is None) != (f["missing_reason"] is not None):
-            raise ValueError("Missing frames require image=null and a reason; present frames require null reason")
-    if len(ids) != len(set(ids)) or np.any(np.diff(times) <= 0) or np.any(np.diff(available) < 0):
-        raise ValueError("Frame IDs must be unique and times strictly chronological (availability nondecreasing)")
+            raise ValueError(
+                "Missing frames require image=null and a reason; present frames require null reason"
+            )
+    if (
+        len(ids) != len(set(ids))
+        or np.any(np.diff(times) <= 0)
+        or np.any(np.diff(available) < 0)
+    ):
+        raise ValueError(
+            "Frame IDs must be unique and times strictly chronological (availability nondecreasing)"
+        )
     decisions = d["decisions"]
-    if len({x['decision_id'] for x in decisions}) != len(decisions):
+    if len({x["decision_id"] for x in decisions}) != len(decisions):
         raise ValueError("Duplicate decision ID")
-    if any(not start <= x["time_s"] <= end for x in decisions) or np.any(np.diff([x["time_s"] for x in decisions]) <= 0):
+    if any(not start <= x["time_s"] <= end for x in decisions) or np.any(
+        np.diff([x["time_s"] for x in decisions]) <= 0
+    ):
         raise ValueError("Decision times must be ordered and inside episode")
     for g in d["gaps"]:
         if not start <= g["start_s"] < g["end_s"] <= end:
             raise ValueError("Invalid gap boundaries")
     refs = [d["calibration"]]
-    refs += [f[key] for f in d["frames"] for key in ("image", "robot_state_ref") if f[key] is not None]
+    refs += [
+        f[key]
+        for f in d["frames"]
+        for key in ("image", "robot_state_ref")
+        if f[key] is not None
+    ]
     for ref in refs:
         resource = local_path(path.parent, ref["path"])
-        if verify_files and (not resource.is_file() or file_sha256(resource) != ref["sha256"]):
+        if verify_files and (
+            not resource.is_file() or file_sha256(resource) != ref["sha256"]
+        ):
             raise ValueError(f"Missing or changed episode resource: {ref['path']}")
     return Episode(path, d)
 
@@ -104,35 +137,64 @@ def select_history(episode, decision_id, *, max_frames=4, horizon_s=6.0):
     if max_frames < 1 or horizon_s <= 0:
         raise ValueError("Positive frame budget and history horizon required")
     d = episode.data
-    decision = next((x for x in d["decisions"] if x["decision_id"] == decision_id), None)
+    decision = next(
+        (x for x in d["decisions"] if x["decision_id"] == decision_id), None
+    )
     if decision is None:
         raise ValueError(f"Unknown decision {decision_id}")
     cutoff = decision["time_s"]
     start = max(d["bounds"]["start_s"], cutoff - horizon_s)
-    causal = [f for f in d["frames"] if start <= f["observation_s"] <= cutoff and f["available_s"] <= cutoff]
+    causal = [
+        f
+        for f in d["frames"]
+        if start <= f["observation_s"] <= cutoff and f["available_s"] <= cutoff
+    ]
     valid = [f for f in causal if f["image"] is not None]
     chosen = []
     if valid:
-        indices = [len(valid) - 1] if max_frames == 1 else np.linspace(0, len(valid) - 1, min(max_frames, len(valid))).round().astype(int)
+        indices = (
+            [len(valid) - 1]
+            if max_frames == 1
+            else np.linspace(0, len(valid) - 1, min(max_frames, len(valid)))
+            .round()
+            .astype(int)
+        )
         chosen = [valid[int(i)] for i in indices]
     # Clip gaps at the decision cutoff so future gap ends cannot leak into input.
-    gaps = [{**g, "start_s": max(g["start_s"], start), "end_s": min(g["end_s"], cutoff)}
-            for g in d["gaps"] if g["start_s"] < cutoff and g["end_s"] > start]
-    return {"episode_id": d["episode_id"], "decision_id": decision_id, "decision_time_s": cutoff,
-            "clock_epoch": d["clock"]["epoch"], "frames": chosen,
-            "missing_frame_ids": [f["frame_id"] for f in causal if f["image"] is None],
-            "gaps": gaps, "history_horizon_s": horizon_s, "max_frames": max_frames,
-            "current_observation_age_s": None if not chosen else cutoff - chosen[-1]["observation_s"],
-            "policy": "uniform_available_window_including_latest_v1"}
+    gaps = [
+        {**g, "start_s": max(g["start_s"], start), "end_s": min(g["end_s"], cutoff)}
+        for g in d["gaps"]
+        if g["start_s"] < cutoff and g["end_s"] > start
+    ]
+    return {
+        "episode_id": d["episode_id"],
+        "decision_id": decision_id,
+        "decision_time_s": cutoff,
+        "clock_epoch": d["clock"]["epoch"],
+        "frames": chosen,
+        "missing_frame_ids": [f["frame_id"] for f in causal if f["image"] is None],
+        "gaps": gaps,
+        "history_horizon_s": horizon_s,
+        "max_frames": max_frames,
+        "current_observation_age_s": None
+        if not chosen
+        else cutoff - chosen[-1]["observation_s"],
+        "policy": "uniform_available_window_including_latest_v1",
+    }
 
 
 def load_annotations(path, episode):
     """Evaluation-only loader. The model adapter must never call this function."""
     a = json.loads(Path(path).read_text())
     _validate_schema(a, "vln_annotations_v1.schema.json")
-    if a["episode_id"] != episode.data["episode_id"] or a["manifest_sha256"] != episode.sha256:
+    if (
+        a["episode_id"] != episode.data["episode_id"]
+        or a["manifest_sha256"] != episode.sha256
+    ):
         raise ValueError("Annotation episode or manifest hash mismatch")
     ids = [x["decision_id"] for x in a["decisions"]]
-    if len(ids) != len(set(ids)) or set(ids) != {x["decision_id"] for x in episode.data["decisions"]}:
+    if len(ids) != len(set(ids)) or set(ids) != {
+        x["decision_id"] for x in episode.data["decisions"]
+    }:
         raise ValueError("Annotations must cover each episode decision exactly once")
     return a

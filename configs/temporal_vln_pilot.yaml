@@ -1,0 +1,36 @@
+schema_version: go2-temporal-pilot-v1
+# Fixed before model evaluation. One development smoke uses only the synthetic fixture.
+# These are task-conditioned replay snippets, not recorded instruction executions.
+review_status: human_annotations_pending
+availability_decode_margin_s: 0.1
+package_sampling_period_s: 0.5
+history_modes: [temporal, current_only]
+episodes:
+  - episode_id: visible_refrigerator
+    recording: p5d_static_02
+    start_offset_s: 2.0
+    end_offset_s: 15.0
+    decision_offsets_s: [8.0, 12.0]
+    instruction: Approach the refrigerator and stop before reaching it.
+    category: visible_destination
+  - episode_id: turn_to_racket
+    recording: test_c
+    start_offset_s: 10.0
+    end_offset_s: 27.0
+    decision_offsets_s: [18.0, 24.0]
+    instruction: Turn left to face the tennis racket, then stop.
+    category: turn_and_landmark
+  - episode_id: similar_cabinets
+    recording: test_c
+    start_offset_s: 35.0
+    end_offset_s: 52.0
+    decision_offsets_s: [43.0, 49.0]
+    instruction: Approach the white cabinet and stop in front of it.
+    category: similar_destinations
+  - episode_id: absent_red_door
+    recording: test_b
+    start_offset_s: 2.0
+    end_offset_s: 15.0
+    decision_offsets_s: [8.0, 12.0]
+    instruction: Go through the red doorway, turn into the hallway, and stop.
+    category: absent_or_unseen_destination
