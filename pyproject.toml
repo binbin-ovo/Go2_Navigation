@@ -20,3 +20,6 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = ["hardware: needs a live Go2; skipped unless GO2_HARDWARE=1"]
+
+[tool.setuptools.package-data]
+go2_perception = ["vln/schemas/*.json"]

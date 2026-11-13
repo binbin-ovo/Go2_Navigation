@@ -1,3 +1,23 @@
+## Phase 6B → Claude: episode preparation contract
+
+Branch: `phase6-temporal-vln`; verified base `c13f1dc442fa157b31043613d3cb2b0c30ceab8a`.
+Read [VLN_EPISODE_INTERFACE](VLN_EPISODE_INTERFACE.md) first. Exact fixture:
+`tests/fixtures/vln/episode_v1/episode.json`; annotations are a separate
+`tests/fixtures/vln/episode_v1/annotations.json`. Versioned schemas live in
+`src/go2_perception/vln/schemas/`; loader is `vln/episodes.py`.
+Run `python scripts/inspect_vln_episode.py tests/fixtures/vln/episode_v1/episode.json --decision d0`
+after installing `.[test]`. Contract tests: 20 passed.
+
+Preserve v1 compatibility. One episode = one recording, one boot/clock epoch;
+use distinct exposure and availability times, ordered images, explicit bounds/gaps,
+raw-image and calibration hashes. Camera optical axes right/down/forward; base_link
+forward/left/up. T_base_camera remains missing. All human action/progress/completion
+labels stay in separate annotations and never enter model inputs.
+
+Claude can now prepare private, human-reviewed episodes against this contract.
+Store them persistently outside Git (e.g. ignored `data/outputs/phase6b/episodes/`).
+No model inference has been verified yet in this first contract publication.
+
 ## Phase 6A → next agent: calibrated offline grounding (Codex, 2026-11-12)
 
 Implementation commit: [`dcc5de1c0d899d5fb8159c5f6b0905ab67b8cf01`](https://github.com/binbin-ovo/Go2_Navigation/commit/dcc5de1c0d899d5fb8159c5f6b0905ab67b8cf01).

@@ -1,0 +1,316 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "go2-vln-episode-v1"
+    },
+    "episode_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "instruction": {
+      "type": "string",
+      "minLength": 1
+    },
+    "recording": {
+      "type": "object",
+      "properties": {
+        "recording_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_manifest_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "kind": {
+          "enum": [
+            "go2-recording-v1",
+            "synthetic"
+          ]
+        }
+      },
+      "required": [
+        "recording_id",
+        "source",
+        "source_manifest_sha256",
+        "kind"
+      ],
+      "additionalProperties": false
+    },
+    "clock": {
+      "type": "object",
+      "properties": {
+        "domain": {
+          "const": "go2_robot"
+        },
+        "epoch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "units": {
+          "const": "seconds"
+        },
+        "observation_semantics": {
+          "enum": [
+            "exposure",
+            "exposure_estimated"
+          ]
+        },
+        "availability_semantics": {
+          "type": "string",
+          "minLength": 1
+        },
+        "uncertainty_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "host_minus_robot_s": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "domain",
+        "epoch",
+        "units",
+        "observation_semantics",
+        "availability_semantics",
+        "uncertainty_s",
+        "host_minus_robot_s"
+      ],
+      "additionalProperties": false
+    },
+    "bounds": {
+      "type": "object",
+      "properties": {
+        "start_s": {
+          "type": "number"
+        },
+        "end_s": {
+          "type": "number"
+        },
+        "end_reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "start_s",
+        "end_s",
+        "end_reason"
+      ],
+      "additionalProperties": false
+    },
+    "calibration": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "preprocessing": {
+      "type": "object",
+      "properties": {
+        "source_rectified": {
+          "type": "boolean"
+        },
+        "policy": {
+          "const": "phase6a_calibrated_view"
+        },
+        "provenance": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "source_rectified",
+        "policy",
+        "provenance"
+      ],
+      "additionalProperties": false
+    },
+    "frames": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "frame_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "recording_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "clock_epoch": {
+            "type": "string",
+            "minLength": 1
+          },
+          "observation_s": {
+            "type": "number"
+          },
+          "available_s": {
+            "type": "number"
+          },
+          "host_receipt_s": {
+            "type": "number"
+          },
+          "image": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                },
+                "required": [
+                  "path",
+                  "sha256"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "size_wh": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "missing_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "robot_state_ref": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                },
+                "required": [
+                  "path",
+                  "sha256"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "frame_id",
+          "recording_id",
+          "clock_epoch",
+          "observation_s",
+          "available_s",
+          "host_receipt_s",
+          "image",
+          "size_wh",
+          "missing_reason",
+          "robot_state_ref"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "decision_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "time_s": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "decision_id",
+          "time_s"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "start_s": {
+            "type": "number"
+          },
+          "end_s": {
+            "type": "number"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "start_s",
+          "end_s",
+          "reason"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "episode_id",
+    "instruction",
+    "recording",
+    "clock",
+    "bounds",
+    "calibration",
+    "preprocessing",
+    "frames",
+    "decisions",
+    "gaps"
+  ],
+  "additionalProperties": false
+}

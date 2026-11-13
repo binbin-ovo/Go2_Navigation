@@ -1,3 +1,13 @@
+## Phase 6B temporal VLN — contract published first (2026-11-12)
+
+Branch `phase6-temporal-vln`, isolated from verified Phase 6A
+`c13f1dc442fa157b31043613d3cb2b0c30ceab8a`. Episode/annotation schemas,
+strict loader, causal selection, deterministic synthetic fixture and consumer example
+are implemented. **20 contract tests passed**. Model execution and pilot evaluation
+are still in progress; no temporal-model deployment is claimed at this point.
+See [VLN_EPISODE_INTERFACE](VLN_EPISODE_INTERFACE.md). No main merge, robot commands,
+calibration changes, operational-default changes or Phase 5A.1 modifications.
+
 ## Phase 6A calibrated RGB grounding — 2026-11-12 (Codex)
 
 Implementation commit: [`dcc5de1c0d899d5fb8159c5f6b0905ab67b8cf01`](https://github.com/binbin-ovo/Go2_Navigation/commit/dcc5de1c0d899d5fb8159c5f6b0905ab67b8cf01).

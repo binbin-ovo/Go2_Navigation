@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "go2-vln-annotations-v1"
+    },
+    "episode_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "reviewer": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "enum": [
+            "human",
+            "agent",
+            "synthetic"
+          ]
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "reviewed"
+          ]
+        }
+      },
+      "required": [
+        "name",
+        "type",
+        "status"
+      ],
+      "additionalProperties": false
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "decision_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "target_visibility": {
+            "enum": [
+              "visible",
+              "multiple",
+              "absent",
+              "unknown"
+            ]
+          },
+          "instruction_progress": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "acceptable_actions": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "ADVANCE",
+                "TURN_LEFT",
+                "TURN_RIGHT",
+                "STOP",
+                "UNRESOLVED"
+              ]
+            }
+          },
+          "completion_status": {
+            "enum": [
+              "complete",
+              "incomplete",
+              "unknown"
+            ]
+          },
+          "ambiguity": {
+            "type": "boolean"
+          },
+          "insufficient_information": {
+            "type": "boolean"
+          },
+          "notes": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "decision_id",
+          "target_visibility",
+          "instruction_progress",
+          "acceptable_actions",
+          "completion_status",
+          "ambiguity",
+          "insufficient_information",
+          "notes"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "episode_id",
+    "manifest_sha256",
+    "reviewer",
+    "decisions"
+  ],
+  "additionalProperties": false
+}

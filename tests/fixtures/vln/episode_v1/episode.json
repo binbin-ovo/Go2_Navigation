@@ -1,0 +1,158 @@
+{
+  "schema_version": "go2-vln-episode-v1",
+  "episode_id": "synthetic_door",
+  "instruction": "Approach the red doorway and stop before entering.",
+  "recording": {
+    "recording_id": "synthetic_room",
+    "source": "generated fixture",
+    "source_manifest_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "kind": "synthetic"
+  },
+  "clock": {
+    "domain": "go2_robot",
+    "epoch": "synthetic_boot_1",
+    "units": "seconds",
+    "observation_semantics": "exposure",
+    "availability_semantics": "synthetic_known_available",
+    "uncertainty_s": 0.0,
+    "host_minus_robot_s": 1000.0
+  },
+  "bounds": {
+    "start_s": 100.0,
+    "end_s": 106.0,
+    "end_reason": "synthetic manual cut"
+  },
+  "calibration": {
+    "path": "calibration.yaml",
+    "sha256": "919c21765d205637d08d11d286bd0ffd3de58c12a623651cb59b4ea36798d6fa"
+  },
+  "preprocessing": {
+    "source_rectified": false,
+    "policy": "phase6a_calibrated_view",
+    "provenance": "synthetic pinhole fixture"
+  },
+  "frames": [
+    {
+      "frame_id": "f0",
+      "recording_id": "synthetic_room",
+      "clock_epoch": "synthetic_boot_1",
+      "observation_s": 100.0,
+      "available_s": 100.1,
+      "host_receipt_s": 1100.1,
+      "image": {
+        "path": "images/000.png",
+        "sha256": "104f19d20acb5b7476232940e73823492a5cb70c92b682f3033b6c68f4f73f7e"
+      },
+      "size_wh": [
+        160,
+        120
+      ],
+      "missing_reason": null,
+      "robot_state_ref": null
+    },
+    {
+      "frame_id": "f1",
+      "recording_id": "synthetic_room",
+      "clock_epoch": "synthetic_boot_1",
+      "observation_s": 101.0,
+      "available_s": 101.1,
+      "host_receipt_s": 1101.1,
+      "image": {
+        "path": "images/001.png",
+        "sha256": "127b7792b0b4197bb5d82c0a7c6f72f6148588046e50ae4fcb82b351e244f5c4"
+      },
+      "size_wh": [
+        160,
+        120
+      ],
+      "missing_reason": null,
+      "robot_state_ref": null
+    },
+    {
+      "frame_id": "f2",
+      "recording_id": "synthetic_room",
+      "clock_epoch": "synthetic_boot_1",
+      "observation_s": 102.0,
+      "available_s": 102.1,
+      "host_receipt_s": 1102.1,
+      "image": null,
+      "size_wh": [
+        160,
+        120
+      ],
+      "missing_reason": "synthetic dropout",
+      "robot_state_ref": null
+    },
+    {
+      "frame_id": "f3",
+      "recording_id": "synthetic_room",
+      "clock_epoch": "synthetic_boot_1",
+      "observation_s": 103.0,
+      "available_s": 103.1,
+      "host_receipt_s": 1103.1,
+      "image": {
+        "path": "images/003.png",
+        "sha256": "c7d86a05e81e116f9a0f6a5b3cac170228b3b63e92a911c5f455039c88131e3f"
+      },
+      "size_wh": [
+        160,
+        120
+      ],
+      "missing_reason": null,
+      "robot_state_ref": null
+    },
+    {
+      "frame_id": "f4",
+      "recording_id": "synthetic_room",
+      "clock_epoch": "synthetic_boot_1",
+      "observation_s": 104.0,
+      "available_s": 104.1,
+      "host_receipt_s": 1104.1,
+      "image": {
+        "path": "images/004.png",
+        "sha256": "ea9e3720694e9f2915e13e1fa39f145f5d8e4c6d2a38013b3b0c6e6f9e243efe"
+      },
+      "size_wh": [
+        160,
+        120
+      ],
+      "missing_reason": null,
+      "robot_state_ref": null
+    },
+    {
+      "frame_id": "f5",
+      "recording_id": "synthetic_room",
+      "clock_epoch": "synthetic_boot_1",
+      "observation_s": 105.0,
+      "available_s": 105.1,
+      "host_receipt_s": 1105.1,
+      "image": {
+        "path": "images/005.png",
+        "sha256": "3d17a9d4552da975b0dabc9de5828af075c26392f2e5682a3fc6d15d3446c1d6"
+      },
+      "size_wh": [
+        160,
+        120
+      ],
+      "missing_reason": null,
+      "robot_state_ref": null
+    }
+  ],
+  "decisions": [
+    {
+      "decision_id": "d0",
+      "time_s": 103.2
+    },
+    {
+      "decision_id": "d1",
+      "time_s": 105.2
+    }
+  ],
+  "gaps": [
+    {
+      "start_s": 101.5,
+      "end_s": 102.5,
+      "reason": "declared synthetic missing frame"
+    }
+  ]
+}

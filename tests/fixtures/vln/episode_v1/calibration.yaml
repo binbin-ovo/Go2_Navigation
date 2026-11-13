@@ -1,0 +1,26 @@
+D:
+- 0
+- 0
+- 0
+- 0
+- 0
+K:
+- - 120
+  - 0
+  - 79.5
+- - 0
+  - 120
+  - 59.5
+- - 0
+  - 0
+  - 1
+T_base_camera: null
+camera_frame: synthetic_optical
+image_size:
+- 160
+- 120
+model: pinhole_radtan
+provenance:
+  source: deterministic geometric fixture, not Go2
+schema: go2-camera-calibration-v1
+status: synthetic

@@ -1,0 +1,36 @@
+{
+  "schema_version": "go2-vln-annotations-v1",
+  "episode_id": "synthetic_door",
+  "manifest_sha256": "fc1e8cbe4110c7f05f85c84baaa179eb70a77ee0dddff6fe1cc9e523eacf7f1e",
+  "reviewer": {
+    "name": "fixture generator",
+    "type": "synthetic",
+    "status": "reviewed"
+  },
+  "decisions": [
+    {
+      "decision_id": "d0",
+      "target_visibility": "visible",
+      "instruction_progress": "synthetic illustration only",
+      "acceptable_actions": [
+        "UNRESOLVED"
+      ],
+      "completion_status": "unknown",
+      "ambiguity": false,
+      "insufficient_information": true,
+      "notes": "Contract example, not navigation ground truth."
+    },
+    {
+      "decision_id": "d1",
+      "target_visibility": "visible",
+      "instruction_progress": "synthetic illustration only",
+      "acceptable_actions": [
+        "UNRESOLVED"
+      ],
+      "completion_status": "unknown",
+      "ambiguity": false,
+      "insufficient_information": true,
+      "notes": "Contract example, not navigation ground truth."
+    }
+  ]
+}
