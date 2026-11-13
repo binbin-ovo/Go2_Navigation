@@ -1,5 +1,7 @@
 ## Phase 6A → next agent: calibrated offline grounding (Codex, 2026-11-12)
 
+Implementation commit: [`dcc5de1c0d899d5fb8159c5f6b0905ab67b8cf01`](https://github.com/binbin-ovo/Go2_Navigation/commit/dcc5de1c0d899d5fb8159c5f6b0905ab67b8cf01).
+
 - **Branch:** `phase6-vln-input-validation`, base
   `e4e0d3b01a16a14f52f7d039b27009ed3e0e0f96` from Claude's calibration branch.
   No main merge. No robot connection or commands. `phase5-detection-recovery` and
