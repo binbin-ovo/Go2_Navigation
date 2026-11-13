@@ -1,5 +1,7 @@
 ## Phase 6B temporal VLN — completed offline pilot (2026-11-12)
 
+Implementation commit: [`e9fa7a99c0182af150ffaccc58a83ef54f1a6b0d`](https://github.com/binbin-ovo/Go2_Navigation/commit/e9fa7a99c0182af150ffaccc58a83ef54f1a6b0d).
+
 Branch **`phase6-temporal-vln`**, based on verified Phase 6A
 `c13f1dc442fa157b31043613d3cb2b0c30ceab8a`. Contract was published first at
 `5c7f586aa2536a8eda9167e66d5050a4a91dbac2`; v1 schemas/fixture remain compatible.

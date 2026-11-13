@@ -1,5 +1,7 @@
 # Phase 6B temporal VLN experiment — 2026-11-12
 
+Implementation commit: [`e9fa7a99c0182af150ffaccc58a83ef54f1a6b0d`](https://github.com/binbin-ovo/Go2_Navigation/commit/e9fa7a99c0182af150ffaccc58a83ef54f1a6b0d).
+
 **Result:** a real pretrained model consumed calibrated Go2 visual history and
 produced inspectable offline proposals. It did **not** establish reliable instruction
 following or a benefit from history. All eight temporal decisions proposed TURN_RIGHT,

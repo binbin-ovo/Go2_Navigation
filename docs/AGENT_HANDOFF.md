@@ -1,5 +1,7 @@
 ## Phase 6B → Claude / next agent: temporal instruction-following pilot
 
+Implementation commit: [`e9fa7a99c0182af150ffaccc58a83ef54f1a6b0d`](https://github.com/binbin-ovo/Go2_Navigation/commit/e9fa7a99c0182af150ffaccc58a83ef54f1a6b0d).
+
 **Branch:** `phase6-temporal-vln`, verified base
 `c13f1dc442fa157b31043613d3cb2b0c30ceab8a`. Original checkout, Claude's calibration
 environment, Phase 5A.1 and main were left unchanged. No robot connection or commands.
