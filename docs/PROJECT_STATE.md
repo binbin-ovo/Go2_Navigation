@@ -1,3 +1,61 @@
+## Phase 6C — navigation-trained checkpoint and small-scene experiment (2026-11-13)
+
+**Branch:** `phase6-pretrained-vln`; isolated from verified Phase 6B
+`7e2989ad54b9c484d75c029ff0141834880852b6`. Main, original worktrees, Claude's recording
+and calibration environment, Phase 5A.1, Grounding DINO, SmolVLM experiments and
+operational defaults are preserved. No robot connection, commands, private upload,
+training, Windows driver/WSL change or simulator replacement.
+
+**Implemented and actually executed:** selected one navigation-trained model,
+LightOriginsHQ/LightNav-0 revision `826dc5fbfa37afa8293d2e336d329b6ffc0bfb64`, official
+code `3015508b70fb6e30bbd66701e94c9b916dcb8df8`. Synthetic official-CLI inference and
+11 Claude-package decisions ran on Apple M3 Pro MPS, BF16/SDPA, no quantization. Two
+small device/timing changes plus a bit-tested CPU adaptive-pooling fallback are an
+explicit local portability fork. Exact native RVQ chunks, pointing, source images,
+history/tensors, errors, latency and memory are retained. Separate Python environments
+preserve the existing perception installation; model versions are pinned in
+`requirements-pretrained-vln-macos-tested.txt`.
+
+**Research outcome:** 11/11 native RVQ decodes; nine discretely comparable outputs,
+five human-reference matches, four mismatches and two unsupported mixed chunks. On
+the seven comparable E1–E3 cutoffs: LightNav 3/7, saved SmolVLM temporal 4/7,
+current-only 5/7. Initial native left/right yaw directions improve over the temporal
+baseline, but **no overall gain is established**. No STOP at any cutoff. E4 emits a
+not-visible token plus a search turn; search agreement is not absence/task success.
+One correlated test_c development group, retrospective E1–E3 and static E4; historical
+prompt/reference mismatch and all old scores retained. New semantic review is pending.
+
+**Simulation:** one MuJoCo 3.3.7 camera room renders on the Mac. A 16-step static
+step-and-wait closed loop actually ran and **failed**: repeated turning, then movement
+away from the doorway, no stop, distance increased from 1.850 to 2.722 m. All failure
+panels/video are retained, including public synthetic examples. This is a kinematic
+camera proxy; no Go2 locomotion or collision-avoidance validation. Windows RTX 2070
+Super / installed Isaac access remains pending the supplied read-only preflight.
+
+**Resources:** private native generation mean 2.905 s; replay image age mean 3.369 s
+before evidence serialization. Peak process RSS 11.055 GiB; sampled MPS driver peak
+10.982 GiB (overlapping unified memory, not additive). Mac model+small-renderer peak
+RSS 11.059 GiB. The 9.03 GiB BF16 weights alone exceed an 8 GB GPU; no supported
+quantized/offloaded Turing path was established. Standard FlashAttention-2 is not assumed.
+
+**Verified tests:** full suite **541 passed, 4 skipped (41.58 s)**, including cached
+real SmolVLM inference and 63 new contract cases. The optional native reset/pooling
+and MuJoCo geometry/contact/camera tests pass separately in the isolated runtime;
+the physical Go2 test stays disabled. Source-preservation details and commands are in the
+[experiment report](PRETRAINED_VLN_EXPERIMENTS.md). Intermittent local file-read stalls
+were observed. One initial baseline-PNG hash was an invalid empty read; the untouched
+PNG matches the original producer in memory, and strict repeat inventories agree on
+all 727 files. The failed initial digest is retained, not silently repaired.
+
+**Read first:** [handoff](AGENT_HANDOFF.md), [model feasibility](PRETRAINED_VLN_FEASIBILITY.md),
+[experiments/reproduction](PRETRAINED_VLN_EXPERIMENTS.md),
+[Windows feasibility](WINDOWS_SIMULATION_FEASIBILITY.md). All private artifacts remain
+under `/Users/yushan/Desktop/Go2_Navigation/data/outputs/phase6c/` and outside Git.
+Next: independent review of native chunks/target visibility and stopping failures,
+diverse separately annotated episodes, then the actual Windows preflight. Do not tune
+or claim generalization on this single recording; do not connect proposals to Go2.
+Earlier sections below retain their historical milestone scope.
+
 ## Phase 6B — Claude's prepared pilot evaluated (2026-11-13)
 
 Evaluation implementation commit: [`4d5e49642da03558830dba017f5aa150d9fdc684`](https://github.com/binbin-ovo/Go2_Navigation/commit/4d5e49642da03558830dba017f5aa150d9fdc684).

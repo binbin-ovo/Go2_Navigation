@@ -1,0 +1,25 @@
+# Phase 6C only. Does not change an operational default.
+schema: go2-pretrained-vln-experiment-v1
+model: LightOriginsHQ/LightNav-0
+model_revision: 826dc5fbfa37afa8293d2e336d329b6ffc0bfb64
+code_repository: lightorigins/LightNav-0
+code_revision: 3015508b70fb6e30bbd66701e94c9b916dcb8df8
+backend: hf
+dtype: bfloat16
+attention: sdpa
+quantization: null
+task: vlnce_traj
+max_new_tokens: 64
+seed: 0
+input_policy: causal_4hz_from_episode_start_then_native_slowfast
+action_feedback: none_observation_only
+reset_policy: every_decision_reconstruct_causal_history
+comparison:
+  version: first_waypoint_diagnostic_v1
+  # Fixed before private inference. Retain all native waypoints independently.
+  turn_threshold_rad: 0.08726646259971647  # 5 degrees
+  advance_threshold_m: 0.02
+  max_lateral_for_advance_m: 0.02
+  stop_requires_native_decoder_stop: true
+  simultaneous_turn_translation: unsupported
+execution_authorized: false

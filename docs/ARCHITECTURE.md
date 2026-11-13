@@ -1,3 +1,30 @@
+## Phase 6C isolated navigation-trained inference (2026-11-13)
+
+`phase6-pretrained-vln` adds a separate file-based LightNav worker, leaving the existing
+sensor/perception/tracking/SmolVLM paths and operational defaults unchanged. Core
+`pretrained_inputs.prepare_job` reuses the episode contract and measured calibrated
+views. `pretrained.causal_history` creates a real causal 4 Hz observation stream; the
+official LightNav processor then applies its own SlowFast policy and 448×256 resize.
+The Python 3.11 / Torch 2.10 / Transformers 5.8 model environment is isolated from the
+Phase 6B-compatible core environment. No evaluation-only field can enter a worker job.
+
+`scripts/lightnav_worker.py` loads only pinned inference code, processor and RVQ assets,
+resets native buffers/caches, captures exact tensors/native chunks and records runtime
+identity/timing/memory. Observation-only replay does not feed proposals back as executed
+actions. `evaluate_pretrained_vln.py` binds frozen manifest/cutoff identities and exact
+prepared-image hashes, then loads human references separately. Full package/baseline
+preservation is checked by `audit_pretrained_inputs.py`. All original benchmark results
+and experimental failures remain intact. Native ego SE(2) is not registered to Go2.
+
+`vln/simulation.py` is an optional MuJoCo-only camera proxy with explicit local actions,
+contact constraints and host-clock response validation; no hardware/network transport.
+Its evaluator-only scene geometry never reaches the model. The executed 16-step static
+rollout failed to reach/stop at the destination; no latency-aware or dynamic-safety
+claim. Windows/Isaac validation is pending actual machine access. Read
+[feasibility/native protocols](PRETRAINED_VLN_FEASIBILITY.md),
+[experiments, public synthetic panels and commands](PRETRAINED_VLN_EXPERIMENTS.md),
+and [Windows preflight](WINDOWS_SIMULATION_FEASIBILITY.md).
+
 ## Phase 6B prepared-episode scoring update (2026-11-13)
 
 The runner accepts repeated exact `--episode` manifests, including separate

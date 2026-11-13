@@ -1,3 +1,121 @@
+## Phase 6C → Claude / next agent: navigation-trained diagnostic (2026-11-13)
+
+**Branch:** `phase6-pretrained-vln`, separate worktree
+`/Users/yushan/Desktop/Go2_Navigation/data/outputs/phase6c-worktree`, based exactly on
+`7e2989ad54b9c484d75c029ff0141834880852b6`. Use `git rev-parse HEAD` to identify the
+checked-out publication. No main merge or operational-default change. Original
+checkouts, private recordings/annotations, calibration environment, Phase 5A.1,
+Grounding DINO and saved SmolVLM results are not overwritten.
+
+**Read first:** [PRETRAINED_VLN_FEASIBILITY](PRETRAINED_VLN_FEASIBILITY.md),
+[PRETRAINED_VLN_EXPERIMENTS](PRETRAINED_VLN_EXPERIMENTS.md),
+[WINDOWS_SIMULATION_FEASIBILITY](WINDOWS_SIMULATION_FEASIBILITY.md), then the existing
+[episode contract](VLN_EPISODE_INTERFACE.md). The experiment report contains exact
+installation, inference, evaluation, simulation, tests and preservation commands.
+
+**What Codex implemented:** pinned-source/checkpoint preparation, read-only Mac/Windows
+inventory, isolated local LightNav inference worker, causal native-history bridge,
+strict RVQ/runtime contracts, fixed diagnostic action mapping, evaluator-only
+SmolVLM/human comparison panels, and an optional synthetic MuJoCo camera proxy.
+These extend existing calibrated views, episode loaders and review-video tools;
+sensor/tracker internals were not rewritten. No upstream real-robot client, network
+motion interface or execution-authorized path exists in these additions.
+
+**Actual model/runtime:** LightOriginsHQ/LightNav-0
+`826dc5fbfa37afa8293d2e336d329b6ffc0bfb64`; code
+`3015508b70fb6e30bbd66701e94c9b916dcb8df8`; Apple M3 Pro, MPS BF16/SDPA, no quantization.
+Use **two new environments**: `phase6c/core-env` (Phase 6B-constrained Python 3.12)
+and `phase6c/model-env` (Python 3.11, Torch 2.10, Transformers 5.8, NumPy 2.4).
+The ignored `.venv` alias in this new worktree points at the new `core-env` because an
+existing viewer test requires that relative launcher. It does not point to or alter
+Claude's environment. Both new environments pass dependency checks.
+Do not install the latter stack into recording/calibration/perception environments.
+The source is private under `phase6c/lightnav/`: pristine `source`, first `source-local`
+fork and final `source-local-v2` all retained. Final patch SHA256
+`bec34b7d855f33ac94ec212a61ca507d2d677d82441add0cd1b2dfe7088e554c`; changes are device
+selection/timing and exact BF16 CPU fallback for unsupported non-divisible MPS pooling.
+`scripts/patch_lightnav_local_runtime.py` recreates it from verified pinned source.
+
+**API and frames:** `pretrained_inputs.prepare_job(episode, decision_id, destination)`
+creates only instruction/identity/time and causal rectified images. `pretrained.causal_history`
+uses actual exposure plus availability, a 4 Hz grid and native SlowFast afterwards.
+Raw fisheye, rectified camera and official 448×256 model-space metadata remain distinct.
+Worker jobs whitelist fields and hash images. The native processor/template/normalization
+and RVQ decoder remain official. Native ten-waypoint chunks are absolute ego SE(2),
+metres/radians, x forward/y left/yaw CCW, **without a time base**. `T_base_camera` is
+still unknown; do not treat these as Go2 base-frame commands or fabricate registration.
+
+The policy requires RGB history, not prior executed actions. It resets native buffers,
+vision cache and engine state before every decision/episode/epoch, then reconstructs
+causal observations. Never feed a proposal back as executed while following an operator
+recording. `SimulationRequest` uses a separate host-monotonic deadline and rejects
+wrong episode/epoch/sequence or stale results. The local static simulator applies the
+first native waypoint over an explicitly chosen 0.25 simulated seconds with limits;
+its geometry/contact/goal truth remains evaluator-only.
+
+**Inputs and private artifacts:** use the exact Claude packages under
+`/Users/yushan/Desktop/Go2_Navigation/data/outputs/phase6b/episodes/`; do not rebuild,
+change instructions/cutoffs or relabel. Their model/evaluation separation is unchanged.
+Original baseline: `phase6b/claude_pilot_v1/`. New artifact root:
+`/Users/yushan/Desktop/Go2_Navigation/data/outputs/phase6c/`:
+
+- `lightnav/`: hashed code/checkpoint/processor/RVQ assets; weights stay out of Git.
+- `claude_pilot_v1/`: preparation/launcher failure retained; `claude_pilot_v2/`: five
+  successful calls and native MPS pooling failure retained.
+- `claude_pilot_v3/`: complete 11-call inference, native outputs/tensors/memory/latency.
+  It reuses v2's exact hashed jobs/prepared inputs; `run_declaration.json` records that
+  provenance, unchanged manifests, preparation code and new worker code identity.
+- `claude_pilot_v3_review_v2/`: final evaluation-only panels, all actual native historical
+  input images, video, human references, full chunks and baseline comparisons. Original
+  review remains as well; only plot scale/yaw display was improved, without inference
+  reruns or score changes.
+- `sim_closed_loop_v1/`: one actual failed 16-step static rollout; full camera/native
+  proposal/actual action/evaluator trace. `sim_closed_loop_v1_review_full_chunks/` contains
+  all 16 panels and video, including the failure.
+- `audit/`: official failure/success logs, tests, hardware and source-preservation hashes.
+
+**Validation:** full core suite **541 passed, 4 skipped in 41.58 s**, including actual
+cached SmolVLM inference; all five optional native/MuJoCo cases passed in separate
+model-environment runs. Only physical Go2 remains unexecuted across these environments.
+63 new core cases include configuration/worker identity and premature-EOF hashing
+regressions. Existing tests were not modified. See `audit/full_regression_verified.log`.
+
+**Preservation audit caveat:** all 434 package files and 292 baseline files match the
+original preflight. One baseline PNG had an invalid empty-file hash from a transient
+short read. It was not rewritten: two fresh readers and an in-memory run of its original
+rectification/PNG producer agree on the intact bytes. Keep the failed inventory and
+`baseline_short_read_recovery.json`; do not pretend the original digest was valid.
+Two strict post-run snapshots agree on all 727 files. Use
+`audit/inputs_final_verified.json` for subsequent comparisons, not the flawed initial
+`inputs_before_verified.json`. The auditor now rejects partial/unstable reads and
+saves mismatch reports instead of silently accepting a truncated digest.
+
+**Results and limits:** native RVQ valid 11/11; fixed discrete comparison coverage 9/11,
+five matches/four mismatches/two unsupported mixed chunks. E1–E3 on the same seven
+mapped cutoffs: LightNav 3/7 vs Smol temporal 4/7 and current-only 5/7. Initial yaw sign
+follows right/left, but no STOP on any cutoff; no overall gain established. E4 outputs
+a native not-visible token and search turn, not verified global absence or task success.
+Historical E4 UNRESOLVED/search-turn mismatch is preserved. All examples are one
+correlated test_c group; new semantic/evidence review remains pending.
+
+**Simulation result:** renderer and model can coexist in this tiny Mac case. The
+16-step model rollout turns too long, then moves away, exhausting its budget without
+stopping (distance 1.850 → 2.722 m). No contacts; no learned avoidance or Go2 locomotion
+claim. No latency-aware/dynamic trial. Windows remains inaccessible: run the PowerShell
+preflight before assessing its existing Isaac version. Its reported 8 GB is below
+LightNav's unquantized weight size; do not assume BF16/FlashAttention-2/quantization
+support or shared model+Isaac capacity. No driver/WSL/install change was made.
+
+**Next steps, in order:** independently review pointing/chunk/stopping failures using
+the local panels, design diverse reviewed episodes outside test_c, run the Windows
+inventory on the actual laptop, then inspect that installed Isaac version/checker.
+Any subsequent scene/model experiment should use a new output folder and declared
+conditions. Preserve this failed rollout and benchmark. Resolve measured camera/base
+registration, timing and navigation behavior before considering physical integration;
+physical execution stays disabled. Current tests and reproduction details are in the
+experiment report. A local file-I/O issue caused stalls/transient read errors; successful
+retries and failures are recorded, with no private-source substitution.
+
 ## Phase 6B → next agent: Claude-package evaluation (2026-11-13)
 
 Evaluation implementation commit: [`4d5e49642da03558830dba017f5aa150d9fdc684`](https://github.com/binbin-ovo/Go2_Navigation/commit/4d5e49642da03558830dba017f5aa150d9fdc684).
