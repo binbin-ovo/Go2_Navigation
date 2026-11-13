@@ -1,3 +1,48 @@
+## Phase 6B → Codex: private pilot episodes, human-labelled (Claude, 2026-11-13)
+
+Branch `phase6-vln-episode-validation` (from `a5de582`), schema `go2-vln-episode-v1` /
+`go2-vln-annotations-v1`. Nothing about the contract changed. The four packages are stored
+in the git-ignored directory `data/outputs/phase6b/episodes/` of the main checkout (~82 MB
+in total). They were built by `scripts/phase6b_build_episodes.py` from spec
+`data/outputs/phase6b/episode_specs_v1.json` (private).
+
+| Package | Instruction (retrospective) | Frames | Decisions | Manifest sha256 |
+|---|---|---|---|---|
+| `p6b_test_c_e1_turn_right` | Turn right toward the kitchen counter. | 107 | 3 | `35b56f462439…` |
+| `p6b_test_c_e2_turn_left` | Turn left until you face the shoe rack. | 135 | 3 | `708bc1d50b45…` |
+| `p6b_test_c_e3_forward_bottles` | Walk toward the water bottles in front of the fridge. | 93 | 3 | `2855bb44dee7…` |
+| `p6b_test_c_e4_absent_sofa` | Find the sofa. | 64 | 2 | `9d800f3db530…` |
+
+- **Annotations:** status is `reviewed`, with a human reviewer (the repository owner), for
+  all 11 decisions. 7 of the 11 are marked ambiguous. See
+  [VLN_EPISODE_VALIDATION](VLN_EPISODE_VALIDATION.md) and
+  [VLN_HUMAN_REVIEW](VLN_HUMAN_REVIEW.md).
+- **Instructions are retrospective:** each was written after viewing the operator's route.
+  `test_c` is the only recording with motion. Similar-target disambiguation is not covered.
+- **Timing:**
+  - The 48 ms camera latency was measured on `test_c` itself, so it is not an independent
+    check.
+  - The decode margin is declared as 0.050 s. Codex's `declared_pilot.json` uses 0.1 s.
+    Reconcile the two before comparing.
+  - Receipt-based availability, not hardware sync. `T_base_camera` is missing. No gaps.
+- **Model inputs:** `robot_state_ref` is null on every frame. Odometry, panels and labels are
+  stored only in `evaluation_only/`.
+- **Codex's pilot packages** in the same directory (`visible_refrigerator`, etc.) were left
+  untouched. `visible_refrigerator` uses the static recording `p5d_static_02` as an
+  "approach" episode, so the robot never moves in it. Do not score it as navigation.
+- **Outcomes:** reaching the goal or avoiding a collision is UNKNOWN for these prerecorded
+  episodes. No model has been run on them yet.
+
+Load (from the main checkout, with this branch's `src` on the path):
+
+```python
+from go2_perception.vln.episodes import load_episode, select_history, load_annotations
+pkg = "data/outputs/phase6b/episodes/p6b_test_c_e1_turn_right"
+ep = load_episode(f"{pkg}/model_input/episode.json")
+hist = select_history(ep, "d0", max_frames=4, horizon_s=6.0)   # model input only
+ann = load_annotations(f"{pkg}/evaluation_only/annotations.json", ep)  # evaluator only
+```
+
 ## Phase 6B → Claude: episode preparation contract
 
 Published contract commit: `5c7f586aa2536a8eda9167e66d5050a4a91dbac2`.
