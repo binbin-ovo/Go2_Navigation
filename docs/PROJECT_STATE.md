@@ -1,3 +1,37 @@
+## Phase 6A calibrated RGB grounding — 2026-11-12 (Codex)
+
+Branch `phase6-vln-input-validation`, based on verified calibration commit
+`e4e0d3b01a16a14f52f7d039b27009ed3e0e0f96`. Separate worktree/environment; no main
+merge, no changes to Claude's checkout, Phase 5A.1 recovery branch, sensor defaults
+or robot control. The base contains 5A/5B but not the separate 5A.1 changes.
+
+**Implemented and exercised:** measured fisheye → pinhole preprocessing with new K,
+source image/time/history preservation, exact official processor resize/padding K,
+optional pinned Grounding DINO Tiny CPU adapter, proposal-only image boxes, terminal
+instructions, recorded-observation replay, raw/parsed outputs and RGB/LiDAR review panels.
+`go2-vln-obs-v1` is unchanged. Missing extrinsics are never replaced with identity.
+
+**Verified:** clean Python 3.12 environment installation; 12 actual pretrained inference
+runs on two private Go2 views; NPZ replay has identical raw predictions; unsupported
+navigation command stays unresolved. **421 tests passed / 1 live-hardware test skipped**.
+Model: `IDEA-Research/grounding-dino-tiny` at
+`a2bb814dd30d776dcf7e30523b00659f4f141c71`; Torch 2.6.0 / Transformers 4.49.0.
+CPU mean forward 1.959 s, process peak 3.003 GiB (not a real-time benchmark).
+
+**Limitations:** visual case review found 6 acceptable, 1 partial, 5 failed; human review
+pending. False positives on absent targets, visible-object misses, overlapping boxes,
+and noun-phrase-only input prevent a navigation-policy claim. This is not learned
+relational reasoning or metric grounding. T_base_camera and aligned depth are still
+unavailable; exposure times estimated, moving odometry unverified, floor seen not
+traversable. No live inference/control test was attempted.
+
+Read [validation and failures](VLN_INPUT_VALIDATION.md), [model audit](VLN_MODEL_SELECTION.md),
+[installation and demo](VLN_OFFLINE_DEMO.md), and the Phase 6A handoff below
+[AGENT_HANDOFF](AGENT_HANDOFF.md). Next: human/held-out grounding review and separately
+validated registration/range before any metric or collision-aware planning work.
+Earlier phase sections below retain historical results; this section is the current
+state of this branch.
+
 ## Phase 5D VLN sensor calibration and interface — 2026-11-11 (Claude)
 
 Branch `phase5-go2-vln-sensor-calibration`, from Phase 5B `89d901dc` (contains 5A `be4b9de`). Main is

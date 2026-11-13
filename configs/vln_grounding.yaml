@@ -1,0 +1,10 @@
+# Optional offline Phase 6A demo. Does not change sensor or perception defaults.
+model_id: IDEA-Research/grounding-dino-tiny
+revision: a2bb814dd30d776dcf7e30523b00659f4f141c71
+processor_id: IDEA-Research/grounding-dino-tiny
+processor_revision: a2bb814dd30d776dcf7e30523b00659f4f141c71
+device: cpu
+cpu_threads: 4
+box_threshold: 0.35
+text_threshold: 0.25
+max_instruction_characters: 240

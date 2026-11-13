@@ -1,3 +1,28 @@
+## Phase 6A optional offline grounding
+
+The unchanged `go2-vln-obs-v1` observation feeds a separate model path:
+`Go2RecordingReplay` / saved NPZ → `model_preprocessing.calibrated_view` → official
+pinned Grounding DINO processor/model → validated image-region proposals.
+`grounding_demo.run_observation` saves exact input/output evidence and draws the
+independent existing LiDAR grid alongside RGB. Core sensor adapters and perception
+internals are unchanged; Transformers is an optional `vln` dependency imported only
+when constructing the model.
+
+The raw fisheye view keeps its measured K/D. Rectification creates a new pinhole view
+with its own K, and processor resize/padding produces separately recorded tensor K.
+Source clocks/epoch and history survive; only the current RGB image enters the model.
+Normalization belongs to the official processor. Text wrappers are lexical, not a
+learned navigation instruction parser. No depth, extrinsics, poses or LiDAR cells
+are supplied to the model, and no metric goal is emitted. Geometry warnings remain
+independent of semantic scores. All model outputs are proposals only.
+
+Public entry points: `calibrated_view`, `processor_geometry` in
+`vln/model_preprocessing.py`; `GroundingDino.predict`, `format_instruction`,
+`parse_candidates` in `vln/grounding.py`; `run_observation`, `replay_source` in
+`vln/grounding_demo.py`. Configuration and exact coordinate/artifact definitions:
+[VLN_OFFLINE_DEMO](VLN_OFFLINE_DEMO.md). Actual validation and unresolved problems:
+[VLN_INPUT_VALIDATION](VLN_INPUT_VALIDATION.md). Main and operational defaults are unchanged.
+
 ## Phase 4.1 social forecasting (2026-11-09)
 
 The separate `phase4-social-forecasting` branch adds masked multi-pedestrian context, an 87,128-parameter social Transformer, three-seed/five-scene comparisons, validation robustness controls and an optional offline multi-track adapter. **The social model loses overall:** macro ADE 0.5812 m vs original 0.5565 m and CV 0.5214 m. Full suite: 259 passed/one hardware skipped. No tracker/hardware changes or navigation control.

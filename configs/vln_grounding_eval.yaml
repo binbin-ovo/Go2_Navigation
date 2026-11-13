@@ -1,0 +1,18 @@
+schema: go2-grounding-evaluation-v1
+# Declared from original/rectified image inspection before model inference.
+# Small convenience set, two views of one private home; not a VLN benchmark.
+reviewer: Codex visual inspection (not a human annotation)
+human_review: pending
+cases:
+  - {id: s_fridge, recording: p5d_static_02, index: 200, instruction: 'Find the refrigerator.', category: visible, expected: one_visible_target}
+  - {id: s_fridge_paraphrase, recording: p5d_static_02, index: 200, instruction: 'Locate the fridge.', category: paraphrase, expected: same_target_as_s_fridge}
+  - {id: s_racket, recording: p5d_static_02, index: 200, instruction: 'Find the tennis racket.', category: visible, expected: one_visible_target}
+  - {id: s_shoes, recording: p5d_static_02, index: 200, instruction: 'Find the shoes.', category: multiple_similar, expected: multiple_visible_targets}
+  - {id: s_bicycle, recording: p5d_static_02, index: 200, instruction: 'Find the bicycle.', category: absent, expected: no_visible_target}
+  - {id: s_dog, recording: p5d_static_02, index: 200, instruction: 'Find the dog.', category: absent, expected: no_visible_target}
+  - {id: m_door, recording: test_c, index: 300, instruction: 'Find the door.', category: visible, expected: one_visible_target}
+  - {id: m_door_paraphrase, recording: test_c, index: 300, instruction: 'Show me the door.', category: paraphrase, expected: same_target_as_m_door}
+  - {id: m_fridge, recording: test_c, index: 300, instruction: 'Locate the refrigerator.', category: visible, expected: one_visible_target}
+  - {id: m_shoes, recording: test_c, index: 300, instruction: 'Show me the shoes.', category: multiple_similar, expected: multiple_visible_targets}
+  - {id: m_bicycle, recording: test_c, index: 300, instruction: 'Find the bicycle.', category: absent, expected: no_visible_target}
+  - {id: m_sofa, recording: test_c, index: 300, instruction: 'Find the sofa.', category: absent, expected: no_visible_target}

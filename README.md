@@ -1,3 +1,17 @@
+## Phase 6A calibrated offline grounding (2026-11-12)
+
+`phase6-vln-input-validation` adds a real pretrained Grounding DINO Tiny demonstration
+on calibrated private Go2 RGB recordings. It saves image-space proposals alongside
+independent LiDAR geometry, exact preprocessing/timestamp metadata and raw outputs.
+It is a grounding baseline, not autonomous navigation. **421 tests pass; 1 hardware
+test skipped.** Real-image review includes false positives and misses (6/12 acceptable,
+1 partial, 5 failed; human review pending). No main merge or robot commands.
+
+Start with [install and run](docs/VLN_OFFLINE_DEMO.md),
+[measured results and limitations](docs/VLN_INPUT_VALIDATION.md),
+[model audit](docs/VLN_MODEL_SELECTION.md), and [current handoff](docs/AGENT_HANDOFF.md).
+Earlier phase sections below describe their historical branches and results.
+
 ## Phase 4.1 social forecasting (2026-11-09)
 
 The separate `phase4-social-forecasting` branch adds masked multi-pedestrian context, an 87,128-parameter social Transformer, three-seed/five-scene comparisons, validation robustness controls and an optional offline multi-track adapter. **The social model loses overall:** macro ADE 0.5812 m vs original 0.5565 m and CV 0.5214 m. Full suite: 259 passed/one hardware skipped. No tracker/hardware changes or navigation control.

@@ -1,3 +1,67 @@
+## Phase 6A → next agent: calibrated offline grounding (Codex, 2026-11-12)
+
+- **Branch:** `phase6-vln-input-validation`, base
+  `e4e0d3b01a16a14f52f7d039b27009ed3e0e0f96` from Claude's calibration branch.
+  No main merge. No robot connection or commands. `phase5-detection-recovery` and
+  Claude's worktree/environment were not modified. This base has 5A/5B, not 5A.1.
+- **Capability actually tested:** Grounding DINO Tiny text-conditioned image-region
+  proposals from measured-calibration Go2 recordings. Not a VLN navigation policy.
+- **Read first:** [VLN_INPUT_VALIDATION](VLN_INPUT_VALIDATION.md) for actual measurements,
+  failures and calibration limits; [VLN_OFFLINE_DEMO](VLN_OFFLINE_DEMO.md) for exact
+  commands/artifacts; [VLN_MODEL_SELECTION](VLN_MODEL_SELECTION.md) for the checkpoint audit;
+  [GO2_VLN_INPUT_INTERFACE](GO2_VLN_INPUT_INTERFACE.md) for the unchanged sensor contract.
+
+**Implementation:** `vln/model_preprocessing.py` rectifies raw RGB and carries calibrated
+K through official processing; `vln/grounding.py` loads pinned pretrained weights and
+returns image proposals; `vln/grounding_demo.py` saves evidence and a separate LiDAR grid.
+CLIs: `scripts/phase6_grounding_demo.py`, `scripts/phase6_evaluate_grounding.py`.
+Config/cases: `configs/vln_grounding.yaml`, `configs/vln_grounding_eval.yaml`.
+Regression tests: `tests/test_vln_grounding.py` (27 tests).
+
+**API:** `view = calibrated_view(obs)`; `result = model.predict(view, instruction)`;
+`run_observation(obs, model, output, source=...)` writes the full experiment.
+Use a `Go2VLNObservation` with raw RGB uint8 and measured K/D of matching dimensions.
+The model gets one current image, preserves but ignores history, and applies its own
+normalization once. Output boxes use rectified-image edge pixels, optical axes remain
+right/down/forward. No conversion to base_link forward/left/up or metric distance.
+All `metric_goal`, `action`, `point_base_m` fields remain null even if future callers
+supply extrinsics. The right-hand LiDAR plot is a separate observation, not a fused map.
+
+**Important correction to older guidance below:** floor-seen cells and sector floor
+returns do **not** establish traversability or a safe swept corridor. The historical
+Phase 5D symbolic-action conversion paragraph is not an approved Phase 6 execution
+path. Pixel proposals do not become camera-relative or base-relative metric waypoints.
+No executable-goal adapter exists here.
+
+**Install / verify:** in this branch, `uv venv --python 3.12 .venv`,
+`uv pip install --python .venv/bin/python -e '.[test,vln]'`, optionally install `av==17.1.0`
+for inherited decoder tests, then `.venv/bin/python -m pytest -q -rs`.
+Actual result: **421 passed, 1 hardware skipped**, 30.71 s. No automated tests weakened.
+Model + processor pinned to `IDEA-Research/grounding-dino-tiny` revision
+`a2bb814dd30d776dcf7e30523b00659f4f141c71`; CPU FP32 / four threads.
+
+**Local evidence:** `/private/tmp/go2-phase6/data/outputs/phase6/evaluation/` (ignored).
+Each case has raw observation/model output, source hashes/clocks, preprocessing,
+proposal JSON and demo PNG. Start with `s_fridge/demo.png` (correct) and `m_fridge/demo.png`
+(wrong door region), then `s_dog`, `m_bicycle`, `m_sofa` false positives and `m_shoes`
+miss. `semantic_review.json` records Codex visual review; human review is pending.
+The 12-case declaration predates inference; thresholds were not retuned. 6 acceptable,
+1 partial, 5 failed. Output validity was 12/12; semantic correctness differs.
+NPZ replay reproduced raw arrays exactly. A navigation instruction was rejected as
+unsupported without forwarding through the model. All private media, outputs and
+weights remain out of Git. Local temporary paths may eventually be cleaned; rerun
+from the private recordings and pinned model using the documented commands.
+
+**Next work:**
+1. Human-review the local panels and create diverse held-out object/absent/relational
+   grounding annotations. Record failures; do not optimize on these 12 cases.
+2. Claude: pursue measured, held-out validated camera/base/LiDAR registration and
+   timing/odometry validation; preserve unknown fields until verified.
+3. Select a true temporal/relational VLN model in a separate experiment if needed;
+   its output still requires a documented frame and independent geometry checks.
+4. Only after validated registration/range: design metric grounding and a separate
+   collision-aware planner. No locomotion/control work is authorized by this milestone.
+
 ## Phase 5D → Codex handoff: Go2 VLN inputs (Claude, 2026-11-11)
 
 - **Branch:** `phase5-go2-vln-sensor-calibration`, based on `89d901dc` (5B). Do not merge main.
