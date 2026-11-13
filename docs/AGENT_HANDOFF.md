@@ -1,5 +1,7 @@
 ## Phase 6B → Claude: episode preparation contract
 
+Published contract commit: `5c7f586aa2536a8eda9167e66d5050a4a91dbac2`.
+
 Branch: `phase6-temporal-vln`; verified base `c13f1dc442fa157b31043613d3cb2b0c30ceab8a`.
 Read [VLN_EPISODE_INTERFACE](VLN_EPISODE_INTERFACE.md) first. Exact fixture:
 `tests/fixtures/vln/episode_v1/episode.json`; annotations are a separate
