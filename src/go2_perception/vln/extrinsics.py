@@ -41,7 +41,7 @@ def fit_plane(points, iters=400, tol=0.02, seed=0):
         if best is None or inl.sum() > best.sum():
             best = inl
     c = p[best].mean(0)
-    n = np.linalg.svd(p[best] - c)[2][2]
+    n = np.linalg.svd(p[best] - c, full_matrices=False)[2][2]  # full U would be N x N (GBs)
     n, d = oriented_plane(n, n @ c)
     inl = np.abs(p @ n - d) < tol
     return n, d, inl, float(np.std(p[inl] @ n - d))

@@ -51,7 +51,10 @@ see [MAC_CONNECTION](MAC_CONNECTION.md).
 
 **Claude/user next:**
 1. ~~Camera intrinsics~~ done 2026-11-11: [GO2_CAMERA_CALIBRATION](GO2_CAMERA_CALIBRATION.md).
-2. Extrinsics with a large board: [GO2_LIDAR_CAMERA_EXTRINSICS](GO2_LIDAR_CAMERA_EXTRINSICS.md).
+2. Extrinsics: stopped 2026-11-12 after two failed sessions; read "Session 2" and "What would plausibly
+   work next" in [GO2_LIDAR_CAMERA_EXTRINSICS](GO2_LIDAR_CAMERA_EXTRINSICS.md) (≥ 60 × 80 cm target with
+   larger squares, poses at one range, plane-level gate, PCA not 3-point RANSAC; or model the LiDAR's
+   range bias first).
 3. Re-measure camera latency on a new boot (operator-driven yaw).
 
 ## Phase 5B → Codex handoff (Claude, 2026-11-11)

@@ -23,8 +23,10 @@ session on the Go2 with the robot stationary, read-only subscribers only, no con
 - **Camera intrinsics measured** (three ChArUco passes, robot stationary): fisheye, fx/fy 831.4/833.7 px,
   held-out RMS 0.47 px, ≈ 94° × 50° FOV → `configs/go2_front_camera_calibration.yaml`.
 
-**Not done:** LiDAR–camera extrinsics (needs a large flat board); projected depth and fusion remain
-unavailable on real data.
+**Not done:** LiDAR–camera extrinsics. Two capture sessions (2026-11-11/12) failed the held-out gate
+(best 11° / 75 mm); the LiDAR returns a flat floor bent by a few cm with range, the per-point noise on
+the board is ~25 mm and the A4 grid reads only to ~1.1 m. Projected depth and fusion remain unavailable
+on real data.
 
 Read [GO2_VLN_SENSOR_VALIDATION](GO2_VLN_SENSOR_VALIDATION.md), [GO2_VLN_INPUT_INTERFACE](GO2_VLN_INPUT_INTERFACE.md),
 [VLN_MODEL_COMPATIBILITY](VLN_MODEL_COMPATIBILITY.md), [GO2_SENSOR_TIMING](GO2_SENSOR_TIMING.md),

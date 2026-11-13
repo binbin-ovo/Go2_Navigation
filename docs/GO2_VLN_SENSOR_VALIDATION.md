@@ -66,8 +66,11 @@ held-out RMS 0.47 px (58 views), border 0.43 px, bootstrap ray spread p95 0.29°
 Pass 1 alone missed the top third of the image and was rejected by the corner-validity check.
 
 ## Extrinsics
-See [GO2_LIDAR_CAMERA_EXTRINSICS](GO2_LIDAR_CAMERA_EXTRINSICS.md). **Not measured.** Method and
-acceptance criteria documented; requires intrinsics and a large flat board.
+See [GO2_LIDAR_CAMERA_EXTRINSICS](GO2_LIDAR_CAMERA_EXTRINSICS.md). **Not measured.** Two
+user-coordinated sessions (hand-held board; seven static board snapshots; grid on a wall) all failed the
+leave-one-out gate, best 11° / 75 mm median, so nothing was saved. Causes measured: LiDAR per-point σ
+≈ 25 mm on the board; a range-dependent floor bend (≈ −3…−4 cm at 0.3–0.5 m to +2…+4 cm at 1.5–2.5 m,
+in raw `cloud` too); a 26 × 17 cm grid readable only up to ~1.1 m; segmentation of a small board.
 
 ## Timing
 See [GO2_SENSOR_TIMING](GO2_SENSOR_TIMING.md). New measurements: robot clock resets each boot;
@@ -116,8 +119,10 @@ resize/letterbox, tensors, missing calibration, synthetic-calibration opt-in, pr
 odometry, missing RGB, clock-domain mismatch, validation, npz round trip, unknown schema,
 calibration metadata/units, recorded user choice, fixture reproducibility).
 `tests/test_vln_intrinsics.py`: 5 passed (synthetic fisheye recovery, square-size invariance,
-duplicate views, corner validity, shipped calibration). Full suite (`PYTHONPATH=src .venv/bin/python
--m pytest -q`): **386 passed, 3 skipped** (351 + 3 before this phase).
+duplicate views, corner validity, shipped calibration). `tests/test_vln_extrinsics.py`: 6 passed
+(known-transform recovery, camera-plane noise, two underconstrained cases, wrong-transform detection,
+no full N×N SVD in `fit_plane`). Full suite (`PYTHONPATH=src .venv/bin/python -m pytest -q`,
+2026-11-12): **392 passed, 3 skipped** (351 + 3 before this phase).
 
 ## Limitations
 - No extrinsics, so no projected depth or RGB–LiDAR fusion on real data (intrinsics are measured).

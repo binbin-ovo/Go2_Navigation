@@ -79,6 +79,21 @@ def test_yaw_only_cannot_fix_height():
         solve(P)
 
 
+def test_fit_plane_never_builds_full_svd(monkeypatch):
+    # A full SVD of N points allocates an N x N matrix (60 k floor points -> ~29 GB, seen on 2026-11-12).
+    real = np.linalg.svd
+
+    def guarded(a, full_matrices=True, **kw):
+        assert not (full_matrices and min(np.shape(a)) == 3 and max(np.shape(a)) > 3), "full N x N SVD"
+        return real(a, full_matrices=full_matrices, **kw)
+
+    monkeypatch.setattr(np.linalg, "svd", guarded)
+    rng = np.random.default_rng(5)
+    pts = np.c_[rng.uniform(-1, 1, (5000, 2)), rng.normal(0, 0.005, 5000)]
+    n, d, inl, _ = fit_plane(pts)
+    assert abs(abs(n[2]) - 1) < 1e-3 and inl.mean() > 0.95
+
+
 def test_plane_errors_detects_wrong_transform():
     rng = np.random.default_rng(4)
     P = poses(rng, GOOD)

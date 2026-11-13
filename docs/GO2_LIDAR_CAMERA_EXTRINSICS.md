@@ -1,10 +1,63 @@
 # Go2 LiDAR–camera extrinsics (Phase 5D)
 
-**Status (2026-11-11): NOT measured.** Intrinsics are now measured
-([GO2_CAMERA_CALIBRATION](GO2_CAMERA_CALIBRATION.md)); this step still needs a large flat board and
-captures. No hand-tuned or visually aligned transform exists or may be added.
+**Status (2026-11-12): NOT measured; stopped by the user after a second session.** Intrinsics are
+measured ([GO2_CAMERA_CALIBRATION](GO2_CAMERA_CALIBRATION.md)). Two sessions of board captures did not
+pass the acceptance gate, so `T_base_camera` stays `null`. No hand-tuned or visually aligned transform
+exists or may be added.
 
-## Progress (2026-11-11, paused by the user)
+## Session 2 (2026-11-12): static snapshots, then a wall
+Robot stationary throughout; each capture is a separate 4–8 s read-only recording taken after the
+user placed the target and stepped out of view (`data/recordings/p5d_extr_snap_*`, local only).
+
+**Board snapshots (7 usable, `p5d_extr_snap_01` … `07`).** Board 43.5 × 28.5 cm with the A4 ChArUco
+(29 mm squares, 26 × 17 cm grid) standing on the floor or on a tilted stand: upright facing, turned
+±20–25°, shifted left/right, and tilted back ~33° (two poses, for height). Camera: detected in every
+frame of every snapshot (23–40 corners, PnP σ ≤ 1.5 mm within a snapshot) at 0.83–1.25 m. A first
+attempt at position 4 (board far left, facing forward) gave 7 markers and was re-taken
+(`p5d_extr_snap_04_rejected`, unused).
+- LiDAR board points are noisy: **within a single scan the residual σ is 23–28 mm** (unimodal), with
+  scan-to-scan offset σ 8–15 mm. The board is a ~5 cm thick slab of ~2–3 k points.
+- 3-point RANSAC (`fit_plane`) locks onto the scan-line pattern on such a slab and returned normals
+  ~20° off (±44° yaw instead of ±22°); a plain or Tukey-weighted PCA in a tight box agreed with the
+  camera on yaw (+21.7° / −21.7° vs ≈ ±20–22°).
+- Segmentation was the second failure mode: grid crops through the coarse seed, or connected
+  components (0.5 m wide for a 0.43 m board), picked up the stand, the water pack and the floor.
+- Result (Tukey planes on components, single solve): reduced χ² 170, leave-one-out normal error
+  median 11.3° (3.5–22.9°), plane offset median 75 mm (17–198 mm). Coarse-to-fine re-cropping diverged
+  (step > 1 m by pass 3). **Rejected; nothing saved.**
+- The gate's point metric (held-out median |point-to-plane| ≤ 15 mm) cannot pass with 25 mm per-point
+  noise even for a perfect transform (expected ≈ 17 mm). Future gates should use plane-level metrics
+  (signed plane offset and normal angle), which average the noise out.
+
+**Wall (`p5d_extr_snap_wallcheck`, `wallcheck2`, `wall_A`, `wall_A2`).** The robot faced an empty
+wall; the grid was taped flat on it. LiDAR: the wall is a clean plane (7–23 k points, σ 14–18 mm).
+Camera: at 1.25 m (`wall_A`) the 21 mm markers are ~13 px and only 2–9 markers were found, also on
+2–3× upscaled frames; at 1.06 m (`wall_A2`) 62/93 frames detected with a median of 15 corners (minimum
+12). **This grid is readable only up to ~1.1 m.** A wall gives one normal; a second wall (corner) and a
+grid on the floor were planned but not captured.
+
+**LiDAR geometry finding** (`scripts/phase5d_lidar_flatness.py` → `data/outputs/phase5d/lidar_flatness.json`,
+plus a floor-height-vs-range profile): relative to the best floor plane, `cloud_base` floor returns lie
+**~3–4 cm low at 0.25–0.5 m range, ≈ 0 at 0.75–1.25 m and ~2–4 cm high at 1.5–2.5 m** (medians over 40
+scans; the far bins include some skirting-board points). Plane peeling therefore splits one floor into
+planes 2–10° apart, in raw `cloud` as well as `cloud_base`, so the bend is in the sensor's returns, not
+the firmware transform. Whole-plane fits at similar ranges are fine: wall vs floor 89.3–89.8° with the
+wall at 0.7 m. (A first estimate of 84° from a 20 cm strip of that wall was a fitting artefact and is
+withdrawn.) Consequence: planes measured at different ranges or elevations carry a few-cm / few-degree
+bias that one rigid transform cannot absorb. Together with the 25 mm noise and a grid unreadable
+beyond 1.1 m, this is why ≤ 2° / 15 mm was not reached.
+
+**What would plausibly work next** (not attempted): a target of ≥ 60 × 80 cm with larger printed
+squares (readable at 1.5 m), all poses at a similar range (1.0–1.5 m) so the LiDAR bias is common,
+plane-level gates, and Tukey/PCA plane fits instead of 3-point RANSAC. Alternatively, model the LiDAR's
+range/elevation bias first (floor and walls at several ranges).
+
+**Also fixed this session:** `fit_plane` computed a full N×N SVD (NumPy's default
+`full_matrices=True`). With ~60 k floor points that is ~29 GB: on 2026-11-12 a check script reached
+30.3 GB and macOS jettisoned ~20 background services (JetsamEvent 16:29:26). It now uses
+`full_matrices=False`, with a regression test; all later checks peaked below 160 MB.
+
+## Session 1 (2026-11-11, paused by the user)
 - Solver: `go2_perception.vln.extrinsics` (Kabsch on plane normals + least squares on offsets, then a
   plane-to-plane refinement weighted by expected noise; refuses normals that span < 3 directions) and
   `scripts/phase5d_solve_extrinsics.py` (still-period detection from ChArUco poses, background
