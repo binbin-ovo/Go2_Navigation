@@ -1,5 +1,7 @@
 # Phase 6B — Claude's human-reviewed episodes (2026-11-13)
 
+Evaluation implementation commit: [`4d5e49642da03558830dba017f5aa150d9fdc684`](https://github.com/binbin-ovo/Go2_Navigation/commit/4d5e49642da03558830dba017f5aa150d9fdc684).
+
 This follow-up evaluates the exact prepared packages supplied by the user. It does
 not rebuild episodes, change cutoffs, relabel decisions, or substitute the earlier
 Codex pilot. E1–E3 are retrospectively authored navigation-proposal episodes; E4 is a

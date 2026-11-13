@@ -1,5 +1,7 @@
 ## Phase 6B — Claude's prepared pilot evaluated (2026-11-13)
 
+Evaluation implementation commit: [`4d5e49642da03558830dba017f5aa150d9fdc684`](https://github.com/binbin-ovo/Go2_Navigation/commit/4d5e49642da03558830dba017f5aa150d9fdc684).
+
 On `phase6-temporal-vln`, the exact four user-supplied packages from Claude's
 `phase6-vln-episode-validation` commit `3a84f57b8753b0e5c169f53ae361a33f9ddbc3fe`
 were validated and processed unchanged. All supplied manifest/annotation hashes

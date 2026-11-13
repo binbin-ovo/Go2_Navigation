@@ -1,5 +1,7 @@
 ## Phase 6B → next agent: Claude-package evaluation (2026-11-13)
 
+Evaluation implementation commit: [`4d5e49642da03558830dba017f5aa150d9fdc684`](https://github.com/binbin-ovo/Go2_Navigation/commit/4d5e49642da03558830dba017f5aa150d9fdc684).
+
 **Branch:** `phase6-temporal-vln`; follow-up to `d2112268b1863185d39f272a10d5bb80cbefaaaa`.
 Claude's packages are from `phase6-vln-episode-validation` commit
 `3a84f57b8753b0e5c169f53ae361a33f9ddbc3fe`. His files/checkout were not modified or
