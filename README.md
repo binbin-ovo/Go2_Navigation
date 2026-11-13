@@ -1,3 +1,16 @@
+## Phase 6B prepared episodes evaluated (2026-11-13)
+
+Claude's exact four packages were processed unchanged: **11 human-reviewed decisions,
+22 model calls**, all from one correlated test_c recording. On E1–E3 retrospective
+navigation proposals, action agreement is **5/9 temporal vs 7/9 current-only**; static
+absent-target E4 is **2/2 vs 0/2**, reported separately. No temporal advantage or
+navigation-success claim is supported. All source files remained unchanged; no robot
+commands or main merge. **478 tests passed, one hardware test skipped.**
+
+Read the [prepared-package results and exact commands](docs/TEMPORAL_VLN_CLAUDE_PILOT.md)
+and [current handoff](docs/AGENT_HANDOFF.md). Earlier pilot sections below retain their
+historical, separate results and annotation status.
+
 ## Phase 6B temporal instruction-following pilot (2026-11-12)
 
 `phase6-temporal-vln` adds a local pretrained **VLM navigation-proposal baseline** using

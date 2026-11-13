@@ -1,5 +1,11 @@
 # Phase 6B offline temporal demonstration
 
+**2026-11-13 update:** Claude's prepared, human-reviewed packages have now been
+processed unchanged. Use [the separate report and exact nested-package commands](TEMPORAL_VLN_CLAUDE_PILOT.md).
+The original Codex pilot described below remains a distinct historical experiment;
+its packages/labels were not rebuilt or replaced. The new runner supports repeated
+`--episode` paths and saved-output human-only scoring.
+
 This is a **VLM navigation-proposal baseline** using the real pretrained
 `HuggingFaceTB/SmolVLM2-2.2B-Instruct` checkpoint on local recorded Go2 images.
 It is not a reproduced navigation policy or a closed-loop robot experiment.

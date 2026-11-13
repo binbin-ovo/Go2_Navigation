@@ -1,3 +1,44 @@
+## Phase 6B — Claude's prepared pilot evaluated (2026-11-13)
+
+On `phase6-temporal-vln`, the exact four user-supplied packages from Claude's
+`phase6-vln-episode-validation` commit `3a84f57b8753b0e5c169f53ae361a33f9ddbc3fe`
+were validated and processed unchanged. All supplied manifest/annotation hashes
+match; **434 package files remained byte-identical**. No rebuilding, relabeling or
+substitution. Main, Claude's checkout, calibration and operational defaults are unchanged.
+
+**Verified:** 399 source frames, 11 decision times, 22 actual SmolVLM2-2.2B CPU calls
+with the same pinned model/prompt/parser/preprocessing as the initial pilot. Each
+temporal call encoded four causal images; exact message/tensor/frame audits excluded
+future observations, evaluation labels and operator odometry. All **11 action
+references are human-reviewed**, accepted by one owner from Claude drafts; seven
+are ambiguous. No action-reference evaluation remains pending for this follow-up.
+
+**Reference agreement:** E1–E3 retrospective navigation proposals: **5/9 temporal vs
+7/9 current-only**. E4 static absent-target probe: **2/2 vs 0/2**, the latter two outputs
+malformed and rejected. Overall 7/11 in both modes is descriptive of **one correlated
+test_c group**, not independent episodes or navigation success. No temporal advantage
+is established. Both modes miss the provided terminal stopping references. A temporal
+COMPLETE claim occurs where human completion is unknown, so it remains unverified.
+
+**Tests:** full suite including actual pretrained tests **478 passed, one hardware
+skipped**; four changed/new Python files pass Ruff check/format. New CLI accepts
+repeated exact `--episode` paths. New `scripts/evaluate_temporal_vln.py` scores saved
+outputs with manifest binding, human-only references, recording grouping and separate
+static/ambiguity strata. Model/sensor/core schema code is unchanged.
+
+**Runtime:** mean generation 11.125 s temporal / 5.557 s current-only; median 9.191 /
+5.463 s. Estimated replay image age at output mean 11.381 / 5.720 s. Peak shared
+process RSS 9.727 GiB. Slow initialization and first forward are documented, not hidden.
+Private results and readable 22-frame video:
+`/Users/yushan/Desktop/Go2_Navigation/data/outputs/phase6b/claude_pilot_v1/`.
+
+**Read first:** [Claude-package report, commands and limitations](TEMPORAL_VLN_CLAUDE_PILOT.md),
+[handoff](AGENT_HANDOFF.md), [stable episode contract](VLN_EPISODE_INTERFACE.md).
+The earlier Codex pilot below is a separate historical experiment; its pending labels
+were not replaced by these packages. Next: diverse independently reviewed episodes
+with explicit completion criteria; metric geometry and closed-loop behavior remain
+unvalidated. No robot connection or command was enabled.
+
 ## Phase 6B temporal VLN — completed offline pilot (2026-11-12)
 
 Implementation commit: [`e9fa7a99c0182af150ffaccc58a83ef54f1a6b0d`](https://github.com/binbin-ovo/Go2_Navigation/commit/e9fa7a99c0182af150ffaccc58a83ef54f1a6b0d).

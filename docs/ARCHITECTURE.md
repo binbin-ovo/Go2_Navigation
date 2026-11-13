@@ -1,3 +1,20 @@
+## Phase 6B prepared-episode scoring update (2026-11-13)
+
+The runner accepts repeated exact `--episode` manifests, including separate
+`model_input/` and `evaluation_only/` folders. The model path is unchanged: instruction
+and causal image/time context only. `scripts/evaluate_temporal_vln.py` reads saved
+outputs, validates manifest/cutoff binding, and scores only reviewed human references.
+It groups results by source recording, separates explicitly identified static probes,
+and reports pending references without inserting them into scored denominators.
+Sequence flags are omitted after ambiguity filtering, which can remove intervening
+cutoffs. No episode schema, detector, model, prompt, parser or sensor defaults changed.
+
+The exact Claude packages were processed unchanged: 11 decisions / 22 calls, one
+correlated test_c group. E1–E3 reference agreement 5/9 temporal vs 7/9 current-only;
+static E4 2/2 vs 0/2. Full suite 478 passed, one hardware skipped. See
+[TEMPORAL_VLN_CLAUDE_PILOT](TEMPORAL_VLN_CLAUDE_PILOT.md) for actual provenance,
+limitations and reproduction. These scores are not closed-loop navigation success.
+
 ## Phase 6B temporal instruction following (2026-11-12)
 
 The optional `temporal-vln` runtime adds strict episode manifests and separate

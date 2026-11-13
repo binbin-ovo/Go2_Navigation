@@ -1,5 +1,11 @@
 # Phase 6B temporal VLN experiment — 2026-11-12
 
+**2026-11-13 update:** Claude's prepared, human-reviewed packages have now been
+processed unchanged. Use [the separate report and exact nested-package commands](TEMPORAL_VLN_CLAUDE_PILOT.md).
+The original Codex pilot described below remains a distinct historical experiment;
+its packages/labels were not rebuilt or replaced. The new runner supports repeated
+`--episode` paths and saved-output human-only scoring.
+
 Implementation commit: [`e9fa7a99c0182af150ffaccc58a83ef54f1a6b0d`](https://github.com/binbin-ovo/Go2_Navigation/commit/e9fa7a99c0182af150ffaccc58a83ef54f1a6b0d).
 
 **Result:** a real pretrained model consumed calibrated Go2 visual history and

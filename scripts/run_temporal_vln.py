@@ -23,7 +23,12 @@ def dump(path, value):
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     group = ap.add_mutually_exclusive_group(required=True)
-    group.add_argument("--episode", type=Path)
+    group.add_argument(
+        "--episode",
+        type=Path,
+        action="append",
+        help="exact manifest path; repeat to select multiple packages without discovery",
+    )
     group.add_argument("--episodes-root", type=Path)
     ap.add_argument("--decision", help="optional single decision ID")
     ap.add_argument(
@@ -38,12 +43,12 @@ def main():
     ap.add_argument(
         "--annotations-name",
         default=None,
-        help="evaluation only; filename relative to episode, read AFTER inference",
+        help="evaluation only; path relative to manifest folder, read AFTER inference",
     )
     a = ap.parse_args()
     if a.output.exists() and any(a.output.iterdir()):
         ap.error("Output must be new or empty")
-    paths = [a.episode] if a.episode else sorted(a.episodes_root.glob("*/episode.json"))
+    paths = a.episode if a.episode else sorted(a.episodes_root.glob("*/episode.json"))
     if not paths:
         ap.error("No episode packages")
     episodes = [load_episode(p) for p in paths]

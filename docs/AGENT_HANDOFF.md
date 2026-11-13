@@ -1,3 +1,76 @@
+## Phase 6B → next agent: Claude-package evaluation (2026-11-13)
+
+**Branch:** `phase6-temporal-vln`; follow-up to `d2112268b1863185d39f272a10d5bb80cbefaaaa`.
+Claude's packages are from `phase6-vln-episode-validation` commit
+`3a84f57b8753b0e5c169f53ae361a33f9ddbc3fe`. His files/checkout were not modified or
+merged. Main remains unchanged. No physical robot connection or executable commands.
+
+**Read first:** [TEMPORAL_VLN_CLAUDE_PILOT](TEMPORAL_VLN_CLAUDE_PILOT.md) for exact paths,
+commands, actual scores and caveats; [VLN_EPISODE_INTERFACE](VLN_EPISODE_INTERFACE.md)
+for the stable contract. The next section below documents the older Codex-authored
+pilot and retains its separate pending-label status.
+
+**Inputs used, unchanged:** root
+`/Users/yushan/Desktop/Go2_Navigation/data/outputs/phase6b/episodes/`, packages
+`p6b_test_c_e1_turn_right`, `p6b_test_c_e2_turn_left`,
+`p6b_test_c_e3_forward_bottles`, `p6b_test_c_e4_absent_sofa`.
+Each exact manifest is `<package>/model_input/episode.json`; corresponding human
+references are `<package>/evaluation_only/annotations.json`. Review logs, provenance,
+odometry slices and label panels remain evaluator-only. No builder was run; no labels
+or cutoffs were changed. All supplied hashes matched and all 434 package files were
+verified unchanged after inference. Keep the declared 0.050 s decode margin.
+
+**Review provenance:** all 11 action references are reviewed human labels, one repository
+owner accepting Claude's drafts unchanged. Seven are marked ambiguous. There are two
+complete / six incomplete / three unknown completion references. Do not reclassify
+unknown as incomplete, substitute agent labels, or call these independent blind labels.
+E1–E3 instructions were written retrospectively after viewing the operator route.
+E4 is a static absent-target probe. All share test_c, overlap earlier pilot footage,
+and must remain a single correlated group. No similar-target case exists here.
+
+**Actual execution/results:** same SmolVLM2-2.2B checkpoint/processor revision
+`be92141c8d0ceb98596a923c308ac2bbb4a7c466`, CPU FP32/eager, frozen prompt/parser/input
+pipeline. 11 cutoffs × two modes = 22 calls. Every temporal encoder call used four
+images; message/provenance audit confirmed only instruction plus causal observations
+entered the model. Human action agreement: E1–E3 5/9 temporal vs 7/9 current-only;
+E4 2/2 vs 0/2 (two malformed current outputs rejected); overall 7/11 each. No history
+advantage is established. Both modes miss stopping references; the one temporal
+COMPLETE claim is unscorable because that human completion reference is unknown.
+E4's accepted search-turn sets also differ from the frozen absent-target UNRESOLVED
+prompt policy; neither labels nor prompt were changed to improve scores.
+
+**Code/API changes:** `scripts/run_temporal_vln.py --episode PATH` can now be repeated
+for exact nested packages, avoiding automatic discovery of neighboring old episodes.
+`scripts/evaluate_temporal_vln.py --run RUN --annotations-name ../evaluation_only/annotations.json
+--static-episode p6b_test_c_e4_absent_sofa --output NEW_JSON` evaluates saved proposals
+without model loading. It validates input/manifest binding, records annotation hashes,
+keeps recordings grouped and static cases separate, and excludes missing/pending/agent
+references from human denominators. It does not alter source data or inference files.
+Unknown reference completion and malformed model statuses do not enter completion
+consistency. Free-text progress consistency still requires separate adjudication.
+
+**Private artifacts:**
+`/Users/yushan/Desktop/Go2_Navigation/data/outputs/phase6b/claude_pilot_v1/`.
+Start at `evaluation_grouped.json` and `review.mp4` (22 s, 1650×990). Every per-call
+folder retains native output, exact tensors/prompt, frame provenance and labeled panel.
+Sibling `audit/claude_pilot_v1_preflight.json` / `claude_pilot_v1_postflight.json` prove
+source integrity and causal inputs. Original `evaluation.json` is retained; the grouped
+report removes inapplicable sequence flags from ambiguity-filtered subsets, with all
+action scores unchanged. No inference was rerun for that reporting correction.
+
+**Validation:** full suite with SMOLVLM_MODEL_CACHE set: **478 passed, one hardware test
+skipped**; all four modified/new Python files pass Ruff check/format. Log:
+`audit/claude_pilot_full_tests_final.log`. The earlier two model tests still execute
+real weights. Normal tests use synthetic fixtures. The isolated environment and
+pinned dependencies are unchanged; use the existing installation in the demo guide.
+
+**Next:** do not rebuild/relabel this supplied pilot or tune against it as held-out
+validation. Plan a separate experiment on independently reviewed diverse recordings
+with explicit completion conditions. Preserve the one-recording grouping, human draft
+acceptance provenance and static E4 separation in downstream comparisons. Registration,
+metric depth, timing/odometry and traversability remain unresolved; controlled closed-loop
+validation needs separate authorization. Keep every proposal execution_authorized=false.
+
 ## Phase 6B → Claude / next agent: temporal instruction-following pilot
 
 Implementation commit: [`e9fa7a99c0182af150ffaccc58a83ef54f1a6b0d`](https://github.com/binbin-ovo/Go2_Navigation/commit/e9fa7a99c0182af150ffaccc58a83ef54f1a6b0d).
