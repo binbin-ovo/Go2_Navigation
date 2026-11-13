@@ -12,6 +12,10 @@ Model: **LightOriginsHQ/LightNav-0**, checkpoint/processor/RVQ revision
 `826dc5fbfa37afa8293d2e336d329b6ffc0bfb64`; official code
 `3015508b70fb6e30bbd66701e94c9b916dcb8df8`. This is a navigation-trained checkpoint.
 One checkpoint downloaded, full weight SHA256 verified; StreamVLN was audited only.
+Stored BF16 tensor elements total 4,847,825,408; the declared embedding/head tie implies
+4,448,342,528 unique parameters (~8.286 GiB BF16 weights), inferred from pinned metadata.
+The 9.03 GiB checkpoint file includes that duplication. Measured runtime peaks below
+include more than parameter storage.
 
 Separate Python 3.11.13 model environment: Torch 2.10.0, torchvision 0.25.0,
 Transformers 5.8.0, NumPy 2.4.6, Pillow 13.0.0, safetensors 0.8.0. Exact environment:
@@ -149,6 +153,9 @@ Private v3 native generation: **mean 2.905 s, median 2.238 s, range 1.546–5.57
 Replay image age at native output: mean 3.369 s (exposure-to-cutoff plus host processing;
 not wall-clock age of an old recording). Mean worker wall time including evidence
 serialization: 3.637 s. Model load: 42.725 s, reported separately.
+These replay ages cover the worker decision call. They exclude upfront offline
+rectification/preparation, asset hashing and cold model loading; they are not a measured
+end-to-end live sensor latency. The simulator additionally records host capture-to-response age.
 Including evidence serialization, replay age averages 3.767 s. Causal pre-SlowFast
 buffers contain 4–36 frames at these cutoffs; native segment metadata includes any
 tubelet duplicates and tier pooling. None of these observations is future-relative
@@ -219,6 +226,9 @@ and the native CPU/MPS pooling test passed together (4 passed in 115.76 s); nati
 history/cache reset plus pooling passed (2 passed in 1.50 s). These overlap in the
 pooling case, covering all five optional cases. Logs: `runtime_and_sim_tests.log`,
 `native_runtime_final.log`. Model inference itself also ran in the experiments above.
+A redundant combined optional-test retry stalled importing local Transformer files
+and was interrupted after one case; it is not counted as a completed run. Earlier
+successful per-case evidence remains the basis of the optional-test results.
 
 The 63 new core cases cover causal history, units/native output parsing, unsupported
 chunks, runtime/quantization declarations, feedback/reset assumptions, venv identity,

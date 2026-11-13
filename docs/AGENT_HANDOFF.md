@@ -1,5 +1,9 @@
 ## Phase 6C → Claude / next agent: navigation-trained diagnostic (2026-11-13)
 
+Implementation commit: [`0a442f4984c98578f32c5f406bcdfbac01b150a2`](https://github.com/binbin-ovo/Go2_Navigation/commit/0a442f4984c98578f32c5f406bcdfbac01b150a2).
+Later documentation clarification distinguishes stored checkpoint elements from unique
+parameters after embedding/head tying; inference artifacts are unchanged.
+
 **Branch:** `phase6-pretrained-vln`, separate worktree
 `/Users/yushan/Desktop/Go2_Navigation/data/outputs/phase6c-worktree`, based exactly on
 `7e2989ad54b9c484d75c029ff0141834880852b6`. Use `git rev-parse HEAD` to identify the

@@ -76,7 +76,7 @@ is inaccessible. No blind downgrade/reinstallation is recommended.
 
 | Component | Evidence / budget |
 |---|---|
-| LightNav model alone | ~9.03 GiB BF16 weights including vision, plus up to 1.125 GiB KV at 8192 tokens and activations/processor/allocator. Plan 12–16 GiB. Actual Mac inference in the experiment report |
+| LightNav model alone | 9.03 GiB checkpoint on disk; ~8.286 GiB unique BF16 weights including vision inferred after the declared embedding tie, plus up to 1.125 GiB KV and activations/processor/allocator. Plan 12–16 GiB. Actual Mac inference in the experiment report |
 | Windows model | 8 GB cannot hold unquantized weights alone. Pinned upstream BF16 path is not a native Turing path; standard FlashAttention-2 is unsuitable. No verified 4-bit/offload adaptation; configuration validator refuses these claims |
 | Isaac renderer alone | Unknown installed version; modern documented baseline 16 GB. Initialization, VRAM and RGB results pending |
 | Combined Windows GPU | Not tested and not assumed feasible. Neither a 4-bit filename nor a headless physics run proves capacity |

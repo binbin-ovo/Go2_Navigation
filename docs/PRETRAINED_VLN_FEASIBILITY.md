@@ -25,7 +25,7 @@ pending the [Windows preflight](WINDOWS_SIMULATION_FEASIBILITY.md).
 |---|---|---|
 | Official code | [InternRobotics/StreamVLN](https://github.com/InternRobotics/StreamVLN), `e48f6ff7e9201d93aae003e8f64b04c00cec13bc` | [lightorigins/LightNav-0](https://github.com/lightorigins/LightNav-0), `3015508b70fb6e30bbd66701e94c9b916dcb8df8` |
 | Navigation checkpoint | [mengwei0427/StreamVLN_Video_qwen_1_5_r2r_rxr_envdrop_scalevln_real_world](https://huggingface.co/mengwei0427/StreamVLN_Video_qwen_1_5_r2r_rxr_envdrop_scalevln_real_world), `7b0269ad28e7039a32627b950766c09b5a646f8e` | [LightOriginsHQ/LightNav-0](https://huggingface.co/LightOriginsHQ/LightNav-0), `826dc5fbfa37afa8293d2e336d329b6ffc0bfb64` |
-| Count / weights | 8,030,345,248 BF16 parameters; ~14.96 GiB weights | 4,847,825,408 BF16 parameters; 9,695,744,034-byte safetensors (~9.03 GiB). Includes vision components; “4B” is backbone shorthand |
+| Count / weights | 8,030,345,248 stored BF16 tensor elements; ~14.96 GiB checkpoint | 4,847,825,408 stored BF16 tensor elements; **4,448,342,528 unique parameters inferred** after the declared embedding/head tie (~8.286 GiB BF16 weights). 9,695,744,034-byte safetensors (~9.03 GiB on disk). Includes vision; “4B” is backbone shorthand |
 | Training / backbone | Navigation-trained LLaVA-Video / Qwen-family custom architecture, real-world adaptation | Navigation-aligned Qwen3-VL-4B-Instruct; extended pointing/RVQ vocabulary, not the generic Qwen checkpoint |
 | License | Repository CC-BY-NC-SA-4.0. Real-world checkpoint README is empty and card supplies no separate terms; inherited model/component terms need resolution before redistribution | Code and checkpoint Apache-2.0; [Qwen3-VL-4B-Instruct](https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct) also Apache-2.0. Keep upstream notices; do not redistribute weights here |
 | Inference dependencies | README Python 3.9, Torch 2.1.2, advertised CUDA 12.4; requirements actually pin CUDA 12.1 runtime packages, Transformers 4.45.1; custom model, Habitat evaluation stack | Python 3.11 only, Torch >=2.9, torchvision >=0.24, Transformers exactly 5.8.0, tokenizers 0.22.x, NumPy >=2.0. HF or vLLM 0.19.1 (latter verified with Torch 2.10) |
@@ -44,9 +44,15 @@ navigation candidates were audited. No generic VLM substitution or paid compute.
 
 ## Resource budgets (estimates, not measurements)
 
+Parameter inference uses pinned tensor shapes and `tie_word_embeddings=true` in the
+model/text configs. The 156048×2560 embedding/head duplication accounts for 399,482,880
+stored elements. This is metadata-based inference, not a separate live parameter
+census; `audit/parameter_count_from_metadata.json` records it. Weight-file bytes are
+not runtime memory. Measured process/MPS peaks are separate in the experiment report.
+
 | Workload | Separate budget / feasibility gate |
 |---|---|
-| LightNav unquantized inference | 9.03 GiB weights + up to 1.125 GiB BF16 KV at 8192 tokens (2×36 layers×8 KV heads×128×8192×2 bytes), plus vision activations, language activations, processor/buffers and allocator overhead. Plan 12–16 GiB; bounded synthetic input first, measure before large histories |
+| LightNav unquantized inference | ~8.286 GiB unique BF16 weights inferred from the declared tie (9.03 GiB checkpoint on disk) + up to 1.125 GiB BF16 KV at 8192 tokens (2×36 layers×8 KV heads×128×8192×2 bytes), plus vision/language activations, processor/buffers and allocator overhead. Plan 12–16 GiB; measure before large histories |
 | StreamVLN inference | ~14.96 GiB weights plus vision/KV/activations, roughly 18–24+ GiB; not attempted |
 | Windows RTX 2070 Super | User reports ~8 GB, actual inventory pending. Unquantized LightNav weights alone exceed capacity. Turing is not the standard FlashAttention-2 or native BF16 path; no compatible quantified memory/offload solution established |
 | Isaac camera rendering | Version-dependent; current documented baseline is 16 GB VRAM/32 GB RAM/50 GB SSD, not an 8 GB guarantee. Existing Windows version must be identified first |

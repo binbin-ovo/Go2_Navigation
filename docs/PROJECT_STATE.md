@@ -35,7 +35,8 @@ Super / installed Isaac access remains pending the supplied read-only preflight.
 **Resources:** private native generation mean 2.905 s; replay image age mean 3.369 s
 before evidence serialization. Peak process RSS 11.055 GiB; sampled MPS driver peak
 10.982 GiB (overlapping unified memory, not additive). Mac model+small-renderer peak
-RSS 11.059 GiB. The 9.03 GiB BF16 weights alone exceed an 8 GB GPU; no supported
+RSS 11.059 GiB. The 9.03 GiB checkpoint implies ~8.286 GiB of unique BF16 weights after
+the declared embedding tie, already over 8 GiB before KV/activations; no supported
 quantized/offloaded Turing path was established. Standard FlashAttention-2 is not assumed.
 
 **Verified tests:** full suite **541 passed, 4 skipped (41.58 s)**, including cached
