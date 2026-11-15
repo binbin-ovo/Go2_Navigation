@@ -1,3 +1,66 @@
+## Read-only VLN advisory application (2026-11-15)
+
+Branch `feature/vln-shadow-demo`; separate worktree
+`/Users/yushan/Desktop/Go2_Navigation/data/outputs/vln-shadow-worktree`, based exactly
+on completed Phase 6D `1cc74909e489e1037c9f6f0051ab34e855d144dc`, not main.
+
+Implemented: `scripts/run_vln_shadow.py`, replay/synthetic source boundary using the
+existing observation/episode types, bounded disk-backed instruction history, one
+in-flight inference plus one coalesced scheduling flag, immutable causal native jobs,
+instruction/epoch/sequence validation, cancellation/timeout/shutdown, and a lightweight
+local HTML/PNG advisory display. The child reuses the unchanged pinned LightNav
+worker and native preprocessing/decoder. New instruction revisions never accept an
+old generation as current. Display distinguishes latest camera, actual input history,
+native waypoint chunk, target pointing, STOP and unverified completion.
+
+**Actually verified:** 114 lightweight tests passed in 1.56 s (57 new, 57 existing;
+no skipped cases in this selected set). Ruff and diff checks pass. Synthetic paced
+replay received 48 frames while delayed mock inference produced three accepted
+proposals. A second synthetic run produced three accepted proposals/32 frames. A
+deliberately stale run rejected both proposals/32 frames. Private E1 replay consumed
+24 existing images and produced two accepted **mock** proposals, with measured
+fisheye rectification and preserved timestamp uncertainty. No network/model/robot
+inference or navigation accuracy is implied by those mock paths.
+
+A terminal-entry-point regression caught and fixed loss of the pending request when
+a short source ended before warm-up completed. Warm-up now suppresses dispatch,
+not the pending flag; the buffered causal input is submitted at EOF. The failing
+test log is retained alongside the passing final log.
+
+**Pending:** one real LightNav replay through this application, full repository
+regressions, and live sensor-to-model connection. Heavy verification was held because
+Claude's physical-control tests share this Mac and the operator has not confirmed a
+resource window. Prior Phase 6D 591-pass/9-skip results remain historical. No sensor,
+calibration or model environment was modified; no robot connection was opened.
+
+Dependency/runtime pins remain unchanged: isolated core Python 3.12 with the existing
+Phase 6B-compatible stack; separate model Python 3.11/Torch 2.10/Transformers 5.8/
+NumPy 2.4 stack. Fixed LightNav checkpoint `826dc5f`, code `3015508`, MPS BF16/SDPA,
+no quantization, existing same-dtype CPU pooling patch. This task did not re-run that
+model runtime. The app uses already-installed NumPy/OpenCV/Pillow/PyYAML/jsonschema;
+no added dependency or installer run.
+
+Known limits: official SlowFast anchors require the complete bounded instruction
+history; hitting limits or gaps pauses inference instead of silently truncating.
+No raw-recording-to-episode conversion, live driver, command route or avoidance
+operation is added. Fast replay capture age is unknown; paced age is virtual replay
+time. Real `T_base_camera`, verified completion and physical stopping remain unknown.
+Both earlier near-goal stopping failures persist. All optional LiDAR is independent.
+
+Claude's control worktree was inspected without edits. At HEAD `45154f6`, control
+files were uncommitted and the two requested hardware reports absent; no verified
+capability commit is available. [VLN_CONTROL_HANDOFF](VLN_CONTROL_HANDOFF.md) keeps
+route, units, limits, ownership, stop, disconnection and enabled-avoidance evidence
+explicitly unknown. Manufacturer avoidance must remain enabled in any later,
+separately authorized integration.
+
+Read [VLN_SHADOW_DEMO](VLN_SHADOW_DEMO.md) for all launch/reproduction commands,
+source contracts, queue/timing behavior and artifact paths. Local artifacts:
+`data/outputs/vln_shadow/`; selected test log/XML: `audit/lightweight_tests_final.*`.
+Only a synthetic screenshot is published. Next: obtain the hardware report commit
+and a safe resource window, run the one-job model smoke, then full regressions;
+connect the validated receiver read-only in a separate operator test.
+
 ## Phase 6D — offline waypoint validation completed (2026-11-15)
 
 Branch `phase6-waypoint-validation`, isolated from publication `45154f6`, not main.

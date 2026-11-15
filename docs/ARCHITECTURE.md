@@ -1,3 +1,17 @@
+## Read-only advisory session (2026-11-15)
+
+`scripts/run_vln_shadow.py` wraps the existing observation/episode and native
+LightNav job/result contracts. `shadow_sources` supplies local packages/synthetic
+observations and a future receiver-owned inbox; `shadow` owns bounded disk history,
+causal snapshots, instruction revisions and stale/cancelled-response checks.
+`shadow_worker` keeps one inference in flight in a separate pinned model process;
+`shadow_display` writes local HTML/status/images without a server or command route.
+The native replay worker, decoder, calibration, operational defaults and old results
+remain unchanged. Native episode anchors are retained within a bounded instruction
+session; limit/gap handling pauses explicitly. Real inference through this wrapper
+and live integration are pending resource coordination, not claimed validated.
+See [VLN_SHADOW_DEMO](VLN_SHADOW_DEMO.md) and [VLN_CONTROL_HANDOFF](VLN_CONTROL_HANDOFF.md).
+
 ## Phase 6C isolated navigation-trained inference (2026-11-13)
 
 `phase6-pretrained-vln` adds a separate file-based LightNav worker, leaving the existing

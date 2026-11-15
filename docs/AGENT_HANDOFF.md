@@ -1,3 +1,82 @@
+## Read-only VLN advisory → Claude / next agent (2026-11-15)
+
+Branch **`feature/vln-shadow-demo`**, worktree
+`/Users/yushan/Desktop/Go2_Navigation/data/outputs/vln-shadow-worktree`, exact base
+`1cc74909e489e1037c9f6f0051ab34e855d144dc`. Use `git rev-parse HEAD` for the publication
+commit. Main, previous experiments and operational defaults are preserved.
+
+Read first: [VLN_SHADOW_DEMO](VLN_SHADOW_DEMO.md),
+[VLN_CONTROL_HANDOFF](VLN_CONTROL_HANDOFF.md), then the existing
+[observation contract](GO2_VLN_INPUT_INTERFACE.md) and
+[native contract audit](WAYPOINT_EXECUTION_AUDIT.md).
+
+One entry point: `scripts/run_vln_shadow.py`. It accepts terminal instruction plus
+existing `model_input/episode.json` or deterministic synthetic images and creates a
+private directory containing refreshing `index.html`, PNG/status/summary, append-only
+events, original observation NPZ files, immutable native jobs/snapshots and receipts.
+The internal `vln_shadow_worker.py` reuses existing LightNav `run_job` in the isolated
+model environment. It loads once, resets/rebuilds the complete causal instruction
+history per request, and runs official preprocessing/SlowFast/native decoding.
+It receives no annotations, poses, LiDAR, action feedback or goal truth.
+
+Session behavior is in `vln/shadow.py`: disk-backed bounded history, one in-flight
+request, one coalesced dirty flag, strict instruction/epoch/generation/sequence and
+monotonic-time checks. New instructions clear history and begin with the next actual
+frame; no old frame is restamped. Native episode anchors are retained until a limit
+or gap explicitly pauses inference. Late cancelled results are historical, never
+current. `shadow_display.py` separates the latest camera from actual model inputs,
+plots all native waypoints/yaw in their own unregistered local frame, and distinguishes
+native STOP, model completion claim and unknown verified/physical completion.
+
+**No physical command path exists.** There is no `--live`, `--execute`, `--arm`,
+motion client, avoidance toggle, command publisher or simulator execution backend.
+Even zero velocity is not sent. Cancelling means advisory cancellation only.
+`shadow_sources.ObservationInbox` is the future read-only consumer; it opens no
+connection and preserves the existing `Go2VLNObservation` payload. See the guide for
+availability domains, clock-epoch/uncertainty requirements and overflow handling.
+
+**Executed:** 114 selected lightweight tests passed in 1.56 s (57 new advisory
+cases, 57 existing contracts), no skips in this set. Synthetic paced mocked demos
+accepted 3/3 proposals; a deliberately strict age test rejected 2/2 stale proposals.
+Private E1 package replay used 24 existing images with calibrated rectification and
+two mocked proposals; all files remained local. Ruff/diff checks pass. Tests are
+reproduced with core-env Python and `PYTHONPATH=src`, selecting `test_vln_shadow.py`,
+`test_pretrained_vln.py`, `test_vln_episodes.py`.
+
+**Not executed / pending:** real inference through this new application, full
+regression suite, and live sensor connection. The operator has not confirmed a safe
+resource window during Claude's physical-motion testing. Do not infer approval from
+elapsed time or a separate worktree. Follow the one-job smoke command in the guide
+after coordination; do not rerun all navigation/forecasting benchmarks. Existing
+`phase6c/core-env` and `phase6c/model-env` were reused unchanged. No new model or
+dependency was installed. Earlier Phase 6D model/test results are historical.
+
+Artifacts at `/Users/yushan/Desktop/Go2_Navigation/data/outputs/vln_shadow/`:
+`synthetic_paced_v1/`, `synthetic_paced_v2/`, `synthetic_stale_v1/`,
+`private_e1_mock_v1/`; logs and selected test XML under `audit/`. Each run has its
+exact arguments in `run.json`. Use fresh output names for reproduction. Private
+frames, scene logs, videos and weights stay ignored. Only the generated synthetic
+`docs/assets/vln_shadow_synthetic.png` is published.
+
+The final-code demo is `published_demo/` (32 frames, three mock proposals). Its
+`run.json` also hashes the exact application/native-worker source and runtime config.
+The input audit verifies all 107 E1 images and calibration against Claude's unchanged
+manifest; annotations were not loaded. See `audit/input_and_environment_audit.json`.
+
+Claude's control worktree `Go2_Navigation-go2-control` was inspected read-only at
+`45154f6b9f05227de74254cb4562d7e0ad07b7dd`; its control files are uncommitted, and
+`GO2_HIGH_LEVEL_CONTROL.md`/`GO2_NATIVE_AVOIDANCE_AUDIT.md` were absent. No published
+hardware capability commit is established. Do not merge or import that unfinished
+work. Later record the exact report commit and tested command/ownership/stop/
+disconnect/avoidance capabilities. **Manufacturer obstacle avoidance must remain
+enabled**; no fallback or disable operation is implemented.
+
+Remaining blockers are evidence/resource constraints, not a need for new training:
+real `T_base_camera` remains missing, near-goal stopping failures unresolved, live
+timing unvalidated. Do not treat native ego waypoints as Go2 base commands, or supply
+identity poses. Next steps: safe resource window → new-entry-point one-job real
+replay → full regressions → separately validated read-only receiver connection.
+
 ## Phase 6D → next agent: measured waypoint validation (2026-11-15)
 
 Worktree `/Users/yushan/Desktop/Go2_Navigation/data/outputs/phase6d-worktree`, branch

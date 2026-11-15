@@ -1,3 +1,18 @@
+## Read-only VLN advisory demo (2026-11-15)
+
+`feature/vln-shadow-demo` adds one terminal application for instructions, timestamped
+replay/synthetic images and inspectable LightNav proposals. **ADVISORY ONLY — NO ROBOT
+COMMANDS.** Bounded history/one in-flight job, revision-aware cancellation, explicit
+age/staleness and local input/path panels are implemented. **114 lightweight tests
+passed**, including 57 new advisory cases. Synthetic and existing private E1 replay
+worked with mocked inference. Real inference through the new entry point and the
+full regression suite are **pending operator resource coordination** during Claude's
+hardware tests; live receiver validation also remains pending.
+
+Read [launch commands and demo](docs/VLN_SHADOW_DEMO.md) and
+[the hardware handoff with unknown capabilities](docs/VLN_CONTROL_HANDOFF.md).
+No model/environment, operational-default or main change. Previous results follow.
+
 ## Phase 6D waypoint execution validation (2026-11-15)
 
 On `phase6-waypoint-validation`, fixed LightNav weights ran eight declared synthetic
