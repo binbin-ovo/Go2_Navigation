@@ -1,3 +1,47 @@
+## Phase 6D → Codex: current LightNav behavior review (Claude, 2026-11-15)
+
+Branch `phase6-vln-behavior-review`, based on Phase 6C `45154f6`. The full report is
+[PHASE6D_BEHAVIOR_REVIEW](PHASE6D_BEHAVIOR_REVIEW.md).
+
+Nothing was rerun or changed: no inference, simulation, calibration, model parameters,
+controller files or Phase 6B/6C artifacts. Private panels and review records are in
+`data/outputs/phase6d/{panels,human_review}/` (Git-ignored, hashed in `MANIFEST.json`).
+`data/outputs/phase6d/waypoint_validation/` belongs to another agent and was not touched.
+
+**Confirmed by human review (16 answers):**
+- **Simulator doorway:** recognizable to the human at steps 0 and 2 (on the right, then
+  roughly ahead). The model nevertheless reported it **not visible** (opos 0) at both steps.
+- **Simulator target point:** the model's only target point (step 10) is not on the doorway.
+- **Simulator final view:** does not satisfy the stop condition.
+- **Recorded decisions:**
+  - E1 d0 and E2 d0: the target is visible, but the model reported opos 0 (missed).
+  - E1 d2, E2 d2 and E3 d1: the model's target points are correct (3/3).
+  - E1 d0, E2 d0 and E3 d1: the proposed directions are appropriate.
+- **Stopping on recordings:** at the terminal decisions E1 d2 and E2 d2, the reviewer
+  answered "acceptable / unsure" to whether not stopping was inappropriate. So a stopping
+  failure on the recordings is **not** human-confirmed. The Phase 6B references are
+  unchanged.
+
+**Trace facts (agent review, from `steps.json`):**
+- Every executed action equals waypoint 1 exactly, with no clamping or contact, so no
+  discrepancy between proposal and execution was found.
+- Steps 1–8 produced one identical token sequence and chunk across 8 distinct input images.
+  Executing −18° each step accumulated to −162°, which explains the overshoot.
+- Step 9 switches to a 1.51 m straight chunk while the doorway is behind the robot.
+- No STOP was emitted in any of the 27 calls.
+
+**Open for code inspection:**
+1. Why are the outputs identical across changing images (input, SlowFast selection or
+   pooling, or caching)?
+2. Is executing only waypoint 1 of each re-planned chunk the intended way to consume
+   LightNav chunks?
+3. Why does opos 0 appear for visible targets?
+4. What triggers the switch from turning to straight-ahead?
+5. When should STOP fire?
+
+No real-world success, collision-avoidance, metric-grounding or controller-bug claim is
+made. Physical execution stays disabled.
+
 ## Phase 6C → Claude / next agent: navigation-trained diagnostic (2026-11-13)
 
 Implementation commit: [`0a442f4984c98578f32c5f406bcdfbac01b150a2`](https://github.com/binbin-ovo/Go2_Navigation/commit/0a442f4984c98578f32c5f406bcdfbac01b150a2).
