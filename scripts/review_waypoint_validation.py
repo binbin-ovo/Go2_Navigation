@@ -108,13 +108,16 @@ def run_panels(folder, summary, output):
                 linewidth=3,
                 label="controller-selected motion",
             )
+            extent = np.vstack([chunk[:, :2], local, [0, 0]])
+            ax.set_xlim(extent[:, 0].min() - 0.2, extent[:, 0].max() + 0.2)
+            ax.set_ylim(extent[:, 1].min() - 0.2, extent[:, 1].max() + 0.2)
         ax.scatter([0], [0], c="black", marker="^")
         ax.set(
             xlabel="native x forward (m)",
             ylabel="native y left (m)",
             title="Predicted poses; arrows are native headings",
         )
-        ax.set_aspect("equal", adjustable="datalim")
+        ax.set_aspect("equal", adjustable="box")
         ax.legend(fontsize=8)
         ax.grid(alpha=0.2)
         ax = fig.add_subplot(grid[0, 2])
@@ -164,7 +167,7 @@ def run_panels(folder, summary, output):
         )
         ax.plot([7, 7], [-2.8, -0.8], color="gray", linewidth=4)
         ax.plot([7, 7], [0.8, 2.8], color="gray", linewidth=4)
-        ax.set_aspect("equal", adjustable="datalim")
+        ax.set_aspect("equal", adjustable="box")
         ax.set(
             xlabel="simulation world x (m)",
             ylabel="world y (m)",
@@ -245,7 +248,10 @@ def diagnostics(folder, output):
             color="blue",
         )
         axes[2].legend(fontsize=8)
-        axes[2].set_aspect("equal", adjustable="datalim")
+        axes[2].set_aspect("equal", adjustable="box")
+        extent = np.vstack([planned[:, :2], actual[:, :2]])
+        axes[2].set_xlim(extent[:, 0].min() - 0.35, extent[:, 0].max() + 0.35)
+        axes[2].set_ylim(extent[:, 1].min() - 0.35, extent[:, 1].max() + 0.35)
         axes[2].set(
             xlabel="world x m",
             ylabel="world y m",

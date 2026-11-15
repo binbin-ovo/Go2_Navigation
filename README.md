@@ -1,3 +1,18 @@
+## Phase 6D waypoint execution validation (2026-11-15)
+
+On `phase6-waypoint-validation`, fixed LightNav weights ran eight declared synthetic
+navigation conditions: both execution policies reached and natively stopped at the
+doorway from ahead/left/right starts; both already-near-goal starts failed. All 121
+outputs, failures and review videos are retained. No decoder/coordinate defect was
+established; a stopping-metric labeling bug was corrected without rerunning inference.
+**591 tests passed, nine optional/hardware skips**; all 19 native/simulator cases also
+passed in separate environment runs. Everything remains simulation-only; main,
+recordings/calibration, old baselines and operational defaults are unchanged.
+
+Read the [native contract audit](docs/WAYPOINT_EXECUTION_AUDIT.md),
+[complete results and reproduction commands](docs/PHASE6D_NAVIGATION_EXPERIMENTS.md),
+and [agent handoff](docs/AGENT_HANDOFF.md). Earlier sections retain historical results.
+
 ## Phase 6B prepared episodes evaluated (2026-11-13)
 
 Claude's exact four packages were processed unchanged: **11 human-reviewed decisions,

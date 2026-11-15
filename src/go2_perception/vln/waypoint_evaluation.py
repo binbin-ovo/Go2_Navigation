@@ -44,6 +44,7 @@ def summarize_run(initial_pose, steps, termination, *, goal=None):
     minimum = initial_distance = goal.distance(current)
     elapsed, length = 0.0, 0.0
     native_stop, stop_inside, premature, continued = False, False, False, False
+    outside_stop, stop_after_exit = False, False
     rejections, rejected_contacts = 0, 0
     cross_track, heading_errors, latencies, ages = [], [], [], []
     memory = {}
@@ -53,7 +54,10 @@ def summarize_run(initial_pose, steps, termination, *, goal=None):
         if proposal.get("decoder_stop") is True and accepted:
             native_stop = True
             stop_inside |= goal.inside(current)
-            premature |= not goal.inside(current)
+            outside = not goal.inside(current)
+            outside_stop |= outside
+            premature |= outside and not entered
+            stop_after_exit |= outside and entered
         action = row.get("action") or {}
         poses = action.get("actual_world_poses", [current.tolist()])
         times = action.get("actual_times_s", [0.0])
@@ -105,7 +109,9 @@ def summarize_run(initial_pose, steps, termination, *, goal=None):
         "first_goal_entry_sim_s": first_entry_s,
         "native_stop_received_and_accepted": native_stop,
         "native_stop_inside_goal": stop_inside,
+        "native_stop_outside_goal": outside_stop,
         "premature_native_stop": premature,
+        "native_stop_after_goal_exit": stop_after_exit,
         "continued_motion_after_goal_entry": continued,
         "termination": termination,
         "externally_terminated": termination != "native_stop",

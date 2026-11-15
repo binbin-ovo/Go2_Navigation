@@ -1,4 +1,4 @@
-## Phase 6D → next agent: waypoint validation (2026-11-15, in progress)
+## Phase 6D → next agent: measured waypoint validation (2026-11-15)
 
 Worktree `/Users/yushan/Desktop/Go2_Navigation/data/outputs/phase6d-worktree`, branch
 `phase6-waypoint-validation`, exact base `45154f6`. Main and all previous experiments
@@ -19,22 +19,75 @@ Eight distinct native pixel tensors at old steps 1–8 rule out identical saved 
 as the explanation for repeated outputs; HF bypasses the episode ViT cache. No
 semantic/model root cause or controller defect is proven by these checks.
 
-Actual verification: 590 core passes, nine genuine skips; 19 optional native/simulator
+Actual verification: **591 core passes, nine genuine skips**; 19 optional native/simulator
 cases passed across separate runs. Eight successful known-path/stop cases, one
 intentional contact rejection and one reachable-goal controller diagnostic are saved
 in `data/outputs/phase6d/waypoint_validation/controller_diagnostics_v1/`. These are
-**not learned navigation**. Full model-driven suite still pending at this checkpoint.
+**not learned navigation**. Separately, the full model-driven suite **ran all eight
+conditions once**, 121 valid native decodes. Both policies succeed by the declared
+native-STOP-inside-goal criterion for ahead/left/right starts. Both initially-near
+cases fail: baseline contact-constraint termination without STOP; prefix native STOP
+after leaving the goal and passing through the doorway. No goal override, retried
+condition, budget extension or private recording substitution. All new behavior
+human review remains pending. Do not reinterpret 6/8 on these correlated synthetic
+conditions as broad success, or initial goal presence as a completed approach.
 
-Next: freeze the reviewed four-start/two-policy declaration, run every condition once
-at its fixed budget, retain all outputs including failures, generate videos, update
-results. Reuse `phase6c/model-env` and `phase6c/core-env`; `.venv` here is only an ignored
+**Execution code commit:** `d1590eb0c63046b3899325b70d6908e88a59e453`; published before
+results. Later publication updates results/plots and fixes only an evaluator label:
+an outside STOP after goal exit was incorrectly called premature. The correct v2
+rescore changes that single flag for near/prefix; paths and success counts are
+unchanged. Original summaries/declaration are intact, and the corrected source no
+longer matches their frozen source hash. Use the execution commit for exact original
+source replay, or freeze a new declaration with identical reviewed settings for the
+corrected scorer. Do not weaken the implementation-hash check.
+
+**Exact artifacts under our root:**
+- `frozen_suite_v1.json`, SHA256 `0c26c9678692955de374a52d5e5f5c7c29bcc33a72778a3d7b97bd7f96f34f4e`;
+  reviewed source settings in `reviewed_suite_v1.yaml`.
+- `suite_v1/<ahead|left|right|near>__<first_waypoint|bounded_prefix>/rollout/`:
+  raw images/jobs, per-decision `inference/NNN/` native outputs/tensors and state,
+  actual path traces, unmodified first-version summaries. Per-condition logs/model
+  identities are one directory above; original aggregate is `suite_v1/aggregate.json`.
+- **Use `suite_v1_rescored_v2.json`** for corrected stopping metrics; it binds raw
+  hashes and records the only semantic correction. Tiny distance rounding differences
+  from NumPy 1.26 vs 2.4 are <3e-16 m and change no outcome.
+- `suite_v1_review_v2/index.json`: all eight 1920×1080 H.264 videos (129 panels),
+  including both failures. Representative success: `ahead__first_waypoint/rollout.mp4`;
+  failures: `near__first_waypoint/rollout.mp4`, `near__bounded_prefix/rollout.mp4`.
+- `audit/`: 591-pass final log/XML; separate optional-case results; original tensor
+  repetition and same-image/different-instruction comparison; runtime inventory;
+  before/after preservation snapshots; video verification. All 727 package/baseline
+  files plus 273 old-simulation/review files match.
+
+**Where the code lives:** `vln/waypoints.py` owns fixed-frame bounded interpolation;
+`simulation.py` adds opt-in execution without changing `advance()`; `native_history.py`
+owns causal append/reset semantics; `waypoint_rollout.py` separates model jobs and
+evaluator state; `waypoint_declaration.py` validates review/code/scene bindings;
+`waypoint_evaluation.py` distinguishes entering/stopping/termination.
+`scripts/run_waypoint_suite.py` freezes and executes all conditions in bounded child
+processes; `summarize_waypoint_suite.py` audits/rescores without inference;
+`review_waypoint_validation.py` produces evaluation-only panels/videos.
+
+Next: human-review the **new** close-up/late-stop/contact failures, then declare a
+small fixed-checkpoint view/history ablation. Do not infer a camera-domain root cause
+or tune the current development cases into a benchmark. Preserve Claude's earlier
+review and the old E4 prompt/reference mismatch. Reuse `phase6c/model-env` and
+`phase6c/core-env`; `.venv` here is only an ignored
 alias to core-env. Do not install anything into Claude's environments. Real
 `T_base_camera` remains missing. Physical execution disabled on every new path.
 
 Artifact root `/Users/yushan/Desktop/Go2_Navigation/data/outputs/phase6d/waypoint_validation/`
 is ours; Claude owns sibling `panels/`, `human_review/` and `MANIFEST.json`. All remain
 ignored. Never overwrite those siblings, Phase 6B packages/baselines or the Phase 6C
-failed rollout. The pre-run preservation snapshots match all protected files.
+failed rollout. Both pre-run and post-run preservation snapshots match.
+
+Known environment issues/reproduction: restricted sandbox ffmpeg/ffprobe can fail
+with OpenMP shared-memory error 179; run the existing video/full-suite commands
+outside that sandbox, without replacing dependencies. A combined optional run
+stalled in a Transformers file read after 18 passes; its remaining MPS pooling case
+passed separately. Retain that interrupted log/XML, not an invented combined pass.
+No new code defect remains known from the completed tests. Real `T_base_camera`,
+live robot validation and Windows/Isaac remain outside this verified milestone.
 
 ## Phase 6C → Claude / next agent: navigation-trained diagnostic (2026-11-13)
 

@@ -50,3 +50,16 @@ def test_stale_stop_is_not_credited_and_initial_goal_entry_is_zero():
     assert result["first_goal_entry_sim_s"] == 0
     assert not result["native_stop_inside_goal"]
     assert result["externally_terminated"]
+
+
+def test_stop_after_leaving_goal_is_not_mislabeled_premature():
+    inside, outside = [6, 0, 0], [7.5, 0, 0]
+    result = summarize_run(
+        inside,
+        [step(inside, outside), step(outside, outside, stop=True)],
+        "native_stop",
+    )
+    assert result["native_stop_outside_goal"]
+    assert result["native_stop_after_goal_exit"]
+    assert not result["premature_native_stop"]
+    assert not result["native_stop_inside_goal"]

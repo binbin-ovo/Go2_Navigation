@@ -124,7 +124,10 @@ and after proxy motion to within the 2-pixel test tolerance; image right/up and
 camera-follow geometry pass. Four actual native-processor previews have zero pixel
 difference from the already-native-sized 448×256 RGB input. No Go2 rectification.
 
-Full core regression: 590 passed, 9 skipped. Optional simulator/native checks:
+![Known curved path, camera following and bounded execution; no learned policy](assets/phase6d_controller_curve.png)
+
+Full core regression before model runs: 590 passed, 9 skipped; final suite after
+the evaluator-label correction: 591 passed, 9 skipped. Optional simulator/native checks:
 18 passed before a Transformers file-read stall interrupted the last test; the
 remaining CPU/MPS pooling test passed separately. No existing test was weakened.
 One restricted-sandbox run failed two ffmpeg/ffprobe tests on OpenMP shared-memory
@@ -135,3 +138,14 @@ The additional policy changes both path consumption and rate limits (0.8 m/s,
 3 rad/s versus the baseline's effective 1 m/s and 2.234 rad/s caps). A between-policy
 outcome difference cannot isolate either factor. No tuning on model outcomes is
 allowed within the frozen suite.
+
+## Measured follow-through
+
+The four-start/two-policy suite executed once with 121 valid native decodes. Both
+policies reached and natively stopped in the goal for the three approach starts;
+both initially-near-goal cases failed. No execution contract defect was established.
+One **reporting** defect was found after execution: outside-goal STOP was mislabeled
+premature even after prior goal entry. The read-only v2 rescore separates this late
+STOP from a pre-entry STOP and leaves every native output/action/trajectory unchanged.
+See the experiment report for all eight outcomes, source/declaration identity,
+the correction, final tests and videos. No physical execution is enabled.

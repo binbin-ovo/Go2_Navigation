@@ -1,4 +1,4 @@
-## Phase 6D — waypoint validation in progress (2026-11-15)
+## Phase 6D — offline waypoint validation completed (2026-11-15)
 
 Branch `phase6-waypoint-validation`, isolated from publication `45154f6`, not main.
 [Native contract audit](WAYPOINT_EXECUTION_AUDIT.md) complete; no decoder/coordinate
@@ -7,17 +7,47 @@ prefix policy added for the holonomic camera proxy. Known paths, wrapped heading
 speed limits, collision interruption, native STOP, causal history and stale responses
 are tested. Rendered landmark/camera axes and physical goal reachability pass.
 
-Full regression **590 passed, 9 skipped (30.67 s)**; all 19 optional native/MuJoCo
+Final regression **591 passed, 9 skipped (46.87 s)**; all 19 optional native/MuJoCo
 cases passed across separate runs. Claude's human review at `4a168e1` was read and
 supports retaining the original recognizable scene. All 727 package/baseline files
-match the prior strict inventory; old failed rollout and native artifacts preserved.
+match the prior strict inventory; 273 old-simulation/review files also match before
+and after. Old failed rollout and native artifacts are preserved.
 
 Fixed model/runtime: LightNav revision `826dc5f`, pinned source `3015508`, unchanged
 MPS BF16/SDPA portability patch. Existing core/model environments reused; no install,
-robot transport, calibration or operational-default change. Four starts × two policies
-are ready to freeze at 24 simulated seconds / 96 decisions / 900 host seconds each.
-New model-driven outcomes are **pending**, not completed work. See
-[experiment declaration and commands](PHASE6D_NAVIGATION_EXPERIMENTS.md).
+robot transport, calibration or operational-default change.
+
+**Actual experiment:** four starts × two policies, all executed once at the frozen
+24 simulated seconds / 96 decisions / 900 host seconds limits. Implementation
+`d1590eb0c63046b3899325b70d6908e88a59e453`; declaration hash `0c26c9678692955de374a52d5e5f5c7c29bcc33a72778a3d7b97bd7f96f34f4e`.
+121 calls/valid decodes. Both policies reach and natively STOP inside the goal for
+ahead/left/right starts (**6/8 conditions**). Both near-goal starts fail: first-waypoint
+leaves the region without stopping and a proposed contact is rejected; prefix passes
+through the doorway and natively stops outside. Goal entry alone never terminates a
+run. Seven native STOPs, six inside, one after exit; no premature pre-entry STOPs.
+All eight conditions and failures have verified H.264 videos. New behavior human
+review remains pending; the old Claude review is not relabeled as new-run review.
+
+**Diagnosis:** no waypoint-frame/decoder defect established. The new right-start
+first image tensor exactly matches the old failed rollout's initial tensor, but a
+different instruction produces a different native chunk. This supports instruction
+sensitivity, not a complete causal explanation or generalization claim. Close-up
+recognizability and absent approach history confound the two near-goal failures.
+The added follower does not solve those failures. A post-run **evaluator labeling
+bug** was fixed: outside STOP after prior entry is now distinguished from premature
+STOP. Raw results are retained; read-only v2 rescore changes one flag, not any
+trajectory/success outcome. Final code correctly rejects the old frozen source hash;
+freeze a fresh declaration to rerun with the corrected scorer.
+
+**Measured resources:** native generation mean 2.073 s; full capture-to-response age
+2.186 s; peak process RSS 10.995 GiB, sampled MPS driver max 10.864 GiB (overlapping
+unified memory, not additive). Only static step-and-wait MuJoCo was tested. No Go2,
+dynamic-safety, live-latency, unobserved-scene or Windows/Isaac validation.
+
+Read [all results, artifacts and exact commands](PHASE6D_NAVIGATION_EXPERIMENTS.md).
+Next: human-review both near-goal failures, then predeclare a small view/history
+ablation with the same checkpoint. Keep those diagnostics separate from any held-out
+evaluation; do not tune until a selected success appears.
 
 ## Phase 6C — navigation-trained checkpoint and small-scene experiment (2026-11-13)
 
