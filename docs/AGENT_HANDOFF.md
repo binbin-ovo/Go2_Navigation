@@ -1,3 +1,41 @@
+## Phase 6D → next agent: waypoint validation (2026-11-15, in progress)
+
+Worktree `/Users/yushan/Desktop/Go2_Navigation/data/outputs/phase6d-worktree`, branch
+`phase6-waypoint-validation`, exact base `45154f6`. Main and all previous experiments
+remain intact. Read [WAYPOINT_EXECUTION_AUDIT](WAYPOINT_EXECUTION_AUDIT.md) then
+[PHASE6D_NAVIGATION_EXPERIMENTS](PHASE6D_NAVIGATION_EXPERIMENTS.md) for contracts,
+limits, tests, artifact paths and reproduction commands.
+
+Implemented: opt-in fixed-frame bounded-prefix simulation follower; unchanged
+first-waypoint baseline exposed with complete traces; append-only native history
+resetting on episode/epoch boundaries; reviewed/hashed experiment declarations;
+simulation-only child runners with hard host limits; separate reaching, stopping
+and external-termination metrics; full native/selected/executed path panels/videos.
+The old replay worker defaults and operational defaults are unchanged.
+
+Claude's review at `4a168e165e8eee58b7fcd4fc5a192e9791d3c278` is read from his branch,
+not merged or edited. Human-recognizable doorway supports keeping the original scene.
+Eight distinct native pixel tensors at old steps 1–8 rule out identical saved inputs
+as the explanation for repeated outputs; HF bypasses the episode ViT cache. No
+semantic/model root cause or controller defect is proven by these checks.
+
+Actual verification: 590 core passes, nine genuine skips; 19 optional native/simulator
+cases passed across separate runs. Eight successful known-path/stop cases, one
+intentional contact rejection and one reachable-goal controller diagnostic are saved
+in `data/outputs/phase6d/waypoint_validation/controller_diagnostics_v1/`. These are
+**not learned navigation**. Full model-driven suite still pending at this checkpoint.
+
+Next: freeze the reviewed four-start/two-policy declaration, run every condition once
+at its fixed budget, retain all outputs including failures, generate videos, update
+results. Reuse `phase6c/model-env` and `phase6c/core-env`; `.venv` here is only an ignored
+alias to core-env. Do not install anything into Claude's environments. Real
+`T_base_camera` remains missing. Physical execution disabled on every new path.
+
+Artifact root `/Users/yushan/Desktop/Go2_Navigation/data/outputs/phase6d/waypoint_validation/`
+is ours; Claude owns sibling `panels/`, `human_review/` and `MANIFEST.json`. All remain
+ignored. Never overwrite those siblings, Phase 6B packages/baselines or the Phase 6C
+failed rollout. The pre-run preservation snapshots match all protected files.
+
 ## Phase 6C → Claude / next agent: navigation-trained diagnostic (2026-11-13)
 
 Implementation commit: [`0a442f4984c98578f32c5f406bcdfbac01b150a2`](https://github.com/binbin-ovo/Go2_Navigation/commit/0a442f4984c98578f32c5f406bcdfbac01b150a2).

@@ -168,7 +168,7 @@ def tensor_archive(values):
     return arrays, types
 
 
-def run_job(agent, job, dest, device):
+def run_job(agent, job, dest, device, *, stream=None):
     from lightnav.inference.samples import build_vln_traj_sample
     from lightnav.vln_utils import (
         safe_parse_apos_token,
@@ -189,11 +189,20 @@ def run_job(agent, job, dest, device):
         "status": "error",
         "started_utc": datetime.now(timezone.utc).isoformat(),
     }
-    # Reset also between decisions: reconstruct real causal observations only.
-    agent.reset(instruction=job["instruction"])
     try:
-        for frame in job["frames"]:
-            agent.observe(np.asarray(Image.open(frame["path"]).convert("RGB")))
+
+        def load_rgb(frame):
+            with Image.open(frame["path"]) as image:
+                return np.asarray(image.convert("RGB"))
+
+        if stream is None:
+            # Phase 6C replay default remains unchanged.
+            agent.reset(instruction=job["instruction"])
+            for frame in job["frames"]:
+                agent.observe(load_rgb(frame))
+        else:
+            validate_jobs({"schema": "lightnav-local-jobs-v1", "jobs": [job]})
+            result["native_state"] = stream.observe(agent, job, load_rgb)
         sample = build_vln_traj_sample(
             agent._get_video_tensor(), job["instruction"], None, agent.engine.bundle
         )

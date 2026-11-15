@@ -1,3 +1,24 @@
+## Phase 6D — waypoint validation in progress (2026-11-15)
+
+Branch `phase6-waypoint-validation`, isolated from publication `45154f6`, not main.
+[Native contract audit](WAYPOINT_EXECUTION_AUDIT.md) complete; no decoder/coordinate
+defect established. Original first-waypoint baseline retained; one explicit bounded
+prefix policy added for the holonomic camera proxy. Known paths, wrapped headings,
+speed limits, collision interruption, native STOP, causal history and stale responses
+are tested. Rendered landmark/camera axes and physical goal reachability pass.
+
+Full regression **590 passed, 9 skipped (30.67 s)**; all 19 optional native/MuJoCo
+cases passed across separate runs. Claude's human review at `4a168e1` was read and
+supports retaining the original recognizable scene. All 727 package/baseline files
+match the prior strict inventory; old failed rollout and native artifacts preserved.
+
+Fixed model/runtime: LightNav revision `826dc5f`, pinned source `3015508`, unchanged
+MPS BF16/SDPA portability patch. Existing core/model environments reused; no install,
+robot transport, calibration or operational-default change. Four starts × two policies
+are ready to freeze at 24 simulated seconds / 96 decisions / 900 host seconds each.
+New model-driven outcomes are **pending**, not completed work. See
+[experiment declaration and commands](PHASE6D_NAVIGATION_EXPERIMENTS.md).
+
 ## Phase 6C — navigation-trained checkpoint and small-scene experiment (2026-11-13)
 
 **Branch:** `phase6-pretrained-vln`; isolated from verified Phase 6B
