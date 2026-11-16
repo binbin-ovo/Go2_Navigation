@@ -180,11 +180,11 @@ was started; that is a separate decision.
 | Shutdown | All 3 runs: `camera_bridge_closed` then `session_closed`; bridge `receiver_alive: false`; `pgrep` found no bridge/worker left. Quit, request budget and host budget each exercised. |
 | Zero robot requests | No SDK/DDS module loaded in the bridge; static AST test of live files and the receiver; `robot_commands_sent: 0` in every summary. |
 
-## 6. Qualitative target check (human review pending)
+## 6. Qualitative target check (operator-reviewed 2026-11-16)
 
 Native target pointing on the actual model input (`review/targets_r1_r4_r5.png`):
 
-| Request | Instruction | Native | My reading — **awaiting operator review** |
+| Request | Instruction | Native | Reading — **operator: "Targets look right"** |
 |---|---|---|---|
 | run 2 #1, #2, #6; run 3 #1, #2 | Approach the doorway… | `opos_501`, path 1.45 m fwd / 0.39 m left, yaw +0.26, STOP false | Target lies on the hallway door; leftward path matches the door being left of centre. No STOP while the door is far: plausible. |
 | run 2 #4, #7; run 3 #3 | Approach the doorway… | `opos_549/550/502`, straight 1.51 m, STOP false | Target on/near the door. |
@@ -218,5 +218,6 @@ STOP and the model completion claim were false in every request.
 - Stride-2 decimation; a 14.3 Hz input would need cheaper per-frame storage.
 - Clock-step and camera-unplug handling verified only with mocks.
 - Single static scene, stationary robot, posture unconfirmed; target interpretation is
-  qualitative and pending operator review.
+  qualitative (operator judged the shown targets correct; no incorrect example was
+  identified in this scene).
 - `live_session_01` holds 1.6 GB of private frames; delete it when no longer needed.

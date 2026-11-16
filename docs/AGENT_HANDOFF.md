@@ -16,12 +16,12 @@ assumed); native generation 2.3–6.9 s, growing with instruction history. One r
 was current at receipt (2.959 s); in steady state every proposal is **stale** under the
 unchanged 3 s limit. Instruction change, cancel, history limit and clean shutdown observed
 live; clock-step and interruption with mocks. Targets for doorway/refrigerator look
-plausible; operator review pending. Tests: 15 new mocked tests; core 663 passed / 9 skipped.
+judged correct by the operator (qualitative, one scene). Tests: 15 new mocked tests; core 663 passed / 9 skipped.
 Details: [VLN_LIVE_SHADOW_VALIDATION](VLN_LIVE_SHADOW_VALIDATION.md).
 
 Next agent: do not connect native waypoints to any Go2 command. Open questions are
 freshness (generation grows with full-history rebuild; a separate decision, not started),
-re-measuring camera latency on the current boot, and operator review of the target examples.
+re-measuring camera latency on the current boot, and broader (multi-scene) qualitative review.
 Private runs: `/Users/yushan/Desktop/Go2_Navigation/data/outputs/vln_live/` (git-ignored).
 
 ## Read-only VLN advisory → Claude / next agent (2026-11-15)

@@ -16,7 +16,7 @@ assumed); native generation 2.3–6.9 s, growing with instruction history. One r
 was current at receipt (2.959 s); in steady state every proposal is **stale** under the
 unchanged 3 s limit. Instruction change, cancel, history limit and clean shutdown observed
 live; clock-step and interruption with mocks. Targets for doorway/refrigerator look
-plausible; operator review pending. Tests: 15 new mocked tests; core 663 passed / 9 skipped.
+judged correct by the operator (qualitative, one scene). Tests: 15 new mocked tests; core 663 passed / 9 skipped.
 Details: [VLN_LIVE_SHADOW_VALIDATION](VLN_LIVE_SHADOW_VALIDATION.md).
 
 ## Read-only VLN advisory application (2026-11-15)
