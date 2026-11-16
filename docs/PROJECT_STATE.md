@@ -1,4 +1,40 @@
-## Bounded context experiment: faster, behavior retention failed (2026-11-16)
+## Context regression isolation: Stage A complete, Stage B pending (2026-11-16)
+
+Branch `feature/vln-context-ablation`, based exactly on completed bounded-context
+publication `d3c227a112436d1b93c2d9b67bb69d5b89288295`; tested implementation
+`956bbdf25088ec437e84a7deaec9312c8804ec8f`. See
+[VLN_CONTEXT_ABLATION](VLN_CONTEXT_ABLATION.md) and [handoff](AGENT_HANDOFF.md).
+The operator explicitly authorized **Stage A only**. No model weights loaded,
+neural inference, full regression suite, live connection or physical command ran.
+Main, operational defaults, Claude's interactive worktree and environments are unchanged.
+
+Implemented/frozen: five existing cutoffs × F/B/T/P/TP = 25 sequential Stage B
+requests, an isolated factory, native input audit and local comparison viewer.
+T changes timestamp representation only; P changes pooling only; TP additionally
+restores full-baseline segment/prompt grouping. Remaining temporal-pair confounds
+are recorded. Calibrated preprocessing and original F/B builders are reused.
+
+Verified now: **55 lightweight + 17 CPU native-format tests passed**, no final
+failures/skips. All 25 private input constructions passed; all 10 F/B model inputs
+match their original archives. E3 d0 TP/F is exactly input-equivalent (pixels,
+tensors, tokens, positions, native groups and post-ViT state). E2 d2/doorway P=B
+and TP=T are intentional no-op controls. All 2,270 original source/result hashes
+remain unchanged. All 25 viewer panels/346 local links checked; browser visual
+preview unavailable because its URL policy blocks local files.
+
+Unverified: new generated outputs, recovery of pointing/path/stopping, inference
+latency/memory and full regression. The prior full baseline itself misses STOP;
+input equality or speed alone cannot establish navigation success. Preserve the
+current full-history default; bounded remains experimental. The next step is only
+the declared Stage B experiment after a separately agreed resource window.
+
+Private plan root:
+`<repository-root>/data/outputs/vln_context_ablation/<run-id>`;
+exact location, declaration time and plan SHA256 are recorded locally in
+`stage_a/LOCAL_REPRODUCTION.md`, not in public documentation.
+Code hashes prevent drift; code changes require a fresh retained declaration.
+
+## Bounded context experiment: faster, behavior retention failed (2026-11-16, historical)
 
 Current development branch **`feature/vln-bounded-context`**, exact base
 `1f93d7eff57906ce26c4b3ab4109effb4ca71edd` from Claude's cached live validation.

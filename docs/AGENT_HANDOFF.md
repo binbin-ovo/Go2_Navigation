@@ -1,4 +1,59 @@
-## Bounded visual context experiment → next agent (2026-11-16)
+## Context regression isolation — Stage A → next agent (2026-11-16)
+
+**Operator authorized Stage A only; Stage B and full regression are pending a new
+resource window. Do not load a large model yet.** Read
+[VLN_CONTEXT_ABLATION](VLN_CONTEXT_ABLATION.md). Branch
+`feature/vln-context-ablation`, exact base
+`d3c227a112436d1b93c2d9b67bb69d5b89288295`, tested implementation
+`956bbdf25088ec437e84a7deaec9312c8804ec8f`. Worktree:
+`<repository-root>/data/outputs/vln-context-ablation-worktree`.
+No merge to main or changes to Claude's interactive worktree/shared environments.
+
+Read Claude's completed historical review at
+`bc8815319da554c6a3dee2523da9f2a72cf352aa:docs/VLN_BOUNDED_CONTEXT_REVIEW.md`.
+It confirms three old regressions but prefers the old bounded doorway path;
+new outputs must not inherit those judgements. The review's cold-start sentence
+is corrected in the new report from the saved rows (only five-frame request 0
+was cold, not the 39-frame request). Older handoff sections below are historical.
+
+**Implemented:** isolated F/B/T/P/TP input factory, immutable 25-request
+declaration, CPU-only native input audit, gated single-worker Stage B runner,
+comparison viewer reusing existing pointing/path helpers, mocked/native-format
+tests. F/B builders remain unchanged. T restores native logical-index/4 Hz grid
+timing; P restores actual full-baseline per-image pools only; TP also restores
+filtered full segment/prompt grouping. That extra factor and partial temporal
+pair regrouping are explicit; this is not a clean factorial interaction.
+
+**Verified:** 55 lightweight tests passed (0.30 s), then 17 CPU native-format tests
+passed (3.88 s); no failures/skips in the final selected suites. All 25 private
+input constructions completed without neural weights or GPU use. All 10 F/B
+generation inputs exactly reproduce old archives; all 25 preserve calibrated
+pixels/identity/timestamps. E3 d0 TP/F matches exact normalized tensors, tokens,
+positions, native metadata and HF/post-ViT inputs. E2 d2/doorway P=B and TP=T are
+expected input-identical no-op controls. Generated outputs, behavior, inference
+latency/memory and full regressions are **unverified** for this branch.
+
+**Frozen identity:** private root
+`<repository-root>/data/outputs/vln_context_ablation/<run-id>`;
+the exact location, declaration time and `plan.json` SHA256 are in that run's
+Git-ignored `stage_a/LOCAL_REPRODUCTION.md`.
+All 2,270 original file hashes unchanged. Read `stage_a/input_checks.json`,
+`stage_a/final_preservation.json` and `index_stage_a.html` (25 pending-output panels,
+346 local links checked). Browser visual preview was blocked by local-file URL
+policy; static checks passed. No private artifact is committed.
+
+**Next, only after resource coordination:** use the local handoff's exact paths
+with the report's commands and
+existing isolated core/model environments. Run the 25 requests sequentially in
+the frozen rotated order, one model load, no retries; thresholds stay at 3 s.
+Then close the worker, run the offline regression suite and review full native
+outputs with unchanged human references in evaluation-only panels. Preserve any
+failure/partial output, mark new human review pending, update this handoff/report,
+push safe results and stop. No additional context budget, live test, default
+promotion or physical command path is authorized. Do not overwrite the old
+34-request experiment, annotation packages, calibration or hardware environments.
+
+## Bounded visual context experiment → next agent (2026-11-16, historical)
 
 Branch **`feature/vln-bounded-context`**, isolated worktree
 `/Users/yushan/Desktop/Go2_Navigation/data/outputs/vln-bounded-context-worktree`,
