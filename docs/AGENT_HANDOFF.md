@@ -1,3 +1,44 @@
+## Go2 high-level control audit → next agent (2026-11-15)
+
+**Branch:** `feature/go2-high-level-control-audit`, worktree `~/Desktop/Go2_Navigation-go2-control`,
+based on `45154f6b9f05227de74254cb4562d7e0ad07b7dd`. Use `git rev-parse HEAD` for the publication.
+Never merge main from here.
+
+**Code:**
+- `src/go2_control/safety.py`: pure limits, the confirmation phrase, and an execute loop that always stops and releases.
+- `src/go2_control/sdk_routes.py`: restricted clients. Only obstacles_avoid 1002/1003/1004 are registered; SwitchSet 1001 is never registered. It also has the state monitor and LiDAR/odom/IMU progress.
+- `scripts/go2_hl_control.py`: modes status / watch / range / preview / ownership / move / stop.
+- `tests/test_go2_control.py`
+- Isolated from the read-only sensor adapters. Importing the package does nothing.
+
+**Run** with `PYTHONPATH=src:$HOME/Desktop/Go2_Navigation/third_party/unitree_sdk2_python` and
+`~/Desktop/Go2_Navigation/.venv-go2/bin/python`. On iCloud Desktop, use
+`PYTEST_DISABLE_PLUGIN_AUTOLOAD=1` and `python -u`. Full suite: link `.venv` to `phase6c/core-env`.
+
+**Rules that still apply:**
+- one approved physical step at a time
+- avoidance stays on
+- no VLN → motion
+- no zero-velocity "read-only" tests
+- no SwitchSet
+- route the tether with slack before turns
+- after any link loss, run an approved `stop --execute` before further motion
+
+**Recommended command forms:**
+- forward 0.30 m/s with a distance target
+- reverse 0.75 m/s with a target (expect about 0.2–0.37 m overshoot)
+- turns 1.0 rad/s with `--turn-deg`
+
+**Open items:**
+- operator's visual check of the about-35° turns
+- remote override during an API claim
+- a stop-before-obstacle test
+- reverse overshoot and the hold at low speed
+- a small post-release backward step
+
+Private telemetry: `data/outputs/go2_control/` (git-ignored). Details:
+[GO2_HIGH_LEVEL_CONTROL](GO2_HIGH_LEVEL_CONTROL.md), [GO2_NATIVE_AVOIDANCE_AUDIT](GO2_NATIVE_AVOIDANCE_AUDIT.md).
+
 ## Phase 6C → Claude / next agent: navigation-trained diagnostic (2026-11-13)
 
 Implementation commit: [`0a442f4984c98578f32c5f406bcdfbac01b150a2`](https://github.com/binbin-ovo/Go2_Navigation/commit/0a442f4984c98578f32c5f406bcdfbac01b150a2).
