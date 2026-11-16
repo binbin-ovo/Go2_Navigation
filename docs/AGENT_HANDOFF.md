@@ -1,3 +1,24 @@
+## Cached preparation, live verification → next agent (2026-11-16)
+
+Branch **`feature/vln-cached-live-validation`** (worktree
+`/Users/yushan/Desktop/Go2_Navigation-vln-cached`), exact base `d173082` from
+`feature/vln-live-latency`; docs only, no code change. Read
+[VLN_CACHED_LIVE_VALIDATION](VLN_CACHED_LIVE_VALIDATION.md).
+
+**Verified on hardware (stationary, read-only, operator-confirmed):** one bounded
+`--preparation-mode cached` session, 3 requests, 0 robot commands. Jobs of 5/19/39
+frames: prep 0.19/0.52/1.16 s, generate 3.0/4.0/6.5 s, estimated exposure→display
+3.65/5.03/8.54 s — **all STALE** under the unchanged 3 s limit. Cache hits only 5 per
+request (latest-anchored resampling), so live preparation is about the same as baseline;
+no controlled speedup claimed. 0 inbox overflow/gaps/RTP loss; tensor archives 3/3
+complete, normal shutdown. Display keeps latest-camera and model-input stamps separate.
+Operator judged doorway targets (opos_501/502/504) correct — qualitative only.
+Targeted tests 92 passed.
+
+**Next:** freshness remains unresolved; native generation growing with history is the
+dominant cost. Any further change (history policy, feature caching) is a separate,
+explicitly approved decision. Do not connect waypoints to any Go2 command.
+
 ## Advisory latency → Claude / next agent (2026-11-16)
 
 Branch **`feature/vln-live-latency`**, worktree
