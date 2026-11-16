@@ -7,19 +7,34 @@ exact base **`1f93d7eff57906ce26c4b3ab4109effb4ca71edd`**. Read
 [Claude's cached live report](VLN_CACHED_LIVE_VALIDATION.md). Use `git rev-parse HEAD`
 for this branch's publication commit. No merge to main or operational default change.
 
-**Implemented, not yet measured:** one offline candidate, `anchor2_recent6_actual_time_v1`:
+**Decision: faster, but behavior diagnostics degrade; do not promote or live-retest
+this candidate on the present evidence.** Tested implementation:
+`28affec52677a61e6e5695002681872023c182b9`. All 34 declared model requests ran
+sequentially after the operator confirmed this profiling window; no retries/failures.
+The 39-frame median offline delivery fell **8.052→2.193 s (72.8%)**. E1–E3 agreement
+fell **3/9→2/9**, mappings became less often supported (7/9→4/9), E1 d2 gained an
+initial right turn despite a STOP-only reference, and E2 d2 lost its visible shoe-rack
+target (OPOS501→0). Both conditions missed the two required native STOPs. New human
+review remains pending; this is a small correlated diagnostic, not an accuracy claim.
+
+One offline candidate, `anchor2_recent6_actual_time_v1`:
 first two + latest six causal observations, maximum eight images/eight native slots.
 Uses official tier validation/selection, preprocessing/prompt/decoder. Explicit custom
 sparse buffer plus integer-millisecond temporal metadata preserves irregular actual
 timestamps and omitted intervals; this changes the trained input policy, not an
 equivalent cache optimization. Full-history baseline remains the original path.
+Anchor images receive their native factor-4 pooling; the ablation also changes
+timestamp encoding, so differences cannot be attributed solely to image omission.
 No upstream model asset, hardware environment, calibration or private package changed.
 
-**Actual checks:** 125 targeted advisory/contract tests passed (0 failed/skipped,
-15.03 s); ten pinned source/processor/mocked-generation tests passed (4.00 s, no
-weights loaded). The actual native processor retains the anchor/recent gap, and
-the worker restores baseline timestamp settings after both success and mocked failure.
-Full regression and actual pretrained comparison have **not run** for this branch.
+**Actual checks:** full core **716 passed /0 failed /19 skipped (62.49 s)**;
+then optional native/numeric **27 passed /0 failed /2 rendering skips (3.58 s)**.
+The physical test stayed skipped; 16 native cases and optional numeric simulator
+cases skipped in core passed in the isolated environment. Earlier 125 targeted and
+ten native-format checks also passed. No physical tests or renderer were enabled.
+All six full-history live replays match Claude's original tensor bits and generated
+IDs; all 17 pairs' shared calibrated pixels and 101 normalized images match.
+All 863 source hashes are unchanged, and 34/34 tensor archives completed.
 
 **Fixed experiment:** 34 sequential requests: saved cached-live 5/19/39 jobs twice
 per condition with reversed order, all eleven E1–E4 original decisions once per
@@ -28,17 +43,27 @@ Plan: `/Users/yushan/Desktop/Go2_Navigation/data/outputs/vln_bounded_context/exp
 SHA256 `55c73c298afe3df47ba58ac9109d39509d485d96d0a1091e0320518be50b408d`;
 863 source files hashed. It binds the implementation and refuses source/code drift.
 Code may be committed without changing those hashes; edits require a fresh retained
-declaration, never overwriting the original. No inference result exists yet.
+declaration, never overwriting the original. Completed outputs are under `results/`;
+`evaluation/index.html` and `evaluation/comparison.json` show every request and the
+separate human-reference panels. Four private `evaluation/visual_inspection/*.png`
+sheets cover all 14 unique case pairs. Full stage timings, chunks, target tokens,
+timestamps, omissions, memory and failure flags remain in each request directory.
 
-**Next:** obtain the pending shared-Mac profiling-window confirmation, execute the
-report's `--run` command, evaluate separately, inspect every changed native output,
-then run the full regression and optional native suite sequentially. Keep all
-physical opt-ins disabled. No Go2 connection, DDS, command ownership, stop, motion,
-posture or avoidance request is authorized. No camera bridge is needed/imported by
-the experiment. Earlier authorization covered the already completed latency task.
-Do not claim a speedup or recommend live testing before measuring the candidate.
-E4 search agreement is not absence recognition; E1–E4 remain correlated development
-proposals. New human visual review remains pending, not inferred from syntax.
+**Runtime:** M3 Pro Mac, MPS BF16/SDPA, Torch2.10.0/Transformers5.8.0, no quantization;
+fixed cached checkpoint/processor/RVQ. Cold load 45.564 s, run host 159.643 s. Peak
+child lifetime RSS 11.63 GB, sampled MPS driver ~12.96 GB; unified-memory figures
+are not additive and caches persist across conditions. Parent peak ~209 MB.
+Reconstructed bounded ages were below 3 s in 17/17 requests; full 6/17. These are
+**offline ages**, not live measurements, and the first full request was cold.
+
+**Next:** preserve this negative diagnostic and keep the existing operational
+full-history policy. Have the owner/Claude inspect the local paired panels before
+any separately declared follow-up; do not tune or run another candidate in this
+milestone. E4 search agreement (2/2 both conditions) is not absence recognition;
+E1–E4 remain correlated development proposals. All heavy verification has finished.
+Any new profiling needs resource coordination. No Go2/DDS connection, command
+ownership, stop, motion, posture or avoidance request is authorized, and no live
+camera bridge is needed/imported. Main/defaults and the hardware PR stay untouched.
 
 ## Cached preparation, live verification → next agent (2026-11-16)
 

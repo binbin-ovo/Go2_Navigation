@@ -1,4 +1,4 @@
-## Bounded context experiment: implementation ready, profiling pending (2026-11-16)
+## Bounded context experiment: faster, behavior retention failed (2026-11-16)
 
 Current development branch **`feature/vln-bounded-context`**, exact base
 `1f93d7eff57906ce26c4b3ab4109effb4ca71edd` from Claude's cached live validation.
@@ -12,24 +12,35 @@ positions to preserve irregular timestamps and omitted intervals. This is an
 input-policy ablation, **not** input-equivalent acceleration. No model/decoder,
 calibration, sensor environment, weights or training change. No physical control path.
 
-Verified: **125 targeted tests passed, 0 failed, 0 skipped (15.03 s)**; ten separate
-native processor/mocked-generation contract tests passed (4.00 s, no neural weights
-loaded). Bounds, causality, current/anchors, missing data, reset isolation, actual
-timestamp text, full-history restoration after candidate/error, and prior advisory
-behavior are covered. The existing source files are accessible; 863 are bound by
-the frozen private plan. All eleven original pilot decisions remain included.
+Verified on implementation `28affec52677a61e6e5695002681872023c182b9`: all **34**
+predeclared learned requests completed sequentially on the M3 Pro Mac (MPS BF16,
+SDPA, fixed cached weights), after operator resource coordination. Cold load 45.564 s;
+39-frame median offline delivery **8.052→2.193 s (72.8% reduction)**. Reconstructed
+candidate ages were below the unchanged 3 s limit in 17/17 requests; this is not
+measured live latency. Source data and all prior results remain unchanged.
 
-Pending: a newly coordinated shared-Mac window, the predeclared **34** sequential
-learned requests, performance/behavior comparison and full regression on this branch.
-No new model latency, memory or freshness result is claimed. No new live test is
-recommended yet. The prior measured live result remains 3/3 stale at 3 s despite
-working cache/evidence plumbing; the candidate's effect is unknown.
+**Behavior retention failed:** E1–E3 reference agreement **3/9→2/9**, one additional
+initial turn at a completed-turn reference, and loss of the visible shoe-rack target
+prediction at E2 d2. Both policies missed both STOP-only references; neither produced
+native STOP or APOS1299 completion. Mapping is lossy, and all pilot episodes come
+from the same correlated recording. New human review remains pending. **Do not
+promote this candidate or recommend another live test on the present evidence.**
+
+Full core regression: **716 passed /0 failed /19 skipped (62.49 s)**. Subsequent
+isolated native/numeric regression: **27 passed /0 failed /2 rendering skips
+(3.58 s)**. Physical Go2 test remained skipped; native cases unavailable in core
+passed separately. All six full-history live replays match original tensor bits
+and generated tokens; 17 paired calibrated-pixel checks and 101 native image checks
+pass. All 863 original source hashes are unchanged; tensor archives 34/34 complete.
+No Go2 connection, DDS or robot command. All heavy verification has finished.
 
 Private declaration:
 `data/outputs/vln_bounded_context/experiment_20261116_01/plan.json` (full absolute
-path in the report). Safe code/docs only are intended for publication. Continue with
-the report's exact commands after resource coordination; no packages or results
-should be rebuilt, relabeled or overwritten.
+path in the report), with completed `results/` and `evaluation/` beside it. The
+report contains every run, latency breakdown, memory accounting, native behavior,
+test skips and reproduction commands. Only safe code/docs and aggregate findings
+are published. Next: human review of the local paired panels, retaining this
+negative diagnostic; no packages/results should be rebuilt, relabeled or overwritten.
 
 ## Advisory latency: input-equivalent optimization (2026-11-16)
 
