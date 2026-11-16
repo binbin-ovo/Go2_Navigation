@@ -16,6 +16,8 @@ def main():
     ap.add_argument("--config", type=Path, required=True)
     ap.add_argument("--device", choices=["cpu", "mps", "cuda"], required=True)
     ap.add_argument("--output", type=Path, required=True)
+    ap.add_argument("--profile-stages", action="store_true")
+    ap.add_argument("--preparation-mode", choices=["baseline", "cached"], default="baseline")
     args = ap.parse_args()
     wire = sys.stdout
 
@@ -93,30 +95,48 @@ def main():
                 "reset_policy": "reconstruct_complete_causal_instruction_history_per_request",
                 "action_feedback": False,
                 "physical_execution_authorized": False,
+                "preparation_mode": args.preparation_mode,
+                "stage_profiling": args.profile_stages,
             },
         )
         send({"type": "ready"})
-        for line in sys.stdin:
-            message = json.loads(line)
-            if set(message) != {"identity", "job", "destination"}:
-                raise ValueError("Unsupported advisory worker envelope")
-            job = message["job"]
-            validate_jobs({"schema": "lightnav-local-jobs-v1", "jobs": [job]})
-            start = time.monotonic()
-            # Existing Phase 6C reset/reconstruct path: complete causal stream, native
-            # SlowFast (including anchors), no KV/action feedback from other requests.
-            result = run_job(agent, job, Path(message["destination"]), args.device)
-            end = time.monotonic()
-            send(
-                {
-                    "identity": message["identity"],
-                    "result": result,
-                    "host_inference_start_s": start,
-                    "host_inference_end_s": end,
-                    "inference_duration_s": end - start,
-                    "backend": "lightnav",
-                }
-            )
+        from go2_perception.vln.shadow_evidence import TensorEvidenceWriter
+        writer = TensorEvidenceWriter() if args.preparation_mode == "cached" else None
+        try:
+            serve(agent, args, send, writer, run_job, validate_jobs)
+        finally:
+            if writer is not None:
+                try:
+                    writer.close()
+                finally:
+                    dump(args.output / "tensor_evidence_summary.json", writer.status())
+
+
+def serve(agent, args, send, writer, run_job, validate_jobs):
+    for line in sys.stdin:
+        if writer is not None:
+            writer.check()
+        message = json.loads(line)
+        if set(message) != {"identity", "job", "destination"}:
+            raise ValueError("Unsupported advisory worker envelope")
+        job = message["job"]
+        validate_jobs({"schema": "lightnav-local-jobs-v1", "jobs": [job]})
+        start = time.monotonic()
+        # Existing Phase 6C reset/reconstruct path: complete causal stream, native
+        # SlowFast (including anchors), no KV/action feedback from other requests.
+        result = run_job(agent, job, Path(message["destination"]), args.device,
+                         profile_stages=args.profile_stages, evidence_writer=writer)
+        end = time.monotonic()
+        send(
+            {
+                "identity": message["identity"],
+                "result": result,
+                "host_inference_start_s": start,
+                "host_inference_end_s": end,
+                "inference_duration_s": end - start,
+                "backend": "lightnav",
+            }
+        )
 
 
 if __name__ == "__main__":

@@ -5,6 +5,7 @@ import json
 import math
 from pathlib import Path
 from types import SimpleNamespace
+import time
 import uuid
 
 import cv2
@@ -14,6 +15,7 @@ from .episodes import file_sha256
 from .model_preprocessing import calibrated_view
 from .observation import TIME_SEMANTICS, load, save, validate
 from .pretrained import causal_history, comparison_action, native_token_contract
+from .shadow_cache import PreparedFrameCache
 
 BANNER = "ADVISORY ONLY — NO ROBOT COMMANDS"
 LIVE_BANNER = "LIVE INPUT — ADVISORY ONLY — NO ROBOT COMMANDS"
@@ -122,7 +124,10 @@ class ShadowSession:
         limits=None,
         allow_synthetic=False,
         session_id=None,
+        preparation_mode="baseline",
     ):
+        if preparation_mode not in ("baseline", "cached"):
+            raise ValueError("Unknown input preparation mode")
         if mode not in (
             "replay_paced",
             "replay_fast",
@@ -137,6 +142,9 @@ class ShadowSession:
         (self.output / "requests").mkdir()
         self.worker, self.mode = worker, mode
         self.limits, self.allow_synthetic = limits or Limits(), allow_synthetic
+        self.preparation_mode = preparation_mode
+        self.prepared_cache = (PreparedFrameCache(self.output / "prepared_cache",
+            allow_synthetic=allow_synthetic) if preparation_mode == "cached" else None)
         self.session_id = session_id or uuid.uuid4().hex
         (
             self.revision,
@@ -205,6 +213,8 @@ class ShadowSession:
         self.history_generation += 1
         self.instruction, self.active = instruction.strip(), True
         self.history, self.history_error, self.key = [], None, None
+        if self.prepared_cache is not None:
+            self.prepared_cache.clear()
         self.pending = False
         self.event("instruction_started", now, instruction=self.instruction)
         # The next genuinely arriving observation starts the new instruction history.
@@ -214,6 +224,8 @@ class ShadowSession:
         self._clock(now)
         self.active, self.pending = False, False
         self.history = []
+        if self.prepared_cache is not None:
+            self.prepared_cache.clear()
         self.event("advisory_cancelled", now, physical_robot_stop_sent=False)
 
     def invalidate_history(self, reason, now):
@@ -221,6 +233,7 @@ class ShadowSession:
         self.event("history_paused", now, reason=reason)
 
     def receive(self, delivery, now):
+        receive_started = time.monotonic()
         self._clock(now)
         if self.closed:
             raise ValueError("Session is closed")
@@ -278,11 +291,15 @@ class ShadowSession:
         if self.key is not None and key != self.key:
             self.history_generation += 1
             self.history, self.history_error, self.pending = [], None, False
+            if self.prepared_cache is not None:
+                self.prepared_cache.clear()
             self.event("source_epoch_reset", now, old_key=self.key, new_key=key)
         self.key = key
         self.observation_count += 1
         path = self.output / "observations" / f"{self.observation_count:06d}.vlnobs.npz"
+        storage_started = time.monotonic()
         save(obs, path)
+        storage_s = time.monotonic() - storage_started
         meta = {
             "frame_id": delivery.frame_id,
             "observation_s": stamp.t,
@@ -313,6 +330,10 @@ class ShadowSession:
             str(self.output / "latest.png"), cv2.cvtColor(v.image, cv2.COLOR_RGB2BGR)
         ):
             raise OSError("Cannot save latest view")
+        self.last_receive_profile = {
+            "receive_s": time.monotonic() - receive_started,
+            "observation_npz_storage_s": storage_s,
+        }
         if not self.active or self.history_error:
             return
         if self.history and (
@@ -339,6 +360,9 @@ class ShadowSession:
         self.pending = True
 
     def _snapshot(self, now):
+        snapshot_started = time.monotonic()
+        stages = {"source_hash_and_load_s": 0.0, "rectification_s": 0.0,
+                  "image_encoding_and_write_s": 0.0}
         cutoff = self.history[-1]["available_s"]
         episode = SimpleNamespace(
             data={
@@ -354,12 +378,26 @@ class ShadowSession:
         folder.mkdir()
         frames, provenance = [], []
         for i, source in enumerate(selection["frames"]):
+            dest = folder / f"frame_{i:04d}.png"
+            if self.prepared_cache is not None:
+                digest, metadata, cache, frame_stages = self.prepared_cache.prepare(source, dest)
+                frames.append({"path": str(dest.resolve()), "sha256": digest,
+                               "observation_s": source["observation_s"],
+                               "available_s": source["available_s"]})
+                provenance.append({"source": source, "rectification": metadata, "prepared_cache": cache})
+                for name, duration in frame_stages.items():
+                    stages[name] += duration
+                continue
+            stage_start = time.monotonic()
             path = Path(source["observation_path"])
             if file_sha256(path) != source["observation_sha256"]:
                 raise ValueError("Stored observation changed")
             obs = load(path)
+            stages["source_hash_and_load_s"] += time.monotonic() - stage_start
+            stage_start = time.monotonic()
             view = calibrated_view(obs, allow_synthetic=self.allow_synthetic)
-            dest = folder / f"frame_{i:04d}.png"
+            stages["rectification_s"] += time.monotonic() - stage_start
+            stage_start = time.monotonic()
             if not cv2.imwrite(str(dest), cv2.cvtColor(view.image, cv2.COLOR_RGB2BGR)):
                 raise OSError("Cannot save prepared view")
             frames.append(
@@ -371,6 +409,7 @@ class ShadowSession:
                 }
             )
             provenance.append({"source": source, "rectification": view.metadata})
+            stages["image_encoding_and_write_s"] += time.monotonic() - stage_start
         identity = {
             "session_id": self.session_id,
             "instruction_revision": self.revision,
@@ -405,13 +444,22 @@ class ShadowSession:
             "annotations_consumed": False,
             "previous_actions_supplied": False,
         }
+        serialization_start = time.monotonic()
         write_json(folder / "job.json", job)
         write_json(folder / "snapshot.json", context)
-        return Request(
+        request = Request(
             json.dumps(job, allow_nan=False),
             json.dumps(context, allow_nan=False),
             folder,
         )
+        write_json(folder / "preparation_profile.json", {
+            **stages,
+            "mode": self.preparation_mode,
+            "cache": None if self.prepared_cache is None else self.prepared_cache.status(),
+            "job_serialization_s": time.monotonic() - serialization_start,
+            "snapshot_s": time.monotonic() - snapshot_started,
+        })
+        return request
 
     def timing(self, request, now):
         c = request.context
@@ -633,6 +681,9 @@ class ShadowSession:
             "displayed": shown,
             "completion_verified": False,
             "physical_execution_authorized": False,
+            "preparation_mode": self.preparation_mode,
+            "prepared_cache": None if self.prepared_cache is None else self.prepared_cache.status(),
+            "tensor_evidence_shutdown": getattr(self.worker, "tensor_evidence_summary", None),
         }
 
     def close(self, now):
@@ -647,5 +698,10 @@ class ShadowSession:
                 identity=self.inflight.context["identity"],
             )
         self.worker.close()
+        evidence = getattr(self.worker, "tensor_evidence_summary", None)
+        if evidence is not None:
+            self.event("tensor_evidence_shutdown", now, evidence=evidence)
+            if evidence.get("error"):
+                self.history_error = "tensor_evidence_incomplete: " + evidence["error"]
         self.inflight = None
         self.event("session_closed", now, counts=self.counts)

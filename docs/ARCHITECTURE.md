@@ -1,4 +1,22 @@
-## Read-only advisory session (2026-11-15)
+## Live advisory and opt-in latency path (2026-11-16)
+
+Claude's read-only camera bridge feeds existing observations through `shadow_live`
+and `ObservationInbox`; see [live validation](VLN_LIVE_SHADOW_VALIDATION.md). The
+latency branch preserves that receiver and native causal history contract.
+`--preparation-mode cached` enables `shadow_cache.PreparedFrameCache`, a bounded
+disk cache of hash-verified calibrated RGB PNGs. Selection still runs from full
+history; request-local hard links preserve evidence through cache resets/eviction.
+The same native processor/decoder runs in the existing isolated model process.
+
+Only exact tensor archive compression is deferred to `TensorEvidenceWriter`, with
+one outstanding archive, explicit byte bound, atomic completion/error records and
+bounded shutdown drain. Model images/prompt/native outputs remain synchronous.
+No cached visual features, altered sampling policy, model replacement or new
+transport/schema. Default mode and the three-second age limit are unchanged.
+[VLN_LIVE_LATENCY](VLN_LIVE_LATENCY.md) reports measured offline improvements and
+bit-exact equivalence; optimized live performance remains pending.
+
+## Historical read-only advisory session (2026-11-15)
 
 `scripts/run_vln_shadow.py` wraps the existing observation/episode and native
 LightNav job/result contracts. `shadow_sources` supplies local packages/synthetic

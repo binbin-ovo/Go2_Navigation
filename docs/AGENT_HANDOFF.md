@@ -1,4 +1,59 @@
-## Live read-only VLN advisory (2026-11-16)
+## Advisory latency → Claude / next agent (2026-11-16)
+
+Branch **`feature/vln-live-latency`**, worktree
+`/Users/yushan/Desktop/Go2_Navigation/data/outputs/vln-live-latency-worktree`, exact base
+`eaec3314f4ed933623bd8aad1daca944d4575363` from `feature/vln-live-shadow`. Read
+[VLN_LIVE_LATENCY](VLN_LIVE_LATENCY.md) first for contracts, all results, commands and
+limitations; then [Claude's live validation](VLN_LIVE_SHADOW_VALIDATION.md).
+Main, operational defaults, hardware/calibration environments and earlier results
+are preserved. The hardware-control PR is not merged/imported.
+
+Implemented **opt-in `--preparation-mode cached`**: hash-verified lossless calibrated
+PNG reuse (128 entries / 256 MiB of cache links), compression level zero, and a
+single bounded background tensor archive. Native model-space PNGs/text/prompt/decoder
+outputs remain synchronous. Snapshots retain calibration and original timestamps;
+archive status/errors and shutdown completion are explicit. Default `baseline`,
+three-second threshold, receiver/stride/inbox, history policy, checkpoint/processor,
+MPS BF16/SDPA and the same-dtype CPU pooling patch are unchanged.
+
+**Actual verification:** after explicit operator resource coordination, six model
+requests ran sequentially: recorded run 3's 5/17/37-frame jobs, baseline once then
+cached once. All input tensors (BF16 bits included), history metadata, generated IDs,
+pointing, waypoints and STOP flags match exactly; outputs also match the original
+live results. Submit → display improved **2.942→2.779 / 4.358→4.005 / 8.305→7.388 s**.
+These are fixed-cutoff offline profiles, not measured live latency. Fast replay
+accepted one/rejected two in each pass; adding the original estimated exposure-to-
+submit offsets gives 0/3 vs 1/3 under three seconds. Longer histories remain stale.
+One sample/length/mode supports no percentile or robust variability claim. All
+408 source-run files remained unchanged. Writer: 3/3 archives complete, no losses.
+
+**Final tests:** 683 core passes / 0 failures / 9 skips in 42.29 s; 17 separate
+native/numeric passes / 0 failures / 2 rendering skips in 2.62 s. The 20 new latency
+tests cover invalidation, equivalent inputs, changing sampling prefixes, reset/
+cancellation/staleness, bounded writing and shutdown/error reporting. Hardware opt-ins
+were disabled and the physical test confirmed skipped before execution. No Go2
+connection, DDS, ownership, stop or other physical command was used.
+
+**Private artifacts:**
+`/Users/yushan/Desktop/Go2_Navigation/data/outputs/vln_live_latency/profile_20261116_01/`.
+`plan.json` predates inference; `baseline/` and `cached/` hold all requests and local
+review pages; `comparison.json` has exact equivalence and timing; final test logs/XML
+are `full_regression_final.*` and `optional_regression.*`. Initial fixture failure
+and earlier passing suite are retained. The two `reconstructed_*_source/` directories
+match every pre-inference source hash and permit exact source reconstruction on the
+verified base; see their provenance notes. Existing isolated environments were reused;
+the ignored `.venv` here only links to core-env. No installation or new weights.
+
+**Next:** Claude may run the report's prepared three-request stationary **read-only**
+command after a new operator-coordinated window. It explicitly enables cached mode;
+this optimized path has not been tested live. Measure actual arrival/queue pressure,
+archive completion and age; do not raise the threshold or connect outputs to control.
+The pinned HF backend does not use its vLLM feature-cache path. Latest-anchored
+sampling changes prior selections, so simply appending native frames is invalid.
+No history truncation/reset shortcut was introduced. Real extrinsics, exposure
+uncertainty and near-goal stopping limitations remain unresolved.
+
+## Previous milestone: live read-only VLN advisory (2026-11-16)
 
 Branch `feature/vln-live-shadow` (worktree `/Users/yushan/Desktop/Go2_Navigation-vln-live`),
 based on advisory commit `b47f07d`, not main; the control PR was not merged or imported.

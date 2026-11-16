@@ -168,7 +168,7 @@ def tensor_archive(values):
     return arrays, types
 
 
-def run_job(agent, job, dest, device, *, stream=None):
+def run_job(agent, job, dest, device, *, stream=None, profile_stages=False, evidence_writer=None):
     from lightnav.inference.samples import build_vln_traj_sample
     from lightnav.vln_utils import (
         safe_parse_apos_token,
@@ -189,12 +189,17 @@ def run_job(agent, job, dest, device, *, stream=None):
         "status": "error",
         "started_utc": datetime.now(timezone.utc).isoformat(),
     }
+    stages = {"image_read_s": 0.0, "tensor_capture_s": 0.0}
     try:
 
         def load_rgb(frame):
+            start = time.monotonic()
             with Image.open(frame["path"]) as image:
-                return np.asarray(image.convert("RGB"))
+                rgb = np.asarray(image.convert("RGB"))
+            stages["image_read_s"] += time.monotonic() - start
+            return rgb
 
+        history_start = time.monotonic()
         if stream is None:
             # Phase 6C replay default remains unchanged.
             agent.reset(instruction=job["instruction"])
@@ -203,6 +208,8 @@ def run_job(agent, job, dest, device, *, stream=None):
         else:
             validate_jobs({"schema": "lightnav-local-jobs-v1", "jobs": [job]})
             result["native_state"] = stream.observe(agent, job, load_rgb)
+        stages["history_reconstruction_s"] = time.monotonic() - history_start
+        sample_start = time.monotonic()
         sample = build_vln_traj_sample(
             agent._get_video_tensor(), job["instruction"], None, agent.engine.bundle
         )
@@ -226,12 +233,14 @@ def run_job(agent, job, dest, device, *, stream=None):
             ).save(dest / f"input_{i:04d}.png")
         result["native_selected_frame_indices"] = selected_ids
         result["native_segments"] = segments
+        stages["sample_and_image_evidence_s"] = time.monotonic() - sample_start
         model = agent.engine.bundle.model
         original_generate = model.generate
         captured, types = {}, {}
 
         def generate(**kwargs):
             nonlocal captured, types
+            capture_start = time.monotonic()
             captured, types = tensor_archive(kwargs)
             ids = kwargs["input_ids"]
             if ids.shape[-1] > agent.engine.bundle.max_seq_len:
@@ -239,16 +248,52 @@ def run_job(agent, job, dest, device, *, stream=None):
             (dest / "prompt.txt").write_text(
                 agent.engine.bundle.tokenizer.decode(ids[0], skip_special_tokens=False)
             )
+            stages["tensor_capture_s"] += time.monotonic() - capture_start
             out = original_generate(**kwargs)
             captured["generated_ids"] = out.detach().cpu().numpy()
             return out
 
         model.generate = generate
+        processor = agent.engine.bundle.data_processor
+        original_process = processor.process_sample
+
+        def process(*args, **kwargs):
+            begin = time.monotonic()
+            value = original_process(*args, **kwargs)
+            stages["official_processor_s"] = time.monotonic() - begin
+            return value
+
+        processor.process_sample = process
+        target, original_vision = None, None
+        if profile_stages:
+            from lightnav.processing import get_post_vit_target
+
+            target = get_post_vit_target(model)
+            original_vision = target.get_video_features
+
+            def sync():
+                if device == "mps":
+                    torch.mps.synchronize()
+                elif device == "cuda":
+                    torch.cuda.synchronize()
+
+            def vision(*args, **kwargs):
+                sync()
+                begin = time.monotonic()
+                value = original_vision(*args, **kwargs)
+                sync()
+                stages["vision_and_pool_s"] = stages.get("vision_and_pool_s", 0) + time.monotonic() - begin
+                return value
+
+            target.get_video_features = vision
         prep_done = time.monotonic()
         try:
             text, native_latency_ms = agent.engine.generate(sample)
         finally:
             model.generate = original_generate
+            processor.process_sample = original_process
+            if target is not None:
+                target.get_video_features = original_vision
         inference_done = time.monotonic()
         (dest / "native_output.txt").write_text(text)
         result.update(
@@ -264,8 +309,18 @@ def run_job(agent, job, dest, device, *, stream=None):
                 - started,
             },
         )
-        np.savez_compressed(dest / "model_inputs_and_generated_ids.npz", **captured)
-        dump(dest / "tensor_types.json", types)
+        evidence_start = time.monotonic()
+        if evidence_writer is None:
+            np.savez_compressed(dest / "model_inputs_and_generated_ids.npz", **captured)
+            dump(dest / "tensor_types.json", types)
+        else:
+            evidence_writer.submit(dest, captured, types)
+            result["tensor_evidence"] = {
+                "state_at_submit": "queued", "status_file": str(dest / "tensor_evidence.json"),
+                "bounded_writer": evidence_writer.status(),
+            }
+        stages["tensor_evidence_s"] = time.monotonic() - evidence_start
+        stages["tensor_evidence_mode"] = "synchronous" if evidence_writer is None else "bounded_background"
         result["pointing"] = {
             "apos": safe_parse_apos_token(text),
             "opos": safe_parse_opos_token(text),
@@ -291,6 +346,11 @@ def run_job(agent, job, dest, device, *, stream=None):
         result["error"] = repr(e)
         (dest / "error.txt").write_text(traceback.format_exc())
     finally:
+        result["stage_profile"] = {
+            **stages,
+            "vision_synchronized_for_profile": profile_stages,
+            "note": "Nested intervals: processor inside engine_call; vision and tensor capture inside native_generate; image_read inside history_reconstruction.",
+        }
         result["memory"] = sampler.finish()
         result["wall_s_including_evidence"] = time.monotonic() - started
         dump(dest / "result.json", result)

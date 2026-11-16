@@ -1,5 +1,12 @@
 # Read-only terminal VLN advisory demo
 
+**Current follow-up (2026-11-16):** Claude's read-only camera source is verified in
+[VLN_LIVE_SHADOW_VALIDATION](VLN_LIVE_SHADOW_VALIDATION.md). The opt-in
+`--preparation-mode cached` and its input-equivalent offline latency results are in
+[VLN_LIVE_LATENCY](VLN_LIVE_LATENCY.md), including the next stationary live command.
+Defaults remain unchanged; optimized live timing is pending. The 2026-11-15 guide
+and historical verification below describe the preceding replay-only milestone.
+
 Branch `feature/vln-shadow-demo`, isolated from completed Phase 6D publication
 `1cc74909e489e1037c9f6f0051ab34e855d144dc`. This application accepts a terminal
 instruction and local observations, displays proposals, and writes inspectable

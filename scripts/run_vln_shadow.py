@@ -67,6 +67,8 @@ def parser():
         "--runtime-config", type=Path, default=ROOT / "configs/pretrained_vln.yaml"
     )
     p.add_argument("--device", choices=["cpu", "mps", "cuda"], default="mps")
+    p.add_argument("--preparation-mode", choices=["baseline", "cached"], default="baseline",
+                   help="Opt-in lossless prepared-frame reuse and bounded tensor evidence writing; history unchanged")
     p.add_argument(
         "--hardware-python", type=Path, help="Hardware env Python for the camera bridge"
     )
@@ -291,6 +293,7 @@ def main(argv=None):
         else ("synthetic_" if a.synthetic else "replay_") + a.mode,
         limits=limits,
         allow_synthetic=a.synthetic or a.allow_synthetic_calibration,
+        preparation_mode=a.preparation_mode,
     )
     started = time.monotonic()
     write_json(
@@ -359,6 +362,7 @@ def main(argv=None):
                 config=a.runtime_config,
                 device=a.device,
                 output=session.output / "worker",
+                preparation_mode=a.preparation_mode,
             )
         session.instruction_changed(a.instruction, time.monotonic())
         print(
@@ -554,6 +558,7 @@ def main(argv=None):
                 "camera": None if camera is None else session.source_status,
                 "completion_verified": False,
                 "history_error": session.history_error,
+                "tensor_evidence_shutdown": getattr(session.worker, "tensor_evidence_summary", None),
             },
         )
         print_status(session, time.monotonic())

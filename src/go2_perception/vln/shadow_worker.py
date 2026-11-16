@@ -70,11 +70,16 @@ class ProcessWorker:
     shutdown terminates only this owned child, with a bounded kill fallback.
     """
 
-    def __init__(self, *, python, assets, config, device, output):
+    def __init__(self, *, python, assets, config, device, output, profile_stages=False,
+                 preparation_mode="baseline"):
+        if preparation_mode not in ("baseline", "cached"):
+            raise ValueError("Unknown input preparation mode")
+        self.preparation_mode = preparation_mode
         root = Path(__file__).resolve().parents[3]
         self.output = Path(output)
         self.output.mkdir(parents=True, exist_ok=False)
         self.ready, self.busy, self.closed, self.deferred = False, False, False, None
+        self.tensor_evidence_summary = None
         self.messages = Queue(maxsize=2)
         self.log = (self.output / "worker.log").open("w")
         env = os.environ.copy()
@@ -98,6 +103,8 @@ class ProcessWorker:
                 device,
                 "--output",
                 str(self.output.resolve()),
+                *(["--profile-stages"] if profile_stages else []),
+                "--preparation-mode", preparation_mode,
             ],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
@@ -162,6 +169,15 @@ class ProcessWorker:
         if self.closed:
             return
         self.closed, self.ready = True, False
+        if getattr(self, "preparation_mode", "baseline") == "cached" and self.process.poll() is None:
+            # EOF lets the child drain its one bounded tensor archive. An in-flight
+            # generation is still invalidated by the session; shutdown never sends
+            # a physical stop. If it hangs, retained pending evidence stays explicit.
+            self.process.stdin.close()
+            try:
+                self.process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                pass
         if self.process.poll() is None:
             self.process.terminate()
             try:
@@ -176,3 +192,12 @@ class ProcessWorker:
         self.reader.join(timeout=1)
         self.process.stdout.close()
         self.log.close()
+        if getattr(self, "preparation_mode", "baseline") == "cached" and hasattr(self, "output"):
+            path = self.output / "tensor_evidence_summary.json"
+            if path.exists():
+                self.tensor_evidence_summary = json.loads(path.read_text())
+            else:
+                self.tensor_evidence_summary = {
+                    "error": "Worker did not complete evidence drain; inspect queued/writing markers",
+                    "process_returncode": self.process.returncode,
+                }

@@ -45,7 +45,7 @@ Robot firmware version was not read; reported service versions are
 | Manufacturer obstacle avoidance | Selected route is the avoidance service; status true before/after reported runs. | **No obstacle was placed in the path: obstacle-stopping is unverified.** Reverse holds may reflect avoidance/locomotion; mechanism unknown. Must remain enabled. |
 | Tested hardware limits | Utility bounds: forward ≤0.30 m/s, reverse ≤0.75 m/s only with distance target, yaw magnitude ≤1.0 rad/s with heading target above 0.5; no combined translation/turn. | These are reported utility limits, not a validated safe envelope. Reverse overshoot/blind rear and unexplained post-release steps remain. Do not import simulator defaults. |
 | Model-frame → command-frame transform | **Unvalidated** | Measured `T_base_camera`, frame/axis tests and correct decision-time pose handling. |
-| Sensor → advisory connection | **Pending** | Operator-coordinated read-only test after control testing, recording clock/calibration/source provenance. |
+| Sensor → advisory connection | Claude's stationary read-only camera integration verified at `eaec3314f4ed933623bd8aad1daca944d4575363`; see [live validation](VLN_LIVE_SHADOW_VALIDATION.md). | Most live proposals stale; exposure remains estimated. [Opt-in latency changes](VLN_LIVE_LATENCY.md) verified offline only; stationary live repeat pending. |
 
 The future requirement is **manufacturer obstacle avoidance remains enabled**.
 There is no avoidance-disable implementation here. If a proposed route cannot
@@ -87,8 +87,9 @@ enter the native model job. No proposal is fed back as an executed action during
    recorded. [One real-model replay and offline regressions](VLN_SHADOW_VERIFICATION.md)
    completed sequentially; the real proposal was correctly marked stale. Re-coordinate
    if physical testing resumes. A Git worktree is not resource isolation.
-2. Connect the already-tested read-only receiver via the existing observation
-   type. Keep output inspection-only and verify clocks, epochs, cancellation and age.
+2. The receiver now feeds the advisory through the existing observation type. Repeat
+   a separately coordinated stationary read-only test of the opt-in latency path;
+   keep output inspection-only and verify clocks, epochs, cancellation and age.
 3. Consider physical integration only as a separate authorized milestone after
    frame registration, takeover/stop behavior and enabled-avoidance route evidence.
    Near-goal stopping failures remain unresolved; do not credit an external stop

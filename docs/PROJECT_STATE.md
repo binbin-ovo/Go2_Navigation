@@ -1,4 +1,44 @@
-## Live read-only VLN advisory (2026-11-16)
+## Advisory latency: input-equivalent optimization (2026-11-16)
+
+Current development branch `feature/vln-live-latency`, based exactly on live-shadow
+`eaec3314f4ed933623bd8aad1daca944d4575363`, not main. Implemented opt-in lossless
+calibrated-frame reuse and bounded background tensor archival, plus reproducible
+fixed-cutoff profiling/comparison tools. The existing CLI defaults to `baseline`;
+enable `--preparation-mode cached` explicitly. No model, history-policy, calibration,
+sensor-environment, receiver-default or advisory-age-limit change.
+
+After operator coordination, the saved 5/17/37-frame jobs each ran once per mode,
+sequentially. Submit-to-display: baseline **2.942 / 4.358 / 8.305 s**; cached
+**2.779 / 4.005 / 7.388 s**. Processed tensors, temporal metadata, generated tokens,
+pointing, waypoints and STOP flags match exactly in all three pairs. Native generation
+still dominates longer histories. These are offline diagnostics, **not measured live
+latency**. Original exposure-to-submit offsets give estimated ages 3.064/4.533/8.430 s
+versus 2.902/4.180/7.513 s; only the optimized first request falls below three seconds.
+No steady-state freshness or navigation-success claim. One sample/case; no p95.
+
+The prepared-image cache had 8 hits / 51 misses (latest anchoring shifts earlier
+selections), peak 141.3 MB on disk, within 128-entry/256-MiB bounds. All three
+background archives completed, peak owned arrays 24.8 MB, no losses. Child lifetime
+RSS peaked at 11.87/11.81 GB, sampled MPS driver memory 11.22/11.23 GB; unified-memory
+figures are not additive. Model load was 43.99/43.85 s and is excluded from request
+times. Exact breakdown, provenance, limitations and commands:
+[VLN_LIVE_LATENCY](VLN_LIVE_LATENCY.md).
+
+Verified final tests: **683 passed, 0 failed, 9 skipped in 42.29 s** (core);
+**17 passed, 0 failed, 2 skipped in 2.62 s** (isolated native/numeric suite).
+Physical test remained skipped; native and numeric cases skipped in core passed
+separately; rendering opt-ins stayed off. Twenty new tests exercise cache identity,
+equivalence, resets, causality/anchors/latest frames, bounded writing and failure
+reporting. A faulty raw/rectified test fixture was corrected; its failing log remains.
+
+Private artifacts: `data/outputs/vln_live_latency/profile_20261116_01/`. All 408 files
+of Claude's source run were preserved. No Go2/DDS connection or physical command.
+**Pending:** separately coordinated stationary live evaluation of the opt-in path,
+actual queue/drop behavior and freshness. No feature-cache or bounded-history model
+experiment was implemented. Real registration, exposure uncertainty and near-goal
+stopping remain unresolved. See [AGENT_HANDOFF](AGENT_HANDOFF.md) for continuation.
+
+## Previous milestone: live read-only VLN advisory (2026-11-16)
 
 Branch `feature/vln-live-shadow` (worktree `/Users/yushan/Desktop/Go2_Navigation-vln-live`),
 based on advisory commit `b47f07d`, not main; the control PR was not merged or imported.

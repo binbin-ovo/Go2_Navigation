@@ -1,4 +1,20 @@
-## Read-only VLN advisory demo (2026-11-15)
+## Read-only advisory latency (2026-11-16)
+
+`feature/vln-live-latency` extends Claude's verified live-camera integration with
+opt-in `--preparation-mode cached`. Lossless prepared-image reuse and bounded
+background tensor archival preserve all native model inputs and outputs in the
+three declared comparisons. Offline submit-to-display times improved from
+**2.942/4.358/8.305 s** to **2.779/4.005/7.388 s** for 5/17/37-frame jobs. Longer
+histories still miss the unchanged three-second advisory target; optimized live
+performance remains untested. **683 core tests passed (9 skips)** and **17 isolated
+native/numeric tests passed (2 rendering skips)**; zero failures.
+
+Read [measurements and exact reproduction/live-handoff commands](docs/VLN_LIVE_LATENCY.md)
+and [Claude's prior stationary live validation](docs/VLN_LIVE_SHADOW_VALIDATION.md).
+Main, default baseline behavior, model, calibration and hardware environments are
+preserved. **ADVISORY ONLY — NO ROBOT COMMANDS.** Earlier milestones follow.
+
+## Historical read-only VLN advisory demo (2026-11-15)
 
 `feature/vln-shadow-demo` adds one terminal application for instructions, timestamped
 replay/synthetic images and inspectable LightNav proposals. **ADVISORY ONLY — NO ROBOT
