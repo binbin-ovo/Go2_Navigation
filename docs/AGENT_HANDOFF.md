@@ -6,6 +6,7 @@ Branch **`feature/vln-shadow-demo`**, worktree
 commit. Main, previous experiments and operational defaults are preserved.
 
 Read first: [VLN_SHADOW_DEMO](VLN_SHADOW_DEMO.md),
+[actual verification](VLN_SHADOW_VERIFICATION.md),
 [VLN_CONTROL_HANDOFF](VLN_CONTROL_HANDOFF.md), then the existing
 [observation contract](GO2_VLN_INPUT_INTERFACE.md) and
 [native contract audit](WAYPOINT_EXECUTION_AUDIT.md).
@@ -35,7 +36,7 @@ Even zero velocity is not sent. Cancelling means advisory cancellation only.
 connection and preserves the existing `Go2VLNObservation` payload. See the guide for
 availability domains, clock-epoch/uncertainty requirements and overflow handling.
 
-**Executed:** 114 selected lightweight tests passed in 1.56 s (57 new advisory
+**Initial lightweight verification:** 114 selected tests passed in 1.56 s (57 new advisory
 cases, 57 existing contracts), no skips in this set. Synthetic paced mocked demos
 accepted 3/3 proposals; a deliberately strict age test rejected 2/2 stale proposals.
 Private E1 package replay used 24 existing images with calibrated rectification and
@@ -43,13 +44,25 @@ two mocked proposals; all files remained local. Ruff/diff checks pass. Tests are
 reproduced with core-env Python and `PYTHONPATH=src`, selecting `test_vln_shadow.py`,
 `test_pretrained_vln.py`, `test_vln_episodes.py`.
 
-**Not executed / pending:** real inference through this new application, full
-regression suite, and live sensor connection. The operator has not confirmed a safe
-resource window during Claude's physical-motion testing. Do not infer approval from
-elapsed time or a separate worktree. Follow the one-job smoke command in the guide
-after coordination; do not rerun all navigation/forecasting benchmarks. Existing
-`phase6c/core-env` and `phase6c/model-env` were reused unchanged. No new model or
-dependency was installed. Earlier Phase 6D model/test results are historical.
+**Operator-authorized verification, completed:** tested implementation
+`b3c3dffdaf1a663f554b29d8dc2ca19aa1460e8d` ran one real LightNav replay, then the full
+core suite, then the optional native/numeric suite, sequentially. Five causal,
+calibrated inputs produced ten valid native waypoints. Native generation took
+2.444501 s; the child interval took 2.851785 s; paced observation age at receipt was
+3.544899 s. The unchanged 3 s advisory limit correctly rejected it as STALE: zero
+fresh accepted, one rejected. These are replay timings, not measured live latency.
+No extra real call or relaxed threshold was used. Core: **648 passed, 0 failed,
+9 skipped** in 44.73 s. Separate environment: **17 passed, 0 failed, 2 skipped** in
+2.68 s. Physical Go2 and two camera-rendering tests remain unexecuted; environment
+specific core skips were subsequently covered. See the verification report for
+exact selection, skip reasons and commands.
+
+The operator confirmed Go2 stationary and physical testing paused/finished with
+stop/release cleanup complete. No Go2 connection, DDS, control utility or robot
+command was used. Existing `phase6c/core-env` and `phase6c/model-env` were reused
+unchanged. No new model or dependency was installed. The worktree's ignored `.venv`
+is only a symlink to core-env for existing subprocess tests. Live sensor connection
+remains pending. Re-coordinate before heavy work if physical testing resumes.
 
 Artifacts at `/Users/yushan/Desktop/Go2_Navigation/data/outputs/vln_shadow/`:
 `synthetic_paced_v1/`, `synthetic_paced_v2/`, `synthetic_stale_v1/`,
@@ -63,19 +76,29 @@ The final-code demo is `published_demo/` (32 frames, three mock proposals). Its
 The input audit verifies all 107 E1 images and calibration against Claude's unchanged
 manifest; annotations were not loaded. See `audit/input_and_environment_audit.json`.
 
-Claude's control worktree `Go2_Navigation-go2-control` was inspected read-only at
-`45154f6b9f05227de74254cb4562d7e0ad07b7dd`; its control files are uncommitted, and
-`GO2_HIGH_LEVEL_CONTROL.md`/`GO2_NATIVE_AVOIDANCE_AUDIT.md` were absent. No published
-hardware capability commit is established. Do not merge or import that unfinished
-work. Later record the exact report commit and tested command/ownership/stop/
-disconnect/avoidance capabilities. **Manufacturer obstacle avoidance must remain
-enabled**; no fallback or disable operation is implemented.
+The real verification is in the fresh ignored `verification_20261115_01/` under that
+artifact root. Open `real_model_smoke_01/index.html`; original outputs/tensors are
+under `real_model_smoke_01/requests/000001/native/`. `audit/` contains complete test
+logs/XML, metrics and causal/calibration/preservation checks. All 107 E1 images,
+manifest and calibration still match; every prepared frame matches the existing
+calibrated preprocessing exactly. Private imagery remains local and unpublished.
 
-Remaining blockers are evidence/resource constraints, not a need for new training:
-real `T_base_camera` remains missing, near-goal stopping failures unresolved, live
-timing unvalidated. Do not treat native ego waypoints as Go2 base commands, or supply
-identity poses. Next steps: safe resource window → new-entry-point one-job real
-replay → full regressions → separately validated read-only receiver connection.
+Claude's published `GO2_HIGH_LEVEL_CONTROL.md` and `GO2_NATIVE_AVOIDANCE_AUDIT.md`
+were read at `742cfe4fb1b71f9d19d9d2d62be56f03b6b03707` in
+`Go2_Navigation-go2-control`. [VLN_CONTROL_HANDOFF](VLN_CONTROL_HANDOFF.md) links the
+pinned reports and attributes hardware findings to Claude/operator. Reported
+avoidance-service velocity commands and routine stop are distinct from unverified
+remote override under API ownership, obstacle stopping and robot firmware. Native
+absolute waypoints are not velocity commands. No control code was imported, executed
+or merged. **Manufacturer obstacle avoidance must remain enabled.**
+
+Next: a separately coordinated read-only receiver → `ObservationInbox` connection;
+validate clock epochs, exposure/receipt semantics, host-monotonic mapping and actual
+display age. The smoke produced no fresh advisory at the default limit, so live
+freshness remains unestablished. Real `T_base_camera` and near-goal stopping are
+unresolved requirements for future metric/physical use, not blockers to an explicitly
+unregistered RGB-only advisory display. Never substitute identity poses or connect
+model output to the control utility.
 
 ## Phase 6D → next agent: measured waypoint validation (2026-11-15)
 

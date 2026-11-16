@@ -8,9 +8,12 @@ causal snapshots, instruction revisions and stale/cancelled-response checks.
 `shadow_display` writes local HTML/status/images without a server or command route.
 The native replay worker, decoder, calibration, operational defaults and old results
 remain unchanged. Native episode anchors are retained within a bounded instruction
-session; limit/gap handling pauses explicitly. Real inference through this wrapper
-and live integration are pending resource coordination, not claimed validated.
+session; limit/gap handling pauses explicitly. One real calibrated replay through
+this wrapper and the offline regressions have now run sequentially after operator
+coordination. The native chunk decoded and the 3 s age gate correctly rejected its
+3.545 s replay age. Live receiver/clock mapping and live freshness remain unvalidated.
 See [VLN_SHADOW_DEMO](VLN_SHADOW_DEMO.md) and [VLN_CONTROL_HANDOFF](VLN_CONTROL_HANDOFF.md).
+Exact measured evidence: [VLN_SHADOW_VERIFICATION](VLN_SHADOW_VERIFICATION.md).
 
 ## Phase 6C isolated navigation-trained inference (2026-11-13)
 

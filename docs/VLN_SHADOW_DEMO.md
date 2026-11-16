@@ -69,16 +69,22 @@ allows. `--mode paced --speed 1` schedules availability against host monotonic t
 that replay clock advances during inference. Slow input decoding catches up in
 bounded batches (eight observations/tick). Neither is measured live Go2 latency.
 
-### Real LightNav smoke command — pending resource coordination
+### Real LightNav smoke — verified in an operator-coordinated window
 
-Do not launch while the operator is testing physical motion on this Mac. The
-operator was asked to confirm a safe resource window; none was confirmed during
-implementation. The command below is prepared, **not recorded as executed**.
+After the operator confirmed physical testing paused/finished, one real request
+completed with a valid native chunk and correct stale rejection at 3.545 s paced
+observation age against the unchanged 3 s limit. See the
+[verification report](VLN_SHADOW_VERIFICATION.md) for exact executed commands,
+timings, source preservation and test results. The template below uses a different
+fresh output path. Re-coordinate before heavy work if physical testing resumes.
 
 ```bash
 MODEL=/Users/yushan/Desktop/Go2_Navigation/data/outputs/phase6c/model-env/bin/python
 ASSETS=/Users/yushan/Desktop/Go2_Navigation/data/outputs/phase6c/lightnav
-"$CORE" scripts/run_vln_shadow.py \
+env -u LIGHTNAV_ASSETS -u SMOLVLM_MODEL_CACHE \
+  GO2_HARDWARE=0 MUJOCO_RENDER_TEST=0 HF_HUB_OFFLINE=1 \
+  HF_HUB_DISABLE_TELEMETRY=1 TOKENIZERS_PARALLELISM=false \
+  "$CORE" scripts/run_vln_shadow.py \
   --episode /Users/yushan/Desktop/Go2_Navigation/data/outputs/phase6b/episodes/p6b_test_c_e1_turn_right/model_input/episode.json \
   --instruction 'Turn right toward the kitchen counter.' \
   --backend lightnav --model-python "$MODEL" --assets "$ASSETS" \
@@ -230,6 +236,13 @@ bounded queues, stale/wrong/superseded responses, cancellation during inference,
 epoch and instruction resets, missing data, malformed outputs, STOP separation,
 owned-worker shutdown, and absence of control imports/options.
 
+After the operator-authorized real smoke, the **full core suite passed 648 tests
+with 0 failures and 9 skips** in 44.73 s. Then **17 optional native/numeric tests
+passed with 0 failures and 2 rendering skips** in the existing model environment
+in 2.68 s. The core result includes all 57 advisory tests. Hardware was disabled;
+environment-specific core skips were covered separately. No jobs competed and no
+environment was changed. See the [full evidence and skip reasons](VLN_SHADOW_VERIFICATION.md).
+
 Actual application runs under `/Users/yushan/Desktop/Go2_Navigation/data/outputs/vln_shadow/`:
 
 | Run | Actual verification |
@@ -239,6 +252,7 @@ Actual application runs under `/Users/yushan/Desktop/Go2_Navigation/data/outputs
 | `published_demo/` | Final code, 32 observations and 3/3 mock proposals; source/config hashes bound in `run.json`. |
 | `synthetic_stale_v1/` | 32 observations; 1.2 s mock inference with a 0.5 s advisory limit; 2/2 results rejected as stale. |
 | `private_e1_mock_v1/` | Existing E1 package, 24 images, 2 mock proposals accepted; measured fisheye rectification, uncertainty retained, fast replay age unknown. Package unchanged. |
+| `verification_20261115_01/real_model_smoke_01/` | One actual LightNav call, 24 source observations, 5 causal calibrated inputs, 10 decoded native waypoints; correctly rejected as stale at 3.545 s paced age. No native STOP or verified completion. |
 
 Each run contains `index.html`, `advisory.png`, `status.json`, `last_active_status.json`,
 `summary.json`, `events.jsonl`, source observation NPZ/metadata, immutable jobs,
@@ -254,14 +268,12 @@ loading annotations. Runtime/library metadata was read without importing the mod
 
 ![Synthetic mocked advisory, not model inference](assets/vln_shadow_synthetic.png)
 
-**Pending:** new-entry-point real inference, full repository regression suite, and
-live receiver connection. The earlier Phase 6D 591-pass/9-skip suite and 121 real
-model calls are historical evidence, not rerun claims. No heavy verification was
-started without operator coordination. After a safe resource window, run the one-job
-smoke above, then the existing full regression command from
-[PHASE6D_NAVIGATION_EXPERIMENTS](PHASE6D_NAVIGATION_EXPERIMENTS.md), using this worktree's
-`PYTHONPATH`. Existing viewer tests expect an ignored `.venv` alias to `core-env`;
-create that alias in this isolated worktree only if absent. Never replace an environment.
+**Pending:** live read-only receiver connection, exposure/receipt clock mapping and
+live freshness validation. This smoke did not produce a fresh advisory under the
+default limit. Earlier Phase 6D model results remain historical; the latest replay
+and regression evidence is recorded separately above. Existing viewer tests use
+this worktree's ignored `.venv` symlink to the unchanged core-env. No robot connection,
+DDS, control ownership or command was used during verification.
 
 Known limits: real `T_base_camera` unresolved; native ego metres/radians are not Go2
 base commands; no measured target distance, navigation-success or safety evidence.

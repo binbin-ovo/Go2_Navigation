@@ -13,7 +13,7 @@ worker and native preprocessing/decoder. New instruction revisions never accept 
 old generation as current. Display distinguishes latest camera, actual input history,
 native waypoint chunk, target pointing, STOP and unverified completion.
 
-**Actually verified:** 114 lightweight tests passed in 1.56 s (57 new, 57 existing;
+**Initial lightweight verification:** 114 tests passed in 1.56 s (57 new, 57 existing;
 no skipped cases in this selected set). Ruff and diff checks pass. Synthetic paced
 replay received 48 frames while delayed mock inference produced three accepted
 proposals. A second synthetic run produced three accepted proposals/32 frames. A
@@ -27,17 +27,27 @@ a short source ended before warm-up completed. Warm-up now suppresses dispatch,
 not the pending flag; the buffered causal input is submitted at EOF. The failing
 test log is retained alongside the passing final log.
 
-**Pending:** one real LightNav replay through this application, full repository
-regressions, and live sensor-to-model connection. Heavy verification was held because
-Claude's physical-control tests share this Mac and the operator has not confirmed a
-resource window. Prior Phase 6D 591-pass/9-skip results remain historical. No sensor,
-calibration or model environment was modified; no robot connection was opened.
+**Operator-authorized follow-up, completed:** implementation `b3c3dff` ran one real
+LightNav request from E1, then the core regression suite, then optional native/numeric
+checks, sequentially. Five actual causal calibrated inputs produced a valid native
+ten-waypoint chunk. Native generation 2.444501 s; child interval 2.851785 s; paced
+observation age at receipt 3.544899 s. The unchanged 3 s advisory limit correctly
+marked it STALE (one decoded, zero fresh accepted, one rejected). No threshold tuning,
+extra model call, navigation-success claim or goal-completion claim.
+
+**Latest tests:** 648 passed / 0 failed / 9 skipped in 44.73 s in core; 17 passed /
+0 failed / 2 skipped in 2.68 s in the separate environment. Six native tests and
+numeric simulator checks skipped in core were covered by the latter run. Physical
+Go2 and two camera-rendering tests remain unexecuted. Hardware opt-ins were explicitly
+disabled and collection checked before running. No sensor/calibration/model environment
+was modified, no control code merged, and no Go2 connection or command was used.
+See [VLN_SHADOW_VERIFICATION](VLN_SHADOW_VERIFICATION.md) for exact commands and reasons.
 
 Dependency/runtime pins remain unchanged: isolated core Python 3.12 with the existing
 Phase 6B-compatible stack; separate model Python 3.11/Torch 2.10/Transformers 5.8/
 NumPy 2.4 stack. Fixed LightNav checkpoint `826dc5f`, code `3015508`, MPS BF16/SDPA,
-no quantization, existing same-dtype CPU pooling patch. This task did not re-run that
-model runtime. The app uses already-installed NumPy/OpenCV/Pillow/PyYAML/jsonschema;
+no quantization, existing same-dtype CPU pooling patch. The follow-up ran that fixed
+runtime without modifications. The app uses already-installed NumPy/OpenCV/Pillow/PyYAML/jsonschema;
 no added dependency or installer run.
 
 Known limits: official SlowFast anchors require the complete bounded instruction
@@ -47,19 +57,23 @@ operation is added. Fast replay capture age is unknown; paced age is virtual rep
 time. Real `T_base_camera`, verified completion and physical stopping remain unknown.
 Both earlier near-goal stopping failures persist. All optional LiDAR is independent.
 
-Claude's control worktree was inspected without edits. At HEAD `45154f6`, control
-files were uncommitted and the two requested hardware reports absent; no verified
-capability commit is available. [VLN_CONTROL_HANDOFF](VLN_CONTROL_HANDOFF.md) keeps
-route, units, limits, ownership, stop, disconnection and enabled-avoidance evidence
-explicitly unknown. Manufacturer avoidance must remain enabled in any later,
-separately authorized integration.
+Claude's published control reports at `742cfe4fb1b71f9d19d9d2d62be56f03b6b03707` were
+read without importing/executing control code. [VLN_CONTROL_HANDOFF](VLN_CONTROL_HANDOFF.md)
+now distinguishes the reported avoidance-service velocity route and routine stop
+from unverified remote override under API ownership, obstacle stopping, firmware and
+model-to-base registration. Native absolute waypoints are not velocity commands.
+Manufacturer avoidance must remain enabled in any later authorized integration.
 
 Read [VLN_SHADOW_DEMO](VLN_SHADOW_DEMO.md) for all launch/reproduction commands,
 source contracts, queue/timing behavior and artifact paths. Local artifacts:
 `data/outputs/vln_shadow/`; selected test log/XML: `audit/lightweight_tests_final.*`.
-Only a synthetic screenshot is published. Next: obtain the hardware report commit
-and a safe resource window, run the one-job model smoke, then full regressions;
-connect the validated receiver read-only in a separate operator test.
+Real verification artifacts are in `data/outputs/vln_shadow/verification_20261115_01/`;
+only the earlier synthetic screenshot is published. All 107 E1 images, calibration
+and manifest remain unchanged. **Next / pending:** a separately coordinated live
+read-only receiver connection, timestamp/epoch mapping checks and live age measurement.
+The real smoke produced no fresh advisory at the default age limit. `T_base_camera`
+and reliable stopping remain requirements for future metric/physical use, not for
+an explicitly unregistered RGB-only advisory display.
 
 ## Phase 6D — offline waypoint validation completed (2026-11-15)
 

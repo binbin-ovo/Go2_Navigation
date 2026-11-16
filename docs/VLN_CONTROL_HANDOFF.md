@@ -14,36 +14,36 @@ in **one decision-time local frame**, x forward/y left/yaw CCW, metres/radians,
 without an intrinsic waypoint time base. No summing absolute poses as deltas; no
 camera-optical-to-robot-base substitution. Real `T_base_camera` remains unresolved.
 
-Claude's worktree was checked read-only:
+Claude's completed reports were read from his clean worktree
 `/Users/yushan/Desktop/Go2_Navigation-go2-control`, branch
-`feature/go2-high-level-control-audit`, HEAD
-`45154f6b9f05227de74254cb4562d7e0ad07b7dd`.
-It contains uncommitted control work (`scripts/go2_hl_control.py`, `src/go2_control/`,
-`tests/test_go2_control.py`). Neither `docs/GO2_HIGH_LEVEL_CONTROL.md` nor
-`docs/GO2_NATIVE_AVOIDANCE_AUDIT.md` was present at inspection. No corresponding
-remote branch was present after the initial fetch. **No published hardware result
-or verified capability commit is available to cite.** Source filenames and SDK
-method names are not evidence of a tested command route. That work was not modified,
-imported, executed, merged or treated as an implementation dependency.
+`feature/go2-high-level-control-audit`, commit
+**`742cfe4fb1b71f9d19d9d2d62be56f03b6b03707`**:
+[GO2_HIGH_LEVEL_CONTROL](https://github.com/binbin-ovo/Go2_Navigation/blob/742cfe4fb1b71f9d19d9d2d62be56f03b6b03707/docs/GO2_HIGH_LEVEL_CONTROL.md)
+and [GO2_NATIVE_AVOIDANCE_AUDIT](https://github.com/binbin-ovo/Go2_Navigation/blob/742cfe4fb1b71f9d19d9d2d62be56f03b6b03707/docs/GO2_NATIVE_AVOIDANCE_AUDIT.md).
+They supersede the initially unavailable-report status at advisory implementation
+commit `b3c3dff`. **Hardware findings below are attributed to Claude/operator's
+reports, not independently repeated by Codex.** No control code was imported,
+executed, merged or made an advisory dependency.
 
-When Claude publishes those two reports, record their exact commit, test machine,
-robot firmware, route and evidence artifacts here before discussing integration.
-This document's “unknown” entries must not be filled with simulator settings.
+Reported setup: Go2 Pro, Ethernet to the Mac, SDK `814556d`, isolated Python 3.10.17.
+Robot firmware version was not read; reported service versions are
+`obstacles_avoid` 1.0.0.2, `sport` 1.0.0.1, `motion_switcher` 1.0.0.1 and
+`robot_state` 1.0.0.2. Use the pinned reports for private telemetry locations.
 
 ## Capability checklist owned by Claude/operator
 
-| Requirement | Verified now | Evidence needed before later physical integration |
+| Requirement | Evidence reported by Claude/operator | Remaining limits / integration requirement |
 |---|---|---|
-| Selected high-level command route/method | **Unknown** | Report commit and actual tested route, firmware, client version; no silent fallback route. |
-| Velocity vs position semantics | **Unknown** | Measured response, absolute/relative interpretation and reference frame. |
-| Translation/yaw units and axes/signs | **Unknown on hardware** | Separate forward/left/right tests, documented units and command frame. Native model semantics alone are insufficient. |
-| Command lifetime/update cadence | **Unknown** | Observed hold/expiry behavior and required send rate, including interrupted sender. |
-| Ownership and operator takeover | **Unknown** | Tested acquisition, competing-client behavior, release and independent takeover. |
-| Routine stop | **Unknown** | Tested method and behavior; model STOP token is not this method. |
-| Independent operator stop | **Unknown** | Actual tested independent stop path and operator procedure. |
-| Timeout/disconnection behavior | **Unknown** | Evidence for lost application, lost link, blocked inference, sender crash and restart. |
-| Manufacturer obstacle avoidance | **Unknown for any selected command route** | Must remain **enabled**. Status plus evidence that the chosen route actually uses it. A status flag alone is insufficient. |
-| Tested hardware limits | **Unknown** | Validated translational/angular limits, operating mode and environmental constraints. No simulator 0.8 m/s or 3 rad/s defaults. |
+| Selected high-level command route/method | `obstacles_avoid` velocity Move, API 1003; no sport-Move fallback. | No physical route in this advisory app. Robot firmware version unknown. |
+| Velocity vs position semantics | Mode 0 velocity used; position modes were not tested. | Native absolute poses cannot be copied into velocity fields. |
+| Translation/yaw units and axes/signs | m/s, rad/s; +x forward; +yaw CCW/left, −yaw right, supported by IMU/operator observations. | Lateral semantics not established by these tests. Some visual turn checks remain pending. Real model-to-base registration missing. |
+| Command lifetime/update cadence | Tested resend 20 Hz; reported expiry about 0.9–1.0 s, limited evidence. | Not a guaranteed watchdog specification across failures/firmware. |
+| Ownership and operator takeover | API claim/release returned success; remote drove again after release. | **Override while API owns control remains unverified**; remote state may be masked. |
+| Routine stop | Reported zero-velocity routine stopped within about 0.2–0.4 s in observed trials. | This app never invokes it; native STOP is not a physical stop. |
+| Independent operator stop | Releasing remote sticks stopped when remote owned control. | Independent override/stop under API ownership is not established. |
+| Timeout/disconnection behavior | One accidental mid-turn link loss: stale-state abort; stop/release undelivered; operator reported stopped; ownership cleared after reconnection cleanup. | Deliberate disconnect tests not done; release is not assured on broken link. |
+| Manufacturer obstacle avoidance | Selected route is the avoidance service; status true before/after reported runs. | **No obstacle was placed in the path: obstacle-stopping is unverified.** Reverse holds may reflect avoidance/locomotion; mechanism unknown. Must remain enabled. |
+| Tested hardware limits | Utility bounds: forward ≤0.30 m/s, reverse ≤0.75 m/s only with distance target, yaw magnitude ≤1.0 rad/s with heading target above 0.5; no combined translation/turn. | These are reported utility limits, not a validated safe envelope. Reverse overshoot/blind rear and unexplained post-release steps remain. Do not import simulator defaults. |
 | Model-frame → command-frame transform | **Unvalidated** | Measured `T_base_camera`, frame/axis tests and correct decision-time pose handling. |
 | Sensor → advisory connection | **Pending** | Operator-coordinated read-only test after control testing, recording clock/calibration/source provenance. |
 
@@ -83,14 +83,13 @@ enter the native model job. No proposal is fed back as an executed action during
 
 ## Next operator-coordinated steps
 
-1. Publish Claude's two hardware reports and exact verified capability commit.
-2. Confirm the Mac is free of active physical-control tests before model loading
-   or full regression tests. A Git worktree is not resource isolation.
-3. Run the documented **one-job local replay smoke**, retaining every native result
-   and timing/error. Real inference through this new app is currently pending.
-4. Later, connect the already-tested read-only receiver via the existing observation
+1. The reports above and the operator-approved offline verification window are now
+   recorded. [One real-model replay and offline regressions](VLN_SHADOW_VERIFICATION.md)
+   completed sequentially; the real proposal was correctly marked stale. Re-coordinate
+   if physical testing resumes. A Git worktree is not resource isolation.
+2. Connect the already-tested read-only receiver via the existing observation
    type. Keep output inspection-only and verify clocks, epochs, cancellation and age.
-5. Consider physical integration only as a separate authorized milestone after
+3. Consider physical integration only as a separate authorized milestone after
    frame registration, takeover/stop behavior and enabled-avoidance route evidence.
    Near-goal stopping failures remain unresolved; do not credit an external stop
    rule as native LightNav completion.
