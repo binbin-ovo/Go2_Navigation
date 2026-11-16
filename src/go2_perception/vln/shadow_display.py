@@ -9,7 +9,7 @@ from urllib.parse import quote
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-from .shadow import BANNER, write_json
+from .shadow import write_json
 
 
 def escaped(value):
@@ -106,9 +106,24 @@ def render(session, now, *, snapshot=False):
         if shown
         else "waiting"
     )
+    banner = state["banner"]
     latest_info = "No camera observation"
     if latest:
         latest_info = f"{latest['frame_id']} · {latest['observation_s']:.6f} s · {latest['stamp']['clock']} ({latest['stamp']['semantics']}) · {latest['clock_epoch']}"
+    live_html = ""
+    if state.get("source_status") is not None:
+        live = state["source_status"]
+        receipt_age = live.get("host_since_last_sensor_receipt_s")
+        exposure_age = (
+            None
+            if not latest or latest.get("exposure_monotonic_s") is None
+            else now - latest["exposure_monotonic_s"]
+        )
+        camera = live.get("camera_state", "unknown")
+        live_html = f"""<section><h2>Live camera · {escaped(camera.upper())}</h2>
+    <p>Latest frame: host time since sensor receipt {escaped(None if receipt_age is None else f"{receipt_age:.3f} s")} ·
+    since estimated exposure {escaped("UNKNOWN" if exposure_age is None else f"{exposure_age:.3f} s (estimated, unvalidated)")}.
+    An interruption is reported here; old frames are never re-fed.</p><pre>{escaped(json.dumps({k: live.get(k) for k in ("counts", "clock_epoch", "bridge_alive", "bridge_error")}, indent=2))}</pre></section>"""
     model_view = "<p>No model input yet.</p>"
     history_html, timing_text, proposal_instruction = "", "Not inferred", ""
     current_path = None
@@ -178,10 +193,10 @@ def render(session, now, *, snapshot=False):
     pre{{white-space:pre-wrap;word-break:break-word;font-size:12px}}table{{font:12px monospace;width:100%}}td{{padding:4px}}
     .history{{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}}.model-image{{position:relative}}.target{{position:absolute;transform:translate(-50%,-50%);color:#ff32cd;font-size:32px;font-weight:bold}}
     @media(max-width:900px){{.grid{{grid-template-columns:1fr}}.history{{grid-template-columns:1fr 1fr}}}}
-    </style><header><strong>{BANNER}</strong><br><span class="badge">{escaped(source)}</span><span class="badge">{escaped(backend)}</span><span class="badge">{escaped(label)}</span></header><main>
+    </style><header><strong>{escaped(banner)}</strong><br><span class="badge">{escaped(source)}</span><span class="badge">{escaped(backend)}</span><span class="badge">{escaped(label)}</span></header><main>
     <section><h2>Current instruction · revision {state["instruction_revision"]}</h2><p>{escaped(state["instruction"])}</p>
     <small>Session {escaped(state["session_id"])} · active={state["active"]} · in flight={state["inference_in_flight"]} · pending={state["pending_requests"]} · history={state["history_frames"]}</small>
-    <p>{escaped(state["history_error"] or "")}</p><p>Terminal: <code>instruction NEW TEXT</code> · <code>cancel</code> · <code>status</code> · <code>quit</code>. Cancel ends the advisory session; it does not stop a robot.</p></section>
+    <p>{escaped(state["history_error"] or "")}</p><p>Terminal: <code>instruction NEW TEXT</code> · <code>cancel</code> · <code>status</code> · <code>quit</code>. Cancel cancels the advisory request only; it does not stop the robot and sends nothing to it.</p></section>{live_html}
     <div class="grid"><section><h2>Latest camera view — may be newer</h2><img src="latest.png"><p>{escaped(latest_info)}</p>
     <p>Pose: {"available (not registered)" if latest and latest["pose_available"] else "missing"} · LiDAR: {"separate observation only" if latest and latest["lidar_available"] else "missing"}</p></section>
     <section><h2>Image actually used by this proposal</h2>{model_view}<p>Proposal instruction: {escaped(proposal_instruction)}</p>
@@ -204,7 +219,7 @@ def render(session, now, *, snapshot=False):
         panel = Image.new("RGB", (1400, 850), "#e8edf1")
         draw = ImageDraw.Draw(panel)
         draw.rectangle((0, 0, 1400, 110), fill="#173b50")
-        panel_text(draw, (24, 15), BANNER, fill="white", size=28)
+        panel_text(draw, (24, 15), banner, fill="white", size=28)
         panel_text(
             draw, (24, 62), f"{source} | {backend} | {label}", fill="#ffdc88", size=20
         )
@@ -229,7 +244,7 @@ def render(session, now, *, snapshot=False):
             f"Native STOP={result.get('decoder_stop')} | completion UNVERIFIED | no physical stop command",
             "Native output: " + str(result.get("native_output", "none")),
             "Full native path, yaw, input history, timing and rejection reasons: index.html / status.json",
-            "Replay follows recorded/synthetic inputs. No proposal has been executed.",
+            ("Live read-only camera input. " if live_html else "Replay follows recorded/synthetic inputs. ") + "No proposal has been executed.",
         ]
         for i, line in enumerate(text):
             panel_text(draw, (24, 620 + i * 35), line[:145], fill="#142b39", size=17)

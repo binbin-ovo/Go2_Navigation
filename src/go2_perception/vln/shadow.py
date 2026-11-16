@@ -16,6 +16,7 @@ from .observation import TIME_SEMANTICS, load, save, validate
 from .pretrained import causal_history, comparison_action, native_token_contract
 
 BANNER = "ADVISORY ONLY — NO ROBOT COMMANDS"
+LIVE_BANNER = "LIVE INPUT — ADVISORY ONLY — NO ROBOT COMMANDS"
 
 
 def write_json(path, data):
@@ -157,6 +158,8 @@ class ShadowSession:
         self.events_path = self.output / "events.jsonl"
         self.replay_anchor = None
         self.last_now = -float("inf")
+        self.banner = LIVE_BANNER if mode == "live_unvalidated" else BANNER
+        self.source_status = None  # optional live receiver status, display only
 
     def event(self, kind, now, **fields):
         with self.events_path.open("a") as stream:
@@ -539,6 +542,7 @@ class ShadowSession:
                         "malformed_output: invalid response structure or nonfinite JSON"
                     )
                 record = {
+                    "receipt_monotonic_s": now,
                     "response": response,
                     "rejection_reason": reason,
                     "display_timing": self.timing(request, now),
@@ -610,8 +614,9 @@ class ShadowSession:
                 else "CURRENT ADVISORY",
             }
         return {
-            "banner": BANNER,
+            "banner": self.banner,
             "source_mode": self.mode,
+            "source_status": self.source_status,
             "session_id": self.session_id,
             "instruction_revision": self.revision,
             "instruction": self.instruction,

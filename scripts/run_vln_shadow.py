@@ -1,7 +1,9 @@
 """Terminal instruction -> local observations -> read-only LightNav advisory.
 
-No live connection or motion-enabling option exists. Type `instruction TEXT`,
-`cancel`, `status`, or `quit`. The local index.html refreshes without a server.
+Sources: an existing episode, synthetic frames, or (``--go2-camera``) the read-only
+Go2 front-camera bridge child. No motion-enabling option or robot client exists;
+nothing is ever sent to the robot. Type `instruction TEXT`, `cancel` (advisory
+only, never a robot stop), `status`, or `quit`. index.html refreshes without a server.
 """
 
 import argparse
@@ -14,10 +16,14 @@ import sys
 import threading
 import time
 
-from go2_perception.vln.shadow import BANNER, Limits, ShadowSession, write_json
+import yaml
+
+from go2_perception.vln.calibration import load_calibration
+from go2_perception.vln.shadow import Limits, ShadowSession, write_json
 from go2_perception.vln.episodes import file_sha256
 from go2_perception.vln.shadow_display import render
 from go2_perception.vln.shadow_sources import EpisodeSource, SyntheticSource
+from go2_perception.vln.shadow_live import LiveCameraSource, latency_model
 from go2_perception.vln.shadow_worker import MockWorker, ProcessWorker
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -33,6 +39,11 @@ def parser():
         help="Existing model_input/episode.json; never annotations",
     )
     source.add_argument("--synthetic", action="store_true")
+    source.add_argument(
+        "--go2-camera",
+        action="store_true",
+        help="Read-only front-camera bridge (multicast read socket in the hardware env)",
+    )
     p.add_argument(
         "--output",
         type=Path,
@@ -56,6 +67,45 @@ def parser():
         "--runtime-config", type=Path, default=ROOT / "configs/pretrained_vln.yaml"
     )
     p.add_argument("--device", choices=["cpu", "mps", "cuda"], default="mps")
+    p.add_argument(
+        "--hardware-python", type=Path, help="Hardware env Python for the camera bridge"
+    )
+    p.add_argument("--camera-host-ip", default="192.168.123.222")
+    p.add_argument(
+        "--calibration",
+        type=Path,
+        default=ROOT / "configs/go2_front_camera_calibration.yaml",
+    )
+    p.add_argument(
+        "--camera-stride",
+        type=int,
+        default=2,
+        help="Bridge forwards every Nth decoded frame (declared, counted)",
+    )
+    p.add_argument(
+        "--camera-latency",
+        choices=["configured", "unknown"],
+        default="configured",
+        help="Estimated exposure from configs/go2_vln_sensors.yaml, or leave unknown",
+    )
+    p.add_argument(
+        "--camera-silence-s",
+        type=float,
+        default=1.0,
+        help="No new frame for this long = interruption; inference pauses",
+    )
+    p.add_argument(
+        "--camera-inbox",
+        type=int,
+        default=16,
+        help="Bounded live inbox; absorbs main-loop input preparation without loss",
+    )
+    p.add_argument(
+        "--paused-exit-s",
+        type=float,
+        default=15.0,
+        help="Live: end the run if history stays paused this long without a new instruction",
+    )
     p.add_argument("--advisory-age-s", type=float, default=3.0)
     p.add_argument("--response-deadline-s", type=float, default=10.0)
     p.add_argument("--worker-timeout-s", type=float, default=30.0)
@@ -106,7 +156,7 @@ def print_status(session, now):
     print(
         json.dumps(
             {
-                "banner": BANNER,
+                "banner": session.banner,
                 "mode": s["source_mode"],
                 "revision": s["instruction_revision"],
                 "instruction": s["instruction"],
@@ -128,6 +178,63 @@ def print_status(session, now):
     )
 
 
+def write_latency(session, displayed_s):
+    """One row per answered request: where the time went, without cross-clock math."""
+    request, record = session.displayed
+    source = request.context["current_source"]
+    prov = source["provenance"]
+    response = record["response"]
+    result = response.get("result", {})
+    native = result.get("timing") if isinstance(result.get("timing"), dict) else {}
+    submit = request.context["host_submit_monotonic_s"]
+    start, end = response.get("host_inference_start_s"), response.get("host_inference_end_s")
+    receipt = prov.get("sensor_receipt_monotonic_s")
+
+    def span(a, b):
+        return None if a is None or b is None else b - a
+
+    row = {
+        "sequence": request.context["identity"]["sequence"],
+        "instruction_revision": request.context["identity"]["instruction_revision"],
+        "frame_id": source["frame_id"],
+        "rejection_reason": record["rejection_reason"],
+        "label": "STALE"
+        if (record["rejection_reason"] or "").startswith("stale")
+        else "REJECTED"
+        if record["rejection_reason"]
+        else "CURRENT",
+        "estimated_exposure_to_sensor_receipt_s": span(
+            prov.get("estimated_exposure_monotonic_s"), receipt
+        ),
+        "sensor_receipt_to_decoded_s": span(receipt, prov.get("decoded_monotonic_s")),
+        "decoded_to_parent_read_s": span(
+            prov.get("decoded_monotonic_s"), prov.get("parent_read_monotonic_s")
+        ),
+        "parent_read_to_session_receive_s": span(
+            prov.get("parent_read_monotonic_s"), prov.get("session_receive_monotonic_s")
+        ),
+        "session_receive_to_submit_s": span(prov.get("session_receive_monotonic_s"), submit),
+        "input_preparation_and_dispatch_s": span(submit, start),
+        "child_inference_s": span(start, end),
+        "native_generate_s": native.get("native_generate_s"),
+        "result_receipt_after_inference_s": span(end, record.get("receipt_monotonic_s")),
+        "display_after_receipt_s": span(record.get("receipt_monotonic_s"), displayed_s),
+        "sensor_receipt_to_display_s": span(receipt, displayed_s),
+        "estimated_exposure_to_display_s": span(
+            prov.get("estimated_exposure_monotonic_s"), displayed_s
+        ),
+        "display_timing_at_receipt": record["display_timing"],
+        "source_age_at_cutoff_s": request.context["source_age_at_cutoff_s"],
+        "history_frames_in_job": len(request.job["frames"]),
+        "conversion_uncertainty_s": prov.get("conversion_uncertainty_s"),
+        "camera_latency_model": session.source_status.get("camera_latency_model")
+        if session.source_status
+        else None,
+    }
+    with (session.output / "latency.jsonl").open("a") as stream:
+        stream.write(json.dumps(row) + "\n")
+
+
 def main(argv=None):
     p = parser()
     a = p.parse_args(argv)
@@ -144,13 +251,28 @@ def main(argv=None):
         p.error("Invalid finite replay/run bounds")
     if a.backend == "lightnav" and (not a.assets or not a.model_python):
         p.error("LightNav needs the existing isolated --model-python and --assets")
+    if a.go2_camera and (
+        not a.hardware_python or not 1 <= a.camera_stride <= 8 or not 0.2 <= a.camera_silence_s <= 10
+    ):
+        p.error("--go2-camera needs --hardware-python, stride 1..8 and silence 0.2..10 s")
     if a.output.exists():
         p.error(
             "Output must be a new directory; existing evidence is never overwritten"
         )
-    source = (
-        SyntheticSource(a.synthetic_frames) if a.synthetic else EpisodeSource(a.episode)
-    )
+    live = a.go2_camera
+    if live:
+        intrinsics, _ = load_calibration(a.calibration)
+        if intrinsics.status != "measured":
+            p.error("Live Go2 input requires the measured camera calibration")
+        latency = None
+        if a.camera_latency == "configured":
+            sensors = yaml.safe_load((ROOT / "configs/go2_vln_sensors.yaml").read_text())
+            latency = latency_model(sensors["timing"]["camera_latency_s"])
+        source = None
+    else:
+        source = (
+            SyntheticSource(a.synthetic_frames) if a.synthetic else EpisodeSource(a.episode)
+        )
     limits = Limits(
         a.history_frames,
         a.history_seconds,
@@ -164,7 +286,9 @@ def main(argv=None):
     session = ShadowSession(
         a.output.resolve(),
         worker,
-        mode=("synthetic_" if a.synthetic else "replay_") + a.mode,
+        mode="live_unvalidated"
+        if live
+        else ("synthetic_" if a.synthetic else "replay_") + a.mode,
         limits=limits,
         allow_synthetic=a.synthetic or a.allow_synthetic_calibration,
     )
@@ -183,13 +307,18 @@ def main(argv=None):
             "real_model_verification": "pending"
             if a.backend == "mock"
             else "attempted",
-            "source_manifest_sha256": None if a.synthetic else source.episode.sha256,
+            "source_manifest_sha256": None
+            if a.synthetic or live
+            else source.episode.sha256,
+            "robot_commands_sent": 0,
+            "control_utility_imported": False,
             "implementation_sha256": {
                 str(path.relative_to(ROOT)): file_sha256(path)
                 for path in [
                     Path(__file__).resolve(),
                     ROOT / "scripts/vln_shadow_worker.py",
                     ROOT / "scripts/lightnav_worker.py",
+                    ROOT / "scripts/go2_camera_bridge.py",
                     *sorted((ROOT / "src/go2_perception/vln").glob("shadow*.py")),
                     ROOT / "src/go2_perception/vln/pretrained.py",
                     ROOT / "src/go2_perception/vln/model_preprocessing.py",
@@ -206,6 +335,18 @@ def main(argv=None):
 
     threading.Thread(target=terminal, daemon=True).start()
     termination, exit_code = "source_exhausted", 0
+    camera, camera_down, latency_rows, paused_since = None, False, 0, None
+    if live:
+        camera = LiveCameraSource(
+            python=a.hardware_python,
+            intrinsics=intrinsics,
+            calibration_path=a.calibration,
+            output=session.output / "camera",
+            host_ip=a.camera_host_ip,
+            stride=a.camera_stride,
+            capacity=a.camera_inbox,
+            latency=latency,
+        )
     try:
         if a.backend == "lightnav":
             print(
@@ -221,11 +362,12 @@ def main(argv=None):
             )
         session.instruction_changed(a.instruction, time.monotonic())
         print(
-            f"{BANNER}\nDisplay: {session.output / 'index.html'}\n"
-            "Commands: instruction TEXT | cancel | status | quit",
+            f"{session.banner}\nDisplay: {session.output / 'index.html'}\n"
+            "Commands: instruction TEXT | cancel | status | quit "
+            "(cancel = advisory only; it never stops the robot)",
             flush=True,
         )
-        iterator, next_frame = iter(source), None
+        iterator, next_frame = (None if live else iter(source)), None
         source_done, playback_start, first_source_s = False, None, None
         last_render, last_counts = -float("inf"), None
         while time.monotonic() - started < a.max_host_seconds:
@@ -246,9 +388,61 @@ def main(argv=None):
             else:
                 if playback_start is None:
                     playback_start = now
+                    if live:
+                        # History starts from frames that arrive after model readiness.
+                        camera.start()
+                        session.event("camera_bridge_started", now, command=camera.command)
+                if live:
+                    for _ in range(8):
+                        try:
+                            delivery = camera.get_nowait()
+                        except Empty:
+                            break
+                        received = time.monotonic()
+                        delivery.provenance["session_receive_monotonic_s"] = received
+                        session.receive(delivery, received)
+                        if first_source_s is None:
+                            first_source_s = delivery.available_s
+                        if camera_down:
+                            camera_down = False
+                            session.event("camera_resumed", received)
+                        if session.observation_count >= a.max_observations:
+                            break
+                    now = time.monotonic()
+                    for item in camera.drain_events():
+                        session.event(item.pop("event"), now, **item)
+                    status = camera.status(now)
+                    silent = status["host_since_last_sensor_receipt_s"]
+                    if silent is not None and silent > a.camera_silence_s and not camera_down:
+                        camera_down = True
+                        session.event("camera_interrupted", now, silence_s=silent)
+                        # Report; never re-feed or restamp the last frame.
+                        session.invalidate_history("camera_interrupted", now)
+                    status["camera_state"] = (
+                        "interrupted"
+                        if camera_down
+                        else "waiting for first frame"
+                        if silent is None
+                        else "receiving"
+                    )
+                    session.source_status = status
+                    if camera.error or not camera.alive:
+                        termination, exit_code = "camera_bridge_exited", 1
+                        break
+                    if session.observation_count >= a.max_observations:
+                        termination = "observation_budget"
+                        break
+                    # A paused live history keeps saving frames; end instead of filling disk.
+                    if session.history_error and session.inflight is None:
+                        paused_since = paused_since if paused_since is not None else now
+                        if now - paused_since > a.paused_exit_s and not a.stay_open:
+                            termination = "history_paused"
+                            break
+                    else:
+                        paused_since = None
                 # Bounded work per tick. Replay timestamps keep advancing during
                 # inference; delayed input decoding catches up without stopping time.
-                for _ in range(8):
+                for _ in range(0 if live else 8):
                     if source_done:
                         break
                     if next_frame is None:
@@ -278,9 +472,23 @@ def main(argv=None):
                     or session.latest["available_s"] - first_source_s
                     >= a.warmup_seconds
                 )
+                if live and session.counts["submitted"] >= a.max_requests:
+                    # The live source never ends; the request budget does.
+                    source_done, termination = True, "request_budget"
                 if session.counts["submitted"] >= a.max_requests:
                     # Do not erase observations: suppress only the scheduling flag.
                     session.pending = False
+                if live:
+                    # Show a returned proposal before preparing the next request, so
+                    # display latency is not inflated by the next job's input preparation.
+                    answered = session.counts["accepted"] + session.counts["rejected"]
+                    session.tick(now, allow_submit=False)
+                    if session.counts["accepted"] + session.counts["rejected"] > answered:
+                        render(session, time.monotonic())
+                        last_render = time.monotonic()
+                        latency_rows = answered + 1
+                        write_latency(session, last_render)
+                    now = time.monotonic()
                 session.tick(now, allow_submit=warm)
                 if (
                     source_done
@@ -290,9 +498,13 @@ def main(argv=None):
                 ):
                     break
             now = time.monotonic()
-            if now - last_render >= 0.5:
+            answered = session.counts["accepted"] + session.counts["rejected"]
+            if now - last_render >= 0.5 or answered > latency_rows:
                 render(session, now)
                 last_render = now
+            if live and answered > latency_rows and session.displayed:
+                latency_rows = answered
+                write_latency(session, time.monotonic())
             counts = (
                 session.revision,
                 session.counts["submitted"],
@@ -316,6 +528,13 @@ def main(argv=None):
         session.event("application_error", time.monotonic(), error=repr(error))
         print(f"Advisory error: {error}", file=sys.stderr)
     finally:
+        if camera is not None:
+            camera.close()
+            session.source_status = {
+                **camera.status(time.monotonic()),
+                "camera_state": "closed",
+            }
+            session.event("camera_bridge_closed", time.monotonic(), counts=camera.counts)
         now = time.monotonic()
         # Preserve the last running state separately; final state marks the session
         # closed so a static page can never imply a fresh still-active proposal.
@@ -331,12 +550,14 @@ def main(argv=None):
                 "backend": a.backend,
                 "physical_execution_authorized": False,
                 "live_sensor_validation": "pending",
+                "robot_commands_sent": 0,
+                "camera": None if camera is None else session.source_status,
                 "completion_verified": False,
                 "history_error": session.history_error,
             },
         )
         print_status(session, time.monotonic())
-        print(f"{BANNER}\nDisplay: {session.output / 'index.html'}", flush=True)
+        print(f"{session.banner}\nDisplay: {session.output / 'index.html'}", flush=True)
     return exit_code or int(session.history_error is not None)
 
 

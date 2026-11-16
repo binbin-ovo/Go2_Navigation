@@ -1,3 +1,29 @@
+## Live read-only VLN advisory (2026-11-16)
+
+Branch `feature/vln-live-shadow` (worktree `/Users/yushan/Desktop/Go2_Navigation-vln-live`),
+based on advisory commit `b47f07d`, not main; the control PR was not merged or imported.
+The existing read-only RTP camera receiver now feeds the advisory app through a
+hardware-env child (`scripts/go2_camera_bridge.py`) and `vln/shadow_live.py`, which
+produce the existing `Go2VLNObservation` for `ObservationInbox`. Launch with
+`run_vln_shadow.py --go2-camera`. RGB-only: host-receipt stamps, estimated exposure
+(receipt − 48 ms, single-boot), pose/LiDAR/`T_base_camera` None. Zero robot commands;
+no DDS/SDK loaded.
+
+**Verified on hardware (robot stationary, read-only):** real frames 720×1280 RGB with
+measured fisheye calibration, unique IDs, 14.3 Hz decoded / 7.1 Hz forwarded, 0 RTP loss.
+Three bounded LightNav sessions (model load 44.6–44.7 s). Sensor path ≈65 ms (48 ms of it
+assumed); native generation 2.3–6.9 s, growing with instruction history. One request
+was current at receipt (2.959 s); in steady state every proposal is **stale** under the
+unchanged 3 s limit. Instruction change, cancel, history limit and clean shutdown observed
+live; clock-step and interruption with mocks. Targets for doorway/refrigerator look
+plausible; operator review pending. Tests: 15 new mocked tests; core 663 passed / 9 skipped.
+Details: [VLN_LIVE_SHADOW_VALIDATION](VLN_LIVE_SHADOW_VALIDATION.md).
+
+Next agent: do not connect native waypoints to any Go2 command. Open questions are
+freshness (generation grows with full-history rebuild; a separate decision, not started),
+re-measuring camera latency on the current boot, and operator review of the target examples.
+Private runs: `/Users/yushan/Desktop/Go2_Navigation/data/outputs/vln_live/` (git-ignored).
+
 ## Read-only VLN advisory → Claude / next agent (2026-11-15)
 
 Branch **`feature/vln-shadow-demo`**, worktree
