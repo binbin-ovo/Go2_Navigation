@@ -119,3 +119,31 @@ class TensorEvidenceWriter:
                 "outstanding": int(not self.idle.is_set()), "max_outstanding": 1,
                 "peak_owned_bytes": self.peak_bytes, "max_bytes": self.max_bytes,
                 "error": self.error}
+
+
+class SkippedTensorEvidence:
+    """Opt-out stand-in: records that tensors were deliberately not archived.
+
+    Native images, text, prompt and decoded outputs are still written by run_job;
+    only the large model-input tensor archive is skipped, and its status file says so.
+    """
+
+    def __init__(self):
+        self.submitted = 0
+
+    def check(self):
+        pass
+
+    def submit(self, dest, arrays, types):
+        size = sum(value.nbytes for value in arrays.values())
+        _status(Path(dest) / "tensor_evidence.json",
+                {"state": "not_recorded_tensor_evidence_opt_in_disabled", "bytes": size})
+        self.submitted += 1
+
+    def close(self, timeout=5.0):
+        pass
+
+    def status(self):
+        return {"submitted": self.submitted, "completed": 0, "outstanding": 0,
+                "max_outstanding": 0, "peak_owned_bytes": 0, "max_bytes": 0,
+                "error": None, "tensor_evidence": "skipped_by_option"}

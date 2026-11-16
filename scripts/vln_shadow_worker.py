@@ -18,6 +18,8 @@ def main():
     ap.add_argument("--output", type=Path, required=True)
     ap.add_argument("--profile-stages", action="store_true")
     ap.add_argument("--preparation-mode", choices=["baseline", "cached"], default="baseline")
+    ap.add_argument("--tensor-evidence", choices=["record", "skip"], default="record",
+                    help="skip (cached mode only): do not archive model-input tensors")
     args = ap.parse_args()
     wire = sys.stdout
 
@@ -97,11 +99,16 @@ def main():
                 "physical_execution_authorized": False,
                 "preparation_mode": args.preparation_mode,
                 "stage_profiling": args.profile_stages,
+                "tensor_evidence": args.tensor_evidence,
             },
         )
         send({"type": "ready"})
-        from go2_perception.vln.shadow_evidence import TensorEvidenceWriter
-        writer = TensorEvidenceWriter() if args.preparation_mode == "cached" else None
+        from go2_perception.vln.shadow_evidence import SkippedTensorEvidence, TensorEvidenceWriter
+        if args.tensor_evidence == "skip" and args.preparation_mode != "cached":
+            raise ValueError("Tensor evidence can only be skipped in cached preparation mode")
+        writer = None
+        if args.preparation_mode == "cached":
+            writer = TensorEvidenceWriter() if args.tensor_evidence == "record" else SkippedTensorEvidence()
         try:
             serve(agent, args, send, writer, run_job, validate_jobs)
         finally:

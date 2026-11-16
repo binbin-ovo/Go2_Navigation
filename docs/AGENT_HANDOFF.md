@@ -1,3 +1,37 @@
+## Interactive four-panel review tool → next agent (2026-11-16)
+
+Branch **`feature/vln-interactive-review`** (worktree
+`/Users/yushan/Desktop/Go2_Navigation-vln-interactive`), exact base `1f93d7e` from
+`feature/vln-cached-live-validation`. Main and the motion-control PR are not merged or
+imported. Read [VLN_INTERACTIVE_REVIEW](VLN_INTERACTIVE_REVIEW.md) first.
+
+**What it is:** `scripts/run_vln_interactive.py` is a terminal plus a loopback-only browser
+page with (A) the live camera, (B) the native target point on the exact model input,
+(C) all native waypoints and headings in the model-local frame, and (D) a LiDAR top-down
+view (latest / 0.5 s / 1.0 s, odometry-compensated `cloud_base`). Commands: `target`,
+`instruction`, `mark`, `note`, `end`, `review`, `status`, `save`, `quit`, `help`. Each
+trial is saved to a private, append-only run directory (images once by hash, LiDAR
+chunks with source intervals, native outputs, marks and notes, confirmed human reviews
+and click corrections in separate files). Reopen a run with
+`--review-run <run>`. The model path is unchanged: existing `ShadowSession` +
+`ProcessWorker`, full-history policy, cached preparation and the unchanged 3 s limit.
+The bounded-context policy is **not** enabled. New opt-out: `--tensor-evidence skip`
+(cached mode only; the default here; `run_vln_shadow.py` defaults unchanged).
+LiDAR/odom come from a new read-only DDS-subscriber child
+(`scripts/go2_lidar_bridge.py`, hardware env); robot-clock epochs and the per-epoch
+host−robot estimate are display-only. There is no RGB–LiDAR fusion.
+
+**Verified (no hardware, no model):** synthetic camera and LiDAR, a recorded public
+LiDAR fixture and one private recorded episode, all with the mock worker. 22 new tests;
+full core **702 passed / 0 failed / 11 environment skips**. App RSS over six short
+synthetic trials: 98 → 111 → 112.5 MiB (flat after the first). Robot commands sent: 0.
+
+**Not done, needs the operator:** connecting the stationary Go2 read-only (camera + LiDAR)
+and LightNav, then short visible / absent / ambiguous trials with immediate review.
+Coordinate first (no heavy jobs or physical tests by other agents). Measure real rates,
+worker RSS and MPS separately, and disk per trial second. No human review of real
+trials exists yet. Never connect native waypoints to any Go2 command.
+
 ## Cached preparation, live verification → next agent (2026-11-16)
 
 Branch **`feature/vln-cached-live-validation`** (worktree

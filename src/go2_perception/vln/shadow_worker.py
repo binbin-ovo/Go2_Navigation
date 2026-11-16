@@ -71,9 +71,13 @@ class ProcessWorker:
     """
 
     def __init__(self, *, python, assets, config, device, output, profile_stages=False,
-                 preparation_mode="baseline"):
+                 preparation_mode="baseline", tensor_evidence="record"):
         if preparation_mode not in ("baseline", "cached"):
             raise ValueError("Unknown input preparation mode")
+        if tensor_evidence not in ("record", "skip") or (
+            tensor_evidence == "skip" and preparation_mode != "cached"
+        ):
+            raise ValueError("Tensor evidence may be skipped only in cached mode")
         self.preparation_mode = preparation_mode
         root = Path(__file__).resolve().parents[3]
         self.output = Path(output)
@@ -105,6 +109,7 @@ class ProcessWorker:
                 str(self.output.resolve()),
                 *(["--profile-stages"] if profile_stages else []),
                 "--preparation-mode", preparation_mode,
+                "--tensor-evidence", tensor_evidence,
             ],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
