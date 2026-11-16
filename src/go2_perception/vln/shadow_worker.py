@@ -71,7 +71,7 @@ class ProcessWorker:
     """
 
     def __init__(self, *, python, assets, config, device, output, profile_stages=False,
-                 preparation_mode="baseline"):
+                 preparation_mode="baseline", worker_script=None):
         if preparation_mode not in ("baseline", "cached"):
             raise ValueError("Unknown input preparation mode")
         self.preparation_mode = preparation_mode
@@ -94,7 +94,7 @@ class ProcessWorker:
         self.process = subprocess.Popen(
             [
                 str(python),
-                str(root / "scripts/vln_shadow_worker.py"),
+                str(worker_script or root / "scripts/vln_shadow_worker.py"),
                 "--assets",
                 str(Path(assets).resolve()),
                 "--config",

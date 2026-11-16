@@ -1,3 +1,45 @@
+## Bounded visual context experiment → next agent (2026-11-16)
+
+Branch **`feature/vln-bounded-context`**, isolated worktree
+`/Users/yushan/Desktop/Go2_Navigation/data/outputs/vln-bounded-context-worktree`,
+exact base **`1f93d7eff57906ce26c4b3ab4109effb4ca71edd`**. Read
+[VLN_BOUNDED_CONTEXT_EXPERIMENT](VLN_BOUNDED_CONTEXT_EXPERIMENT.md) first, then
+[Claude's cached live report](VLN_CACHED_LIVE_VALIDATION.md). Use `git rev-parse HEAD`
+for this branch's publication commit. No merge to main or operational default change.
+
+**Implemented, not yet measured:** one offline candidate, `anchor2_recent6_actual_time_v1`:
+first two + latest six causal observations, maximum eight images/eight native slots.
+Uses official tier validation/selection, preprocessing/prompt/decoder. Explicit custom
+sparse buffer plus integer-millisecond temporal metadata preserves irregular actual
+timestamps and omitted intervals; this changes the trained input policy, not an
+equivalent cache optimization. Full-history baseline remains the original path.
+No upstream model asset, hardware environment, calibration or private package changed.
+
+**Actual checks:** 125 targeted advisory/contract tests passed (0 failed/skipped,
+15.03 s); ten pinned source/processor/mocked-generation tests passed (4.00 s, no
+weights loaded). The actual native processor retains the anchor/recent gap, and
+the worker restores baseline timestamp settings after both success and mocked failure.
+Full regression and actual pretrained comparison have **not run** for this branch.
+
+**Fixed experiment:** 34 sequential requests: saved cached-live 5/19/39 jobs twice
+per condition with reversed order, all eleven E1–E4 original decisions once per
+condition. Original instructions/labels/cutoffs preserved. Three-second limit fixed.
+Plan: `/Users/yushan/Desktop/Go2_Navigation/data/outputs/vln_bounded_context/experiment_20261116_01/plan.json`,
+SHA256 `55c73c298afe3df47ba58ac9109d39509d485d96d0a1091e0320518be50b408d`;
+863 source files hashed. It binds the implementation and refuses source/code drift.
+Code may be committed without changing those hashes; edits require a fresh retained
+declaration, never overwriting the original. No inference result exists yet.
+
+**Next:** obtain the pending shared-Mac profiling-window confirmation, execute the
+report's `--run` command, evaluate separately, inspect every changed native output,
+then run the full regression and optional native suite sequentially. Keep all
+physical opt-ins disabled. No Go2 connection, DDS, command ownership, stop, motion,
+posture or avoidance request is authorized. No camera bridge is needed/imported by
+the experiment. Earlier authorization covered the already completed latency task.
+Do not claim a speedup or recommend live testing before measuring the candidate.
+E4 search agreement is not absence recognition; E1–E4 remain correlated development
+proposals. New human visual review remains pending, not inferred from syntax.
+
 ## Cached preparation, live verification → next agent (2026-11-16)
 
 Branch **`feature/vln-cached-live-validation`** (worktree

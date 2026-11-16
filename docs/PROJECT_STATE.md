@@ -1,3 +1,36 @@
+## Bounded context experiment: implementation ready, profiling pending (2026-11-16)
+
+Current development branch **`feature/vln-bounded-context`**, exact base
+`1f93d7eff57906ce26c4b3ab4109effb4ca71edd` from Claude's cached live validation.
+Read [VLN_BOUNDED_CONTEXT_EXPERIMENT](VLN_BOUNDED_CONTEXT_EXPERIMENT.md) and the
+current [handoff](AGENT_HANDOFF.md). Main and operational defaults remain unchanged.
+
+One declared offline candidate caps visual context at eight unique images: first
+two anchors plus latest six observations, with the native tier selector and an
+explicit sparse-buffer/actual-time adapter. Native processor uses millisecond
+positions to preserve irregular timestamps and omitted intervals. This is an
+input-policy ablation, **not** input-equivalent acceleration. No model/decoder,
+calibration, sensor environment, weights or training change. No physical control path.
+
+Verified: **125 targeted tests passed, 0 failed, 0 skipped (15.03 s)**; ten separate
+native processor/mocked-generation contract tests passed (4.00 s, no neural weights
+loaded). Bounds, causality, current/anchors, missing data, reset isolation, actual
+timestamp text, full-history restoration after candidate/error, and prior advisory
+behavior are covered. The existing source files are accessible; 863 are bound by
+the frozen private plan. All eleven original pilot decisions remain included.
+
+Pending: a newly coordinated shared-Mac window, the predeclared **34** sequential
+learned requests, performance/behavior comparison and full regression on this branch.
+No new model latency, memory or freshness result is claimed. No new live test is
+recommended yet. The prior measured live result remains 3/3 stale at 3 s despite
+working cache/evidence plumbing; the candidate's effect is unknown.
+
+Private declaration:
+`data/outputs/vln_bounded_context/experiment_20261116_01/plan.json` (full absolute
+path in the report). Safe code/docs only are intended for publication. Continue with
+the report's exact commands after resource coordination; no packages or results
+should be rebuilt, relabeled or overwritten.
+
 ## Advisory latency: input-equivalent optimization (2026-11-16)
 
 Current development branch `feature/vln-live-latency`, based exactly on live-shadow

@@ -10,7 +10,7 @@ import sys
 import time
 
 
-def main():
+def main(*, serve_fn=None):
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--assets", type=Path, required=True)
     ap.add_argument("--config", type=Path, required=True)
@@ -103,7 +103,7 @@ def main():
         from go2_perception.vln.shadow_evidence import TensorEvidenceWriter
         writer = TensorEvidenceWriter() if args.preparation_mode == "cached" else None
         try:
-            serve(agent, args, send, writer, run_job, validate_jobs)
+            (serve_fn or serve)(agent, args, send, writer, run_job, validate_jobs)
         finally:
             if writer is not None:
                 try:
