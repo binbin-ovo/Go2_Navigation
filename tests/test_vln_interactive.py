@@ -242,6 +242,19 @@ def test_history_limit_pauses_and_stops_frame_archiving(tmp_path):
     assert app.session.counts["received"] == received
 
 
+def test_automatic_end_does_not_swallow_the_next_command(tmp_path):
+    app, clock, feed, messages = make_app(tmp_path, delay=0.3, history_s=2.0, max_requests_per_trial=50)
+    trial = app.start_trial(expand_target("door"), clock())
+    feed(40)  # history limit -> inference paused -> trial ends after its last result
+    end = json.loads((app.store.root / "trials" / trial.id / "trial_end.json").read_text())
+    assert end["end_reason"].startswith("inference_paused: history_limit")
+    assert app.trial is None and app.dialog is None
+    assert any(f"review {trial.id}" in m for m in messages)
+    app.handle("target chair", clock(), {}, clock())  # a command, not a review answer
+    assert app.trial is not None and app.trial.record["operator_text"] == "chair"
+    assert not (app.store.root / "trials" / trial.id / "human_labels.jsonl").exists()
+
+
 # ---------- marks, notes, review ----------
 
 def test_mark_binds_browser_view_and_falls_back_explicitly(tmp_path):
@@ -520,7 +533,8 @@ def test_cli_trial_mark_end_review_and_reopen(tmp_path):
         "status", "quit"])
     proc = subprocess.Popen([PY, "-u", ROOT / "scripts/run_vln_interactive.py", "--camera", "synthetic",
                              "--lidar", "synthetic", "--backend", "mock", "--mock-pointing", "alternate",
-                             "--mock-delay-s", "0.3", "--output", out, "--port", "0", "--reviewer", "cli"],
+                             "--mock-delay-s", "0.3", "--output", out, "--port", "0", "--reviewer", "cli",
+                             "--min-free-disk-gb", "1"],
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
                             env=env, cwd=ROOT)
     time.sleep(2.0)

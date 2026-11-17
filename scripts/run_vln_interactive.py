@@ -16,6 +16,7 @@ import argparse
 from dataclasses import asdict
 import json
 import math
+import os
 from pathlib import Path
 from queue import Empty, Full, Queue
 import subprocess
@@ -77,6 +78,9 @@ def parser():
     p.add_argument("--hardware-python", type=Path, help="Hardware env Python for the Go2 bridges")
     p.add_argument("--camera-host-ip", default="192.168.123.222")
     p.add_argument("--iface", default="en9", help="DDS interface for --lidar go2")
+    p.add_argument("--unitree-sdk", type=Path,
+                   help="Unitree SDK checkout added to the LiDAR bridge's PYTHONPATH (macOS skips the "
+                        "hardware venv's hidden editable .pth files; docs/MAC_CONNECTION.md)")
     p.add_argument("--calibration", type=Path, default=ROOT / "configs/go2_front_camera_calibration.yaml")
     p.add_argument("--camera-stride", type=int, default=2)
     p.add_argument("--camera-latency", choices=["configured", "unknown"], default="configured")
@@ -224,7 +228,9 @@ def main(argv=None):
             command = [sys.executable, "-u", ROOT / "scripts/synthetic_lidar_bridge.py",
                        *(["--recording", a.lidar_recording] if a.lidar == "recording" else []),
                        *[x for opt in a.synthetic_lidar_option for x in opt.split()]]
-        lidar = LidarSource(command, store.root / "lidar_bridge")
+        sdk_path = (os.pathsep + str(a.unitree_sdk.resolve())) if a.lidar == "go2" and a.unitree_sdk else ""
+        lidar = LidarSource(command, store.root / "lidar_bridge",
+                            env={"PYTHONPATH": str(ROOT / "src") + sdk_path})
         recorder = LidarRecorder(store.root / "lidar", quota=lambda: True)
         lidar.recorder = recorder
     gib = 2**30
@@ -314,7 +320,7 @@ def main(argv=None):
                     print(f"{name.upper()} SOURCE STOPPED ({getattr(source, 'error', None) or 'ended'}); "
                           "its panel shows this. Review stays available.", flush=True)
                     if name == "camera" and app.trial is not None:
-                        app.end_trial(f"{name}_source_stopped", time.monotonic())
+                        app.end_trial(f"{name}_source_stopped", time.monotonic(), review=False)
             time.sleep(0.01)
     except KeyboardInterrupt:
         termination = "keyboard_interrupt"

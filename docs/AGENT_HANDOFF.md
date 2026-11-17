@@ -26,11 +26,14 @@ LiDAR fixture and one private recorded episode, all with the mock worker. 22 new
 full core **702 passed / 0 failed / 11 environment skips**. App RSS over six short
 synthetic trials: 98 → 111 → 112.5 MiB (flat after the first). Robot commands sent: 0.
 
-**Not done, needs the operator:** connecting the stationary Go2 read-only (camera + LiDAR)
-and LightNav, then short visible / absent / ambiguous trials with immediate review.
-Coordinate first (no heavy jobs or physical tests by other agents). Measure real rates,
-worker RSS and MPS separately, and disk per trial second. No human review of real
-trials exists yet. Never connect native waypoints to any Go2 command.
+**Live (2026-11-17, read-only, Go2 standing and stationary, operator-confirmed):** session
+`live_03`, 4 trials and 19 LightNav requests (3 CURRENT, 12 STALE, 4 SUPERSEDED); camera
+~7.1 Hz and `cloud_base` ~15.4 Hz with 0 gaps; app RSS ≤ 220 MiB; worker MPS driver memory
+grew 8.9 → 11.8 GiB; disk ~0.45 GB/trial; 0 robot commands. Two operator-confirmed reviews:
+the door target was correct; the chair target was wrong (it pointed at the shoe rack). The
+bottle trial gave OPOS-0 and is unreviewed. Live launch needs `--unitree-sdk` and must run
+from a process with macOS Local Network access (the app's terminal panel received nothing;
+see the doc). Never connect native waypoints to any Go2 command.
 
 ## Cached preparation, live verification → next agent (2026-11-16)
 

@@ -427,6 +427,9 @@ class InteractiveApp:
         self.store.event("trial_ended", now, trial_id=trial.id, reason=reason)
         self.say(f"Trial {trial.id} ended ({reason}). Advisory cancelled; no robot command was sent.")
         self.open_review(trial.id, now, dialog=review)
+        if not review:
+            # Automatic ends never open the question dialog: the next typed line stays a command.
+            self.say(f"Type `review {trial.id}` to answer its review questions.")
         return trial
 
     # ---------- review ----------
@@ -840,7 +843,8 @@ class InteractiveApp:
         if self.trial is not None and s.history_error and not self.feeding_paused:
             # Inference is paused; stop archiving frames for it (bounded disk).
             self.feeding_paused = s.history_error
-            self.say(f"Inference paused for {self.trial.id}: {s.history_error}. Start a new target to continue.")
+            self.say(f"Inference paused for {self.trial.id}: {s.history_error}. The trial ends after its last "
+                     "result; start a new target to continue.")
         # 2. Responses first, so a result is displayed before the next job is prepared.
         s.tick(now, allow_submit=False)
         if s.displayed:
@@ -857,7 +861,11 @@ class InteractiveApp:
             s.tick(now, allow_submit=warm)
             self.trial_submitted += s.counts["submitted"] - before
             if now - self.trial.record["started_host_monotonic_s"] > self.config["trial_max_s"]:
-                self.end_trial("trial_time_limit", now)
+                self.end_trial("trial_time_limit", now, review=False)
+            elif self.feeding_paused and s.inflight is None:
+                # No further inference is possible in this trial (history limit, gap or
+                # interruption); end it once its last in-flight result has been recorded.
+                self.end_trial("inference_paused: " + self.feeding_paused, now, review=False)
         # 4. Resources: stop new trials and finalize without deleting anything.
         if self.monitor is not None:
             low = self.monitor.snapshot().get("low") or []
@@ -866,7 +874,7 @@ class InteractiveApp:
                 self.store.event("resource_limit", now, reasons=low)
                 self.say("RESOURCE LIMIT: " + "; ".join(low) + ". New trials stopped; recordings kept.")
                 if self.trial is not None:
-                    self.end_trial("resource_limit", now)
+                    self.end_trial("resource_limit", now, review=False)
         if self.model_identity is None and s.worker.ready:
             path = getattr(s.worker, "output", None)
             model = None if path is None else Path(path) / "model.json"

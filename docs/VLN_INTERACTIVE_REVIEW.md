@@ -11,12 +11,11 @@ all native waypoints and headings, and a LiDAR top-down view. The operator marks
 they see, ends the trial, answers review questions, and can reopen any saved trial
 with its comments later.
 
-**Status (2026-11-16):** built and verified with synthetic fixtures, a public synthetic
-recording, one private recorded episode and the mock worker only. **Nothing has run on
-the Go2 or with LightNav yet.** That needs the operator's approval and a stationary,
-posture-confirmed robot (see [Next: hardware session](#next-hardware-session-not-run)).
-No human review of real trials exists yet; the synthetic review records created by
-automated tests are test fixtures, not human labels.
+**Status (2026-11-17):** built and verified with synthetic fixtures, a public synthetic
+recording, one private episode and the mock worker. It then ran **live, read-only, on the
+stationary standing Go2 with LightNav** for one 14.5-minute session with four trials and
+two operator-confirmed reviews. See [Live session](#live-session-2026-11-17). Robot
+commands sent: 0.
 
 ![Synthetic contact sheet, mock worker, no model](assets/vln_interactive_synthetic_contact_sheet.png)
 
@@ -58,8 +57,8 @@ Recorded episode (private images, mock model):
 Recorded LiDAR: `--lidar recording --lidar-recording <go2-recording-v1 dir>` (replay
 LiDAR may not be mixed with the live camera, and vice versa).
 
-Prepared live command (**not run yet**; it requires the operator's approval, a stationary
-robot with posture confirmed, and no other heavy job on the Mac):
+Live command, as run on 2026-11-17 (session `live_03`). It needs the operator's approval,
+a stationary robot with posture confirmed, and no other heavy job on the Mac:
 
 ```bash
 cd /Users/yushan/Desktop/Go2_Navigation-vln-interactive
@@ -68,13 +67,26 @@ env -u LIGHTNAV_ASSETS -u SMOLVLM_MODEL_CACHE GO2_HARDWARE=0 MUJOCO_RENDER_TEST=
   .venv/bin/python -u scripts/run_vln_interactive.py \
   --camera go2 --lidar go2 --iface en9 \
   --hardware-python /Users/yushan/Desktop/Go2_Navigation/.venv-go2/bin/python \
+  --unitree-sdk /Users/yushan/Desktop/Go2_Navigation/third_party/unitree_sdk2_python \
   --backend lightnav \
   --model-python /Users/yushan/Desktop/Go2_Navigation/data/outputs/phase6c/model-env/bin/python \
   --assets /Users/yushan/Desktop/Go2_Navigation/data/outputs/phase6c/lightnav \
   --runtime-config configs/pretrained_vln.yaml --device mps --preparation-mode cached \
-  --reviewer YOUR_INITIALS \
-  --output data/outputs/vln_interactive/live_01
+  --min-free-disk-gb 10 --run-quota-gb 4 --reviewer YOUR_INITIALS \
+  --output data/outputs/vln_interactive/<NEW_RUN>
 ```
+
+Three launch requirements were found live:
+- `--unitree-sdk`: macOS marks `.venv-go2`'s editable `.pth` files hidden, so Python 3.10
+  skips them; the SDK path goes only on the LiDAR bridge's `PYTHONPATH`.
+- The disk floor: 20 GiB by default; free disk was 17.7–19.7 GiB.
+- **Where it runs:** started from the desktop app's terminal panel, neither bridge received
+  anything (0 RTP packets, 0 DDS samples), while the same code started from the agent shell
+  or a normal Terminal received everything. This is consistent with macOS Local Network
+  permission being granted per app; the setting was not changed. `live_03` therefore ran
+  from the agent shell with stdin from a FIFO. The operator typed through
+  `data/outputs/vln_interactive/relay.sh <log> <fifo>` in the panel; the relay shows the
+  log and forwards lines.
 
 Open the printed `http://127.0.0.1:8765/` (loopback only; `--port 0` picks a free port).
 
@@ -222,9 +234,9 @@ When a resource limit trips, the active trial ends (`resource_limit`), new trial
 refused and LiDAR recording stops. Nothing is deleted, and the display and review stay
 available.
 
-Rates: earlier hardware validations measured 14.3 Hz decoded / 7.1 Hz forwarded camera
-frames, ~15.6 Hz `cloud_base` (1,166–1,600 points) and ~149 Hz `robot_odom`. **This tool
-has not yet measured them itself.** Synthetic sources: 8 Hz camera, 15 Hz scans, 50 Hz odom.
+Rates measured live by this tool: ~7.1 Hz camera (stride 2), `cloud_base` interval median
+0.065 s (~15.4 Hz), odometry ~150 Hz; see [Live session](#live-session-2026-11-17).
+Synthetic sources: 8 Hz camera, 15 Hz scans, 50 Hz odom.
 
 Measured memory (synthetic camera and LiDAR, mock worker, six 8 s trials, one process,
 RSS from psutil): app parent **98.0 MiB** at start, 111.2 after trial 1, then 111.7 /
@@ -238,7 +250,7 @@ from this tool). The disk counter counts prepared-cache hard links once.
 
 ## Tests
 
-`tests/test_vln_interactive.py`, 22 tests, no hardware, model or DDS:
+`tests/test_vln_interactive.py`, 23 tests, no hardware, model or DDS:
 
 - Template saved before inference.
 - Target change keeps the late result with its original trial (SUPERSEDED).
@@ -264,7 +276,7 @@ from this tool). The disk counter counts prepared-cache hard links once.
 - AST check: no control route in any new file; the LiDAR bridge subscribes to
   `cloud_base` only.
 
-Results: `22 passed`. Full core suite on this branch: **702 passed, 0 failed, 11 skipped**
+Results: `23 passed` (one added after the live session for automatic trial ends). Full core suite on this branch: **702 passed, 0 failed, 11 skipped**
 in 51.9 s. The skips are environment-only (pinned LightNav source/RVQ, SmolVLM cache,
 simulator, `GO2_HARDWARE=1`), listed in
 `data/outputs/vln_interactive/audit/full_core_regression.log` (private). Ruff is clean on
@@ -282,17 +294,68 @@ append-only review. Exact model-input replay uses the saved
 `session/requests/<seq>/job.json`, a hash-bound job for the unchanged
 `lightnav_worker.py`, the same way as in [VLN_LIVE_LATENCY](VLN_LIVE_LATENCY.md).
 
-## Next: hardware session (not run)
+## Live session (2026-11-17)
 
-1. The operator approves, confirms the Go2 is stationary with posture stated, and confirms
-   no movement process is running. Check that no other agent is running heavy model or
-   physical tests on this Mac.
-2. Start the prepared live command. Model load is about 45 s. Panels A and D update
-   during the load.
-3. Run short trials with immediate review: a **visible** target, an **absent** target and an
-   **ambiguous** target. Mark at least once per trial, `end`, and answer the questions.
-4. Record measured camera/LiDAR rates, app/worker RSS and worker MPS (separately) across
-   trials, and disk per trial second, in this document.
+Before connecting, the operator confirmed in chat that the Go2 was **standing, stationary,
+with no movement or control process running**. Only idle Codex app processes were running
+on the Mac. Ping to 192.168.123.161 was ~1 ms. Read-only DDS discovery saw 95 publications,
+and a read-only probe saw `cloud_base` at 15.6 Hz and `robot_odom` at 156 Hz.
+
+| Attempt | Result |
+|---|---|
+| `live_01` | LiDAR bridge `ModuleNotFoundError: unitree_sdk2py`; new trials blocked by the 20 GiB disk floor; closed (Ctrl-C), 0 trials |
+| `live_02` | Started from the terminal panel: 0 camera packets, 0 LiDAR/odom samples; closed, 0 trials |
+| `live_03` | Agent shell + relay: 4 trials, 873 s, terminated by the operator's `quit` |
+
+`live_03` measurements (this tool, this boot):
+
+- **Camera:** 6,225 frames forwarded (~7.1 Hz), 0 inbox overflow, 0 sequence gaps, 0 receipt
+  gaps > 0.375 s, 0 clock-epoch changes.
+- **LiDAR:** 13,438 `cloud_base` scans (robot-stamp interval median 0.0649 s, max 0.195 s;
+  host receipt median 0.0649 s) and 130,498 odometry samples. 0 sequence gaps,
+  0 robot-epoch changes, 1 scan refused for lack of pose.
+- **LiDAR recording:** 172 chunks, 41 MB, 0 dropped.
+- **Model:** loaded once. 19 requests: 3 CURRENT at receipt, 12 STALE, 4 SUPERSEDED. The
+  superseded ones all came from the 20 s history limit pausing inference while a request was
+  in flight. Inference took 1.7–1.8 s with 5 frames, 2.8–3.5 s with 13–17, 4.7–6.3 s with
+  26–35, 6.9 s with 47–48, and 8.1–9.3 s with 64–80. The first request of the session took
+  2.95 s for 5 frames (warm-up).
+- **Memory, never summed:**
+  - App parent RSS: 81 MiB at start, 144–165 MiB during trials, a peak sample of 220 MiB,
+    164 MiB at the end.
+  - Worker RSS per psutil: 0.44–1.41 GiB after load.
+  - The worker's own samples: peak RSS 11.0 GiB at load, MPS allocated 8.4–9.2 GiB, MPS
+    driver memory 8.9 → 11.8 GiB over the session (it grew across trials).
+  - System available memory dipped to 9.7 GiB.
+- **Disk:** 1.8 GB for four trials (observation archive 605 MB), roughly 0.45 GB per trial.
+  The tensor archive was skipped (19/19 marked `skipped_by_option`).
+
+Trials (model outputs only; the human labels follow below):
+
+| Trial | Instruction | Native target | End |
+|---|---|---|---|
+| `…01-956c` | Go to the door and stop. | `opos_502` in all 4 | 45 s limit |
+| `…02-61df` | Go to the chair and stop. | `opos_650` in all 5 | 45 s limit |
+| `…03-3417` | Go to the bottle and stop. | **OPOS-0 (not visible)** in all 5 | replaced by trial 4 |
+| `…04-f8a6` | Go to the door and stop. | `opos_502` ×4, then `opos_504` | 45 s limit |
+
+Native STOP was false in all 19 predictions; no marks were made.
+
+**Operator-confirmed human reviews (reviewer "Yu", verbatim comments):**
+
+| Trial | Present | Marking | Path | Stopping | Comment |
+|---|---|---|---|---|---|
+| door (01) | present | correct | plausible | appropriate | "Target locate sucessfully to the door" |
+| chair (02) | absent | wrong | plausible | appropriate | "The model target the wrong object. That wis the shoe rack. But this mistake is acceptable since limit information is given and hard to detect the object without moving." |
+
+Trials 03 (bottle, OPOS-0) and 04 (door) have **no human review**. Trial 04's dialog was
+abandoned when its questions captured commands meant for the tool; nothing was saved.
+These are four trials in one scene with a stationary robot: no accuracy rate is claimed.
+
+Fixed after the session: an automatic trial end (time limit, inference paused, source
+stopped, resource limit) no longer opens the review dialog, so the next typed line stays a
+command. The tool prints `review ID` instead. A trial also ends as soon as inference has
+paused and its last result has arrived, instead of running to 45 s.
 
 ## Limits
 
