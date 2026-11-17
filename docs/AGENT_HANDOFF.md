@@ -1,4 +1,66 @@
-## Context regression isolation — Stage A → next agent (2026-11-16)
+## Context regression isolation — completed Stage B → next agent (2026-11-17)
+
+**The frozen experiment is finished; do not rerun or expand it.** Branch
+`feature/vln-context-ablation`, execution publication
+`c13d24b575b5fb9a5c65eea1d48c546649b025b9`, frozen inference implementation
+`956bbdf25088ec437e84a7deaec9312c8804ec8f`. Read
+[VLN_CONTEXT_ABLATION](VLN_CONTEXT_ABLATION.md) for all five cases, every condition,
+timings, equivalence checks, tests and reproduction commands. Current HEAD includes
+only post-run evaluation tooling/tests and updated documentation beyond that
+publication; inference code/configuration hashes remain exactly frozen.
+
+The operator authorized the November 17 resource window with the live demo and
+physical tests paused, stationary Go2 and cleanup complete. **25/25** requests ran
+once sequentially with one cached LightNav load; all decoded, no retries/failures,
+25 archives complete, worker shut down before regressions. Model load **43.444 s**,
+whole run **122.768 s**. MPS BF16/SDPA, fixed cached weights/source/CPU pooling patch,
+no quantization. No physical connection, DDS, command client or robot command.
+Heavy verification is finished. Main, live policy, Claude's worktree and shared
+environments remain unchanged.
+
+**Recommendation: reject these bounded corrections for operational promotion.**
+E1 T/P reproduce B's extra initial right turn and missed STOP; TP still turns and
+misses STOP. E2 B/T/P/TP all report the rack not visible. E3 d2 P/TP advance farther
+but retain large heading changes; full-path human review remains pending. E3 d0
+TP=F in exact inputs, generated tokens and full output; P also recovers F's output
+while T reproduces B. Thus pooling corrects this same-image control, not the whole
+policy. All bounded doorway outputs exactly preserve the previously preferred
+proposal. No condition produces native STOP, explicit STOP code or completion claim.
+Historical human judgements are not transferred into new review labels.
+
+**Verified:** every runtime input matches Stage A; all ten F/B repeats reproduce
+old tensors/tokens/decoded outputs; no-op controls P=B and TP=T hold for E2/doorway.
+All 2,270 original source/result hashes unchanged. Doorway delivery F **7.742 s**
+versus TP **2.144 s**; bounded reconstructed offline ages **2.161–2.658 s**, all
+below unchanged 3 s threshold, without live-freshness claims. Peak child RSS
+**11.804 GB**, sampled MPS driver **11.195 GB**, not additive unified-memory figures.
+
+**Tests:** full core 737 passed /1 launcher failure /26 skipped (69.00 s), then
+the failed privacy test passed (0.34 s) after an ignored worktree-local `.venv`
+symlink to the existing core environment. No assertions/packages changed. Optional
+native/numeric suite: 34 passed /2 rendering skips (3.82 s); post-run audit tests:
+5 passed (0.21 s). **777 distinct tests passed across sequential invocations; no
+unresolved failure.** Full core was not repeated after the isolated launcher fix.
+Physical test stayed skipped; native/core dependency skips were covered in the
+isolated suite. The original failing log and recheck are both retained.
+
+**Artifacts:** under the unchanged private experiment root (exact paths in
+`verification_stage_b/LOCAL_STAGE_B_HANDOFF.md`): `results/`, `index_stage_b.html`,
+`review_stage_b.json`, `analysis_stage_b.json`, `verification_stage_b/`.
+The viewer shows all 25 native chunks/headings, pointing, actual history,
+latency/age and separate evaluation-only references. Static checks: 25 panels,
+346 valid links. Browser visual preview remains unverified under the tool's
+local-file restriction. All private images, raw results, paths and run IDs stay
+Git-ignored. Public additions contain portable paths and aggregate results.
+
+**Next:** human review of the complete saved E3 d2 paths and other new panels if
+desired. No additional model/context budget, tuning, live test, promotion, movement
+integration or main merge is authorized. The full-history advisory baseline retains
+its known staleness/stopping limitations. Stage A sections below are historical;
+its immutable plan's old pending status is superseded by the completed results,
+not by editing the declaration.
+
+## Context regression isolation — Stage A → next agent (2026-11-16, historical)
 
 **Operator authorized Stage A only; Stage B and full regression are pending a new
 resource window. Do not load a large model yet.** Read

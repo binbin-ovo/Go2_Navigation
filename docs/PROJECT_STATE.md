@@ -1,4 +1,48 @@
-## Context regression isolation: Stage A complete, Stage B pending (2026-11-16)
+## Context regression isolation completed; corrections not promoted (2026-11-17)
+
+Branch `feature/vln-context-ablation`; Stage B ran the exact frozen inference code
+from implementation `956bbdf25088ec437e84a7deaec9312c8804ec8f` / publication
+`c13d24b575b5fb9a5c65eea1d48c546649b025b9`. Read
+[VLN_CONTEXT_ABLATION](VLN_CONTEXT_ABLATION.md) and [handoff](AGENT_HANDOFF.md).
+The operator authorized this resource window; **all 25 declared requests ran once
+sequentially**, decoded successfully, and archived completely. No retry, extra
+neural request, source change, robot connection or command. Worker shutdown
+preceded the sequential offline regressions. Main/live defaults remain untouched.
+
+**Finding:** E3 d0 TP/F matches exact inputs, generated tokens and full outputs;
+pooling-only P also recovers F's output for that same-image control. This verifies
+the correction's mechanics, not operational suitability. E1 still adds an initial
+turn and misses STOP; E2's visible rack remains predicted not visible. E3 d2 has
+larger advances with substantially changed final headings, still human-review
+pending. The old favorable doorway proposal is preserved. Native STOP, explicit
+STOP and completion claims are **0/25**. Reject the tested bounded corrections
+for promotion; retain the existing full-history advisory default and its known
+limitations. No further model experiment is authorized by this milestone.
+
+**Evidence:** 25 runtime input checks pass; ten F/B repeats reproduce previous
+tensors/tokens/complete outputs; all 2,270 source/result hashes unchanged. Load
+43.444 s; total run 122.768 s. Doorway offline delivery F 7.742 s versus TP 2.144 s.
+All 20 bounded-condition reconstructed ages are below the unchanged 3 s threshold;
+this does not establish measured live latency. Peak child lifetime RSS 11.804 GB,
+sampled MPS driver 11.195 GB (not additive). Existing MPS BF16/SDPA runtime and
+fixed checkpoint remain unchanged; no training or installation occurred.
+
+**Regression:** 777 distinct tests passed across the full-core run, one focused
+launcher recheck, isolated native/numeric suite and five new audit tests. Initial
+core result: 737 passed, one absent-`python` launcher failure, 26 skipped. An
+ignored local `.venv` link to the existing core environment fixed the launcher;
+the unchanged privacy test then passed. No unresolved failure; the original full
+failure/recheck are retained and a full rerun is not claimed. Optional suite
+34 passed /2 rendering skips. Physical Go2 and OpenGL rendering remain untested
+in this window; all new model outputs await human review.
+
+Private completed artifacts: `results/`, `index_stage_b.html`,
+`review_stage_b.json`, `analysis_stage_b.json`, `verification_stage_b/`, beneath
+the original frozen run root. Exact local paths/commands stay in the ignored
+`verification_stage_b/LOCAL_STAGE_B_HANDOFF.md`. Viewer structure and 346 links
+pass; browser appearance remains unverified. Heavy computation is complete.
+
+## Context regression isolation: Stage A complete, Stage B pending (2026-11-16, historical)
 
 Branch `feature/vln-context-ablation`, based exactly on completed bounded-context
 publication `d3c227a112436d1b93c2d9b67bb69d5b89288295`; tested implementation
