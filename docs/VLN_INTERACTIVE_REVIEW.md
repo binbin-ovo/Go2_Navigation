@@ -352,6 +352,12 @@ Trials 03 (bottle, OPOS-0) and 04 (door) have **no human review**. Trial 04's di
 abandoned when its questions captured commands meant for the tool; nothing was saved.
 These are four trials in one scene with a stationary robot: no accuracy rate is claimed.
 
+**Deleted at the operator's request (2026-11-17):** the two unreviewed `live_03` trials
+(bottle `…03-3417`, door `…04-f8a6`) were permanently deleted, together with their frames,
+requests and LiDAR chunks. So were a later one-trial session (`live_04`, door, unreviewed)
+and the empty runs `live_01`/`live_02`. The numbers above were recorded before the
+deletion. Only the two reviewed trials remain locally; `events.jsonl` logs the deletion.
+
 Fixed after the session: an automatic trial end (time limit, inference paused, source
 stopped, resource limit) no longer opens the review dialog, so the next typed line stays a
 command. The tool prints `review ID` instead. A trial also ends as soon as inference has
