@@ -1,0 +1,28 @@
+{
+  "before": {
+    "frame_id": "before-frame-2",
+    "observation_s": 100.5,
+    "available_s": 100.51,
+    "clock_epoch": "synthetic-camera-epoch-0",
+    "received_monotonic_s": 100.51,
+    "exposure_monotonic_s": 100.5,
+    "clock": "synthetic_camera",
+    "semantics": "exposure",
+    "uncertainty_s": 0.002
+  },
+  "after": {
+    "frame_id": "after-frame-2",
+    "observation_s": 118.5,
+    "available_s": 118.51,
+    "clock_epoch": "synthetic-camera-epoch-0",
+    "received_monotonic_s": 118.51,
+    "exposure_monotonic_s": 118.5,
+    "clock": "synthetic_camera",
+    "semantics": "exposure",
+    "uncertainty_s": 0.002
+  },
+  "inconsistent_optional_timestamp": {
+    "field": "received_monotonic_s",
+    "value": 999.0
+  }
+}

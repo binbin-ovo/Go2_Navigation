@@ -559,8 +559,22 @@ def inspect_prediction(archive, trial, row, turn, mappings):
             s.get("received_monotonic_s"),
             trial.get("started_host_monotonic_s"),
         )
-        if finite(received) and finite(started) and received < started:
+        # The live receiver stamps first RTP receipt; the app admits the decoded
+        # frame later. Fresh instruction history is checked at app admission when
+        # that independently recorded timestamp is available. Never relabel capture.
+        admission = s.get("provenance", {}).get("session_receive_monotonic_s", received)
+        if (
+            not finite(admission)
+            or (finite(received) and admission < received)
+            or (finite(submit) and admission > submit)
+        ):
+            errors.append(f"frame_{i}_invalid_history_admission_time")
+        if finite(admission) and finite(started) and admission < started:
             errors.append(f"frame_{i}_predates_own_trial_history")
+        elif finite(received) and finite(started) and received < started:
+            warnings.append(
+                f"frame_{i}_sensor_receipt_precedes_ask_but_application_admission_follows_reset"
+            )
         if finite(received) and finite(submit) and received > submit:
             errors.append(f"frame_{i}_received_after_submission")
     ref = p.get("source_image") or {}
@@ -570,7 +584,7 @@ def inspect_prediction(archive, trial, row, turn, mappings):
     current = snapshot.get("current_source", {})
     if current != history[-1].get("source"):
         errors.append("snapshot_current_source_disagrees")
-    if p.get("source_frame"):
+    if "source_frame" in p:
         expected = {
             k: current.get(k)
             for k in ("frame_id", "observation_s", "available_s", "clock_epoch")
@@ -581,8 +595,34 @@ def inspect_prediction(archive, trial, row, turn, mappings):
                 for k in ("clock", "semantics", "uncertainty_s")
             }
         )
-        if p["source_frame"] != expected:
+        source_frame = p["source_frame"]
+        if not isinstance(source_frame, dict):
             errors.append("prediction_current_source_frame_disagrees")
+        else:
+            if any(
+                k not in source_frame or source_frame[k] != v
+                for k, v in expected.items()
+            ):
+                errors.append("prediction_current_source_frame_disagrees")
+            optional = ("received_monotonic_s", "exposure_monotonic_s")
+            for key in optional:
+                if key in source_frame and (
+                    key not in current
+                    or source_frame[key] != current[key]
+                    or (source_frame[key] is not None and not finite(source_frame[key]))
+                ):
+                    errors.append("prediction_source_frame_" + key + "_disagrees")
+            out["source_frame_validation"] = {
+                "required_fields_checked": list(expected),
+                "optional_timestamps_checked": [
+                    k for k in optional if k in source_frame
+                ],
+                "uninterpreted_additional_fields": {
+                    k: v
+                    for k, v in source_frame.items()
+                    if k not in expected and k not in optional
+                },
+            }
     out["current_source"] = current  # distinct from the exact image carrying the mark
     for i in indices:
         source = history[i]["source"]
@@ -687,6 +727,10 @@ def inspect_review(row, trial, predictions, mappings):
     if schema == "go2-vln-guided-answer-review-v1":
         if r.get("source_image") != p.get("source_image") or not r.get("source_image"):
             errors.append("review_image_reference_mismatch_or_missing")
+        if "displayed_image_sha256" in r and r["displayed_image_sha256"] != (
+            p.get("source_image") or {}
+        ).get("file_sha256"):
+            errors.append("review_displayed_image_hash_mismatch")
         choice = r.get("choice")
         point = p.get("target_fraction") is not None
         opos0 = p.get("opos_not_visible") is True
@@ -824,6 +868,11 @@ def pair_outcome(before, after, target_ok):
             "code": "insufficient_evidence",
             "description": "Evidence is insufficient for a paired-view assessment.",
             "temporal_verification": "incomplete",
+            "reviewed_image_outcome": {
+                "code": "insufficient_evidence",
+                "description": "Evidence is insufficient for a paired reviewed-image assessment.",
+                "scope": "reviewed_images_only",
+            },
         }
     bm, am = (p["human_assessment"]["marking"]["status"] for p in (b, a))
     bv = b["human_assessment"]["visibility"]["status"]
@@ -834,12 +883,33 @@ def pair_outcome(before, after, target_ok):
         view_change = "wrong_to_correct_in_reviewed_images"
     elif bm == "wrong" and am == "wrong":
         view_change = "wrong_mark_in_both_reviewed_images"
+    elif all(
+        p["record"].get("opos_not_visible") is True
+        and p["human_assessment"]["opos0_agreement"]["status"] == "disagree"
+        and p["human_assessment"]["visibility"]["status"] == "present"
+        for p in (b, a)
+    ):
+        view_change = "persistent_false_absence_in_reviewed_images"
+    image_descriptions = {
+        "visibility_change_and_correct_mark_in_reviewed_image": "Human reviewers report absent then present/correctly marked; this is a visibility change, not a recognition-accuracy gain.",
+        "wrong_to_correct_in_reviewed_images": "Previously wrong marking becomes correct in the two reviewed images.",
+        "wrong_mark_in_both_reviewed_images": "Wrong target marking persists in both reviewed images.",
+        "persistent_false_absence_in_reviewed_images": "Persistent false absence: the model emits OPOS-0 in both views and humans report the target present in both.",
+    }
     after_relation = a["marked_input"]["turn_relation"]
     result = {
         "view_comparison": view_change,
         "before_marked_image_relation": b["marked_input"]["turn_relation"],
         "after_marked_image_relation": after_relation,
         "temporal_verification": "incomplete",
+        "reviewed_image_outcome": {
+            "code": view_change,
+            "description": image_descriptions.get(
+                view_change,
+                "Human review is missing, ambiguous, or does not establish a supported image-outcome transition.",
+            ),
+            "scope": "reviewed_images_only",
+        },
     }
     if after_relation != "after":
         return {
@@ -861,6 +931,9 @@ def pair_outcome(before, after, target_ok):
         "visibility_change_and_correct_mark_in_reviewed_image": "Target becomes visible and is correctly marked; this is a visibility change, not a recognition-accuracy gain.",
         "wrong_to_correct_in_reviewed_images": "Previously wrong target marking becomes correct in the reviewed new view.",
         "wrong_mark_in_both_reviewed_images": "Wrong marking persists in a reviewed post-turn image.",
+        "persistent_false_absence_in_reviewed_images": image_descriptions[
+            "persistent_false_absence_in_reviewed_images"
+        ],
     }
     if view_change in descriptions:
         return {**result, "code": view_change, "description": descriptions[view_change]}

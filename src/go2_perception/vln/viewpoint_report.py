@@ -169,6 +169,24 @@ def render_report(analysis, assets):
                 f"<br>{esc(e.get('frame_id', e.get('instruction', '')))}</td></tr>"
             )
         timeline.append("</table>")
+    image_outcome = analysis["outcome"].get(
+        "reviewed_image_outcome", analysis["outcome"]
+    )
+    receipt = analysis.get("receipt_ordering_evidence")
+    receipt_panel = ""
+    if receipt:
+        receipt_panel = (
+            "<h3>Receipt-time / odometry evidence</h3>"
+            f"<p>{esc(receipt['status'])} · first after-input receipt minus estimated turn end: "
+            f"{esc(receipt['margin_s'])} s. Capture time is not verified by this margin.</p>"
+            + details(
+                "Original receipt margins, epochs, gaps and annotation method", receipt
+            )
+            + details(
+                "Selected linkage and earlier records (one experiment)",
+                analysis["pair_annotation"]["linkage_import"],
+            )
+        )
     return f"""<!doctype html><html lang="en"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'unsafe-inline'">
@@ -184,7 +202,9 @@ pre{{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}}details{{margin
 th,td{{border:1px solid #c7d5df;text-align:left;padding:8px;overflow-wrap:anywhere}}@media(max-width:800px){{.pair{{grid-template-columns:1fr}}}}
 </style><main><header><h1>Offline paired-view evidence</h1>
 <p>Two independent queries · no cross-view model memory · no inference rerun · no robot commands</p>
-<h2>{esc(analysis["outcome"]["description"])}</h2>
+<h2>{esc(image_outcome["description"])}</h2>
+<p>Camera-exposure timing: {esc(analysis["outcome"]["temporal_verification"])}. {esc(analysis["outcome"]["description"])}</p>
+{receipt_panel}
 {details("Supported comparison and timing qualification", analysis["outcome"])}
 <p>Guided judgments concern target grounding/visibility only. Path, stopping and navigation remain unreviewed.</p>
 <p><a href="summary.json">Machine-readable summary</a> · <a href="timeline.json">Causal/evaluation timeline</a></p>

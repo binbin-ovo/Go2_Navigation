@@ -1,7 +1,9 @@
-## Offline paired-view evaluation (2026-11-17)
+## Completed real paired-view evaluation
 
-Branch `feature/vln-viewpoint-evaluation`, based exactly on published interactive
-commit `73c83f19cf83ee01640e467e09085dd669e51763`. Added an offline evaluator for
+Branch `feature/vln-viewpoint-evaluation`, continuing evaluator publication
+`77400cfe56f1ac20379f41d10bfd05db7f8f97b3`, with current interactive/linker code
+`fdb5451e25cdc1f5971bbf0e1c7887ec51ff634a` inspected after remote fetch.
+The original base is `73c83f19cf83ee01640e467e09085dd669e51763`. Added an offline evaluator for
 two independent browser Ask trials using archived outputs only. Main, operational
 defaults, Claude's active website, sensor/calibration environments, model/history
 configuration and robot-control code are unchanged.
@@ -12,7 +14,7 @@ clock-aware turn comparison; guided and legacy human review scopes/conflicts; lo
 HTML/JSON/timeline outputs; synthetic fixtures and CLI. Native paths remain
 unexecuted and unregistered. No model rerun, GPU workload, robot connection or command.
 
-Verified: **69 focused tests passed, 0 failed, 0 skipped in 2.89 s** (62 new plus
+Verified: **90 focused tests passed, 0 failed, 0 skipped in 2.99 s** (83 evaluator/linkage plus
 seven existing mocked interactive contracts); Ruff and diff checks passed. Existing
 Python 3.12.11 core environment reused without changes. Synthetic report generated;
 all eight image instances and ten local links resolve. Browser appearance was not
@@ -20,15 +22,19 @@ independently verified. Six completed stationary `live_08` predictions/reviews p
 schema and selected-image checks; 128 consumed source files remained unchanged.
 This is compatibility validation, **not** a manual-turn experiment.
 
-Pending: a suitable explicitly linked real before/turn/stop/after pair and annotation
-provenance. Unknown exposure bounds prevent verified turn ordering; current live
-capture estimates have no explicit bounded error. Guided feedback assesses targets,
-not path quality/stopping/navigation. Group labels never become per-prediction truth.
-No general success rate or recognition-accuracy claim is made. Full regression,
-model and hardware tests were intentionally not run under the lightweight-only
-restriction. Next action is to wait for Claude's completed pair and analyze it with
-the [documented command](VLN_VIEWPOINT_EVALUATION.md), with timing incomplete where
-appropriate. See [handoff](AGENT_HANDOFF.md) for input and continuation boundaries.
+The current-recorder optional timestamps now validate explicitly; an importer selects
+the exact pair and linkage method v2 without duplicating earlier records. All four
+real pairs are analyzed: **chair persistent false absence**; **oven, microwave oven,
+dish washer human-reviewed absent→visible/correctly marked**. Four private pair reports
+and a combined comparison are complete. Original snapshots reproduce receipt margins
+28.066 / 43.013 / 33.243 / 135.547 s. Guaranteed exposure ordering remains incomplete
+for all four; that does not erase reviewed-image outcomes. The capture bounds remain
+unknown, guided feedback leaves path/stopping/navigation unreviewed, and no general
+accuracy/success rate is reported. The final `live_10` transport counters contain
+38 RTP losses/two incomplete units despite zero in preceding periodic reports; both
+are preserved. Full/heavy/model/hardware suites were not run under this lightweight
+task. No repeat collection is requested. See [results](VLN_PAIRED_VIEW_RESULTS.md),
+[commands](VLN_VIEWPOINT_EVALUATION.md), and [handoff](AGENT_HANDOFF.md).
 
 ## Advisory latency: input-equivalent optimization (2026-11-16)
 

@@ -15,6 +15,11 @@ memory, autonomous search, continuous navigation, or navigation-success measurem
 The evaluator is optional after collection; it is not a prerequisite for Claude's
 live experiment.
 
+**Completed integration:** four real pairs from `live_09`/`live_10` have now been
+analyzed against the current recorder and method-v2 linkage. See
+[the aggregate findings and exact inspected versions](VLN_PAIRED_VIEW_RESULTS.md).
+Real paired evidence is no longer pending.
+
 ## One command after collection
 
 Use the existing isolated core environment, not the sensor/calibration or model
@@ -53,6 +58,52 @@ onto LiDAR or used to compute clearance.
 
 Private imagery, human comments and detailed reports stay local and ignored. The
 JSON preserves verbatim reviews; do not publish it as an aggregate report.
+
+## Import the recorder's completed pair linkage
+
+For Claude's existing append-only `go2-vln-paired-view-evaluation-v1` records, use
+this **instead of** `--annotation`:
+
+```bash
+env GO2_HARDWARE=0 MUJOCO_RENDER_TEST=0 PYTHONDONTWRITEBYTECODE=1 \
+  "$CORE_PY" scripts/analyze_vln_viewpoint_trial.py \
+  --run "$RUN" --before-trial "$BEFORE_TRIAL_ID" --after-trial "$AFTER_TRIAL_ID" \
+  --linked-pairs evaluation/paired_views.jsonl --method-version 2 \
+  --output data/outputs/vln_viewpoint/completed_pair_02
+```
+
+The importer chooses the requested pair and explicitly declared method version,
+then validates the referenced prediction IDs against the original archive. Earlier
+records for that pair remain in `pair_annotation.linkage_import`, with source-file,
+line, record SHA-256 and full-file SHA-256 provenance. If there are multiple records
+for the same pair and method, use `--linkage-line`; there is no silent latest-wins
+selection. One relinked pair remains one example. Copied label summaries are never
+used as source judgments. This adapter supports declared method v2; earlier
+undeclared records are retained as historical evidence, not reinterpreted as v2.
+
+`receipt_ordering_evidence` recomputes the margin against the selected v2 interval
+union from original snapshot receipt times. It checks source/session/robot epochs,
+input gaps, index continuity and archived camera counters. The raw yaw estimator is
+not rerun. The linker's `verified` flag does **not** supply a camera-exposure bound.
+Imported turn bounds remain null, and the existing strict capture-time checks remain
+unchanged. `outcome.reviewed_image_outcome` is the separately supported image
+judgment, including `persistent_false_absence_in_reviewed_images` when both native
+OPOS-0 outputs receive explicit human disagreement. The older `outcome.code` and
+timing description are retained for compatibility; do not use them to erase the
+image judgment when exposure timing remains incomplete.
+
+Combine the existing reports without running analysis or inference again:
+
+```bash
+"$CORE_PY" scripts/summarize_vln_viewpoint_reports.py \
+  "$CHAIR_REPORT" "$OVEN_REPORT" "$MICROWAVE_REPORT" "$DISH_WASHER_REPORT" \
+  --output data/outputs/vln_viewpoint/combined_pair_comparison
+```
+
+The combined HTML/JSON/Markdown table rejects duplicate archive/trial pairs. Exact
+resolved local IDs and commands for the completed four-pair analysis are preserved
+in the Git-ignored `paired_integration_01/reproduce.sh` and `commands-final.json`
+artifacts described in the results document. No repeat collection is needed.
 
 ## Evaluation-only annotation contract
 
@@ -165,6 +216,16 @@ availability and own-trial history are checked. Each response is compared with i
 own trial; the pair's revisions need not match. Superseded, cancelled, rejected or
 mismatched responses remain visible but are excluded from pair conclusions.
 
+`source_frame` required fields are compared individually with the snapshot source;
+the current recorder's optional receipt/exposure monotonic timestamps are checked
+explicitly when present. Additional fields are preserved. The review's optional
+`displayed_image_sha256` must also match the prediction image. For the live path,
+fresh-history admission is checked using archived `session_receive_monotonic_s`
+where available; first sensor receipt can precede Ask for a frame admitted after
+reset. That earlier receipt is retained and flagged, not relabelled as capture or
+discarded to force a timing result. Legacy records without the admission timestamp
+retain the conservative receipt-based check.
+
 Missing images/results are reported, never reconstructed or inferred again. Missing
 required run/trial closure causes a clear refusal. A missing native `result.json`
 can use the identical result archived in `receipt.json`, with a warning; a missing
@@ -228,6 +289,7 @@ Focused test command (CPU only; no model/hardware/full regression):
 env GO2_HARDWARE=0 MUJOCO_RENDER_TEST=0 PYTHONDONTWRITEBYTECODE=1 \
   PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=src:scripts \
   "$CORE_PY" -m pytest -q tests/test_vln_viewpoint.py \
+  tests/test_vln_viewpoint_linkage.py \
   tests/test_vln_interactive.py::test_guided_one_answer_then_wait_then_save \
   tests/test_vln_interactive.py::test_review_dialog_requires_confirmation_and_keeps_comment_verbatim \
   tests/test_vln_interactive.py::test_target_change_keeps_late_result_with_original_trial \
@@ -237,8 +299,8 @@ env GO2_HARDWARE=0 MUJOCO_RENDER_TEST=0 PYTHONDONTWRITEBYTECODE=1 \
   tests/test_vln_interactive.py::test_template_expansion_is_documented_and_saved_before_inference
 ```
 
-Final focused verification: **69 passed, 0 failed, 0 skipped in 2.89 s** on the
-existing Python 3.12.11 core environment: 62 evaluator tests and seven existing
+Final focused verification: **90 passed, 0 failed, 0 skipped in 2.99 s** on the
+existing Python 3.12.11 core environment: 83 evaluator/linkage tests and seven existing
 mocked interactive-contract tests. Ruff and `git diff --check` pass. The synthetic
 report's eight image instances and ten local file links resolve; browser visual
 appearance was not independently verified.
@@ -252,9 +314,10 @@ deliberately not run during Claude's live-use window.
 The six completed stationary `live_08` trials passed archive/selected-image/guided
 schema checks (six predictions and six reviews); all 128 consumed files were
 unchanged. This is **schema compatibility only**, not a manual-turn experiment or
-a navigation result. No suitable explicitly linked completed turn pair was found.
-Real paired-view evaluation remains **pending Claude's completed recording and
-evaluation annotation**. No private images or comments are included in this branch.
+a navigation result. The four subsequently completed real pairs are now analyzed;
+see [VLN_PAIRED_VIEW_RESULTS](VLN_PAIRED_VIEW_RESULTS.md) for the supported findings
+and unresolved exposure-time qualifications. No private images or comments are
+included in this branch.
 
 Implementation: [reader](../src/go2_perception/vln/viewpoint.py),
 [static report](../src/go2_perception/vln/viewpoint_report.py),
