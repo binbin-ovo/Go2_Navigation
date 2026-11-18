@@ -159,7 +159,7 @@ def review_only(a):
     return 0
 
 
-def main(argv=None):
+def main(argv=None, *, app_factory=InteractiveApp, run_fields=None, synthetic_source_factory=SyntheticSource):
     p = parser()
     a = p.parse_args(argv)
     if a.review_run:
@@ -218,7 +218,7 @@ def main(argv=None):
                        "status": "measured", "T_base_camera": None, "camera_latency": latency}
     else:
         frames = int(a.synthetic_seconds * 8)
-        source = (SyntheticSource(min(4096, frames), fps=8.0) if a.camera == "synthetic"
+        source = (synthetic_source_factory(min(4096, frames), fps=8.0) if a.camera == "synthetic"
                   else EpisodeSource(a.episode))
         camera = PacedFeeder(iter(source), tap, speed=a.speed)
         calibration = ({"status": "synthetic", "note": "deterministic 2D fixture"} if a.camera == "synthetic"
@@ -278,8 +278,9 @@ def main(argv=None):
             *sorted((ROOT / "src/go2_perception/vln").glob("interactive_*.py")),
             *sorted((ROOT / "src/go2_perception/vln").glob("shadow*.py"))]},
     }
+    run_info.update(run_fields or {})
     write_json(store.root / "run.json", run_info)
-    app = InteractiveApp(store=store, session=session, camera=camera, tap=tap, mode=mode, lidar=lidar,
+    app = app_factory(store=store, session=session, camera=camera, tap=tap, mode=mode, lidar=lidar,
                          lidar_recorder=recorder, monitor=monitor, config=config, run_info=run_info)
     server = DisplayServer(app, a.port)
     termination, code = "host_time_budget", 0
@@ -296,8 +297,8 @@ def main(argv=None):
         monitor.start()
         server.start()
         store.event("run_started", time.monotonic(), url=server.url, mode=mode)
-        print(f"{run_info['mode']} · ADVISORY ONLY — NO ROBOT COMMANDS\nDisplay: {server.url}\n"
-              f"Run directory (private): {store.root}\n{HELP}", flush=True)
+        print(f"{run_info['mode']} · {getattr(app, 'banner', 'ADVISORY ONLY — NO ROBOT COMMANDS')}\nDisplay: {server.url}\n"
+              f"Run directory (private): {store.root}\n{getattr(app, 'terminal_help', HELP)}", flush=True)
         commands = Queue(maxsize=64)
         threading.Thread(target=terminal_reader, args=(commands, app, time.monotonic), daemon=True).start()
         sources_reported = set()
@@ -362,8 +363,11 @@ def main(argv=None):
                 "robot_commands_sent": 0, "physical_execution_authorized": False,
                 "ended_wall_utc": utc_now(),
             }
+            if hasattr(app, "execution_summary"):
+                summary.update(app.execution_summary())
             write_json(store.root / "summary.json", _finite(json.loads(json.dumps(summary, default=str))))
-            print(f"Closed ({app.termination}). No robot command was sent.\n"
+            message = "See navigation_summary.json for execution/stop/release status." if hasattr(app, "navigation") else "No robot command was sent."
+            print(f"Closed ({app.termination}). {message}\n"
                   f"Reopen: run_vln_interactive.py --review-run {store.root}", flush=True)
     return code
 

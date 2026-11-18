@@ -1,24 +1,75 @@
 ## Supervised navigation → Claude hardware handoff (2026-11-17)
 
-Branch `feature/vln-supervised-navigation`, based on interactive
-`fdb5451e25cdc1f5971bbf0e1c7887ec51ff634a`. Main and the read-only launcher are unchanged.
-The current task is one supervised bounded action, with Claude responsible for
-hardware verification and the physical trial. Earlier read-only milestones below
-remain historical; they do not authorize movement.
+Branch **`feature/vln-supervised-navigation`**, based on interactive
+`fdb5451e25cdc1f5971bbf0e1c7887ec51ff634a`. Initial contract/schema/synthetic fixture
+publication: **`2213cedae80d6eafca4a50eef93c6730c6c14dcc`**. Main, operational
+read-only defaults, sensor/calibration environments and Claude's worktrees remain
+unchanged. No hardware command or trained-model inference ran in this task.
 
-Published interface: [SUPERVISED_NAVIGATION_CONTRACT](SUPERVISED_NAVIGATION_CONTRACT.md),
-[schema](../src/go2_perception/vln/schemas/supervised-navigation-v1.schema.json),
-[synthetic fixture](../examples/supervised_navigation/synthetic_cycle.json).
-Read the contract before preparing capability evidence. Synthetic values are not
-Go2 limits or calibration. Required evidence: frame registration for each action,
-independent intervention, obstacle handling, stop verification, motion bounds and
-target correspondence; plus a pinned live guard provider and one canonical
-control checkout/lock shared by every command process. Unknowns keep live disabled.
+Read first:
 
-Initial contract validation: `python -m pytest -q tests/test_supervised_contract.py`
-with `GO2_HARDWARE=0`: **3 passed**. Planner/executor/UI implementation is in
-progress, not yet verified or ready for a physical trial. No model or hardware
-was loaded for this publication.
+1. [SUPERVISED_NAVIGATION_CONTRACT](SUPERVISED_NAVIGATION_CONTRACT.md) — canonical v1.
+2. [SUPERVISED_NAVIGATION](SUPERVISED_NAVIGATION.md) — actual implementation, states,
+   exact mock/live launch commands and the capability/guard checklist.
+3. [Schema](../src/go2_perception/vln/schemas/supervised-navigation-v1.schema.json)
+   and [synthetic fixture](../examples/supervised_navigation/synthetic_cycle.json).
+4. [VLN_CONTROL_HANDOFF](VLN_CONTROL_HANDOFF.md) and the pinned hardware branch's
+   GO2_HIGH_LEVEL_CONTROL/GO2_NATIVE_AVOIDANCE_AUDIT — outstanding physical evidence.
+
+**Implemented:** one reviewed target ROI/instance and bounded forward or turn;
+consumed single-use authorization; one independent fresh model request; exact
+instruction/epoch/pose/action checks; conservative image correspondence; isolated
+executor with canonical lock, current guards, deadline, cancel, stationary dwell,
+release and post-release measurement; new observation; concrete HOLDs. The existing
+four panels/worker/calibrated preparation/recording are reused. The old read-only
+launcher cannot accept navigation actions. The executor uses only the audited
+obstacles_avoid route and never disables avoidance or falls back to another route.
+
+**Verified:** the automated localhost mock cycle completed after a 3.25-second
+review delay, with two mock requests, one synthetic 0.08 m segment, separate
+stationary/release results and a newer observation. Local retained run:
+`data/outputs/supervised/mock_cycle_07/` in this integration worktree. No private
+Go2 recording was copied or changed. Earlier failed software checks are retained
+alongside it and described in the guide. Initial regression: 156 passed; subsequent
+focused integration: 60 passed. Final selected regression: **165 passed in 57.20 s**, 0 failed, 0 skipped.
+Final executor + UI/schema follow-up: **25 passed in 10.25 s**
+(0 failures/skips), including epoch changes and archive consistency.
+Hardware/heavyweight tests were not selected.
+
+**Claude's next steps (physical trial remains blocked):**
+
+- Prepare real versioned capability evidence; never change the fixture's synthetic
+  marker to pretend its invented limits/identity mapping were measured.
+- Validate mapping/signs/offsets for the selected primitive, independent intervention
+  while API owns control, obstacle handling, measured limits/overshoot, stop/release,
+  target correspondence and a current-epoch capture-age upper bound.
+- Supply the pinned read-only `create_guards` provider using verified state/pose,
+  clearance and progress sources. Its exact interface is in the guide. No live
+  provider or real capability evidence is included or claimed verified here.
+- Use ONE canonical control checkout at
+  `742cfe4fb1b71f9d19d9d2d62be56f03b6b03707` and SDK
+  `814556d15970dd2ecf1c9984e845ca02ab07e206`. Every commanding process for the trial
+  must use its `data/outputs/go2_control/.command.lock`. The old utility's unlocked
+  `stop` subcommand is not a concurrent emergency channel. Coordinate a new pin if
+  audited source changes; do not reset someone else's checkout or bypass the check.
+- Coordinate Mac resources, run the mock commands, review the recorded gates and
+  only then consider the separately gated live command. No model or physical
+  heavy job was requested/run by Codex here. Another actual move requires a new
+  session, new target review and another authorization.
+
+**Meaning of results:** `_CallNoReply` local send code zero is not an ACK; command
+and stop robot acknowledgements remain null. Stationary, release and post-release
+stationary are independent fields. Missing state/geometry, unknown capture timing,
+changed target/pose/instruction/epoch, stale/expired/duplicate requests or cleanup
+failure HOLD without retries. No dynamic obstacle, goal-success or autonomous
+roaming claim. Hardware tests/full model regression remain unrun.
+
+**Paired-view work is already complete separately:** evaluator branch
+`feature/vln-viewpoint-evaluation` at
+`1a0ac0e9f2cc0ca2688bbd7651383c90e86251fb` contains the recorder compatibility,
+method-v2 importer and four real pair reports/handoff. It is not merged here and
+must not delay the navigation interface. Its recognition findings do not validate
+capture timing, motion safety or physical execution.
 
 ## Browser one-answer workflow + paired views → next agent (2026-11-17)
 

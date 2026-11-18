@@ -51,7 +51,7 @@ def make_handler(app, token, monotonic=time.monotonic):
             now = monotonic()
             try:
                 if url.path == "/":
-                    return self._send(200, PAGE.replace("__TOKEN__", token), "text/html; charset=utf-8")
+                    return self._send(200, getattr(app, "page", PAGE).replace("__TOKEN__", token), "text/html; charset=utf-8")
                 if url.path == "/api/state":
                     return self._send(200, _finite(app.state(now)))
                 if url.path == "/api/camera":
@@ -93,7 +93,12 @@ def make_handler(app, token, monotonic=time.monotonic):
                 if self.path == "/api/viewing":
                     app.report_view(payload, now)
                     return self._send(200, {"ok": True})
+                if self.path == "/api/navigation" and getattr(app, "navigation", None) is not None:
+                    app.navigation.enqueue(payload, now)
+                    return self._send(200, {"ok": True})
                 if self.path == "/api/guided":
+                    if getattr(app, "navigation", None) is not None:
+                        return self._send(400, {"error": "Use the supervised controls; independent review actions are disabled in this session"})
                     app.guided.enqueue(payload, now)
                     return self._send(200, {"ok": True, "queued": payload.get("action")})
                 if self.path == "/api/correction":

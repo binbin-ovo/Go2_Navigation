@@ -1,3 +1,17 @@
+## Supervised one-step software integration (2026-11-17)
+
+`feature/vln-supervised-navigation` adds an explicitly gated, isolated executor
+boundary to the existing viewer: reviewed bounded action → one authorization →
+fresh observation/proposal → one action → separately verified stop/release → new
+observation. The complete cycle has run with a fake model and executor. **Real
+hardware execution remains blocked on Claude's capability evidence and guard
+integration; no physical command or trained-model experiment ran here.**
+
+Read the [shared contract](docs/SUPERVISED_NAVIGATION_CONTRACT.md),
+[guide and exact mock/live commands](docs/SUPERVISED_NAVIGATION.md) and
+[Claude handoff](docs/AGENT_HANDOFF.md). The ordinary read-only launcher, main,
+model settings and sensor environments remain unchanged. Historical results follow.
+
 ## Read-only advisory latency (2026-11-16)
 
 `feature/vln-live-latency` extends Claude's verified live-camera integration with

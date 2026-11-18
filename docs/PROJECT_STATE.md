@@ -1,24 +1,41 @@
-## Current: supervised navigation contract publication (2026-11-17)
+## Current: supervised one-step software integration (2026-11-17)
 
-Branch `feature/vln-supervised-navigation`, based on interactive
-`fdb5451e25cdc1f5971bbf0e1c7887ec51ff634a`. Main and the read-only launcher are unchanged.
-The current task is one supervised bounded action, with Claude responsible for
-hardware verification and the physical trial. Earlier read-only milestones below
-remain historical; they do not authorize movement.
+Branch `feature/vln-supervised-navigation`, base interactive
+`fdb5451e25cdc1f5971bbf0e1c7887ec51ff634a`. The shared contract was published first
+at `2213cedae80d6eafca4a50eef93c6730c6c14dcc`. [Contract](SUPERVISED_NAVIGATION_CONTRACT.md),
+[guide/reproduction](SUPERVISED_NAVIGATION.md), [handoff](AGENT_HANDOFF.md).
 
-Published interface: [SUPERVISED_NAVIGATION_CONTRACT](SUPERVISED_NAVIGATION_CONTRACT.md),
-[schema](../src/go2_perception/vln/schemas/supervised-navigation-v1.schema.json),
-[synthetic fixture](../examples/supervised_navigation/synthetic_cycle.json).
-Read the contract before preparing capability evidence. Synthetic values are not
-Go2 limits or calibration. Required evidence: frame registration for each action,
-independent intervention, obstacle handling, stop verification, motion bounds and
-target correspondence; plus a pinned live guard provider and one canonical
-control checkout/lock shared by every command process. Unknowns keep live disabled.
+**Completed in software:** bounded forward/turn planner with explicit registration;
+aged review separated from fresh execution; single-use short-lived authorization;
+reviewed target ROI/visual continuity; current state/geometry and instruction/pose/
+epoch gates; isolated executor reusing the pinned audited control loop; canonical
+shared lock; independent cancel/deadline/stop dwell/release measurements; post-motion
+observation. Existing LightNav worker/preprocessing/records/four panels are reused.
+Old read-only entrypoints and main remain unchanged by default.
 
-Initial contract validation: `python -m pytest -q tests/test_supervised_contract.py`
-with `GO2_HARDWARE=0`: **3 passed**. Planner/executor/UI implementation is in
-progress, not yet verified or ready for a physical trial. No model or hardware
-was loaded for this publication.
+**Actual offline evidence:** CPU-only synthetic HTTP/worker/executor cycle completed:
+3.25 s human-review stand-in, two mock requests, one synthetic 0.08 m action, no
+hardware commands, separately recorded stop/release and a newer camera observation.
+Retained ignored run `data/outputs/supervised/mock_cycle_07/`. New focused tests cover
+mapping, timing/identity/pose changes, duplicate/cancel behavior, unavailable geometry,
+failed send/stop/release and model-independent executor cancellation. Existing
+read-only tests passed. Final selected regression: **165 passed in 57.20 s**, 0 failed, 0 skipped.
+Final executor + UI/schema follow-up: **25 passed in 10.25 s**,
+0 failed, 0 skipped. These cover the final epoch/telemetry and archive-consistency
+changes. Physical tests were not selected.
+
+**Unverified/blocked:** no real guard provider or capability evidence has been
+supplied; real mapping, independent intervention, obstacle stopping, physical limits,
+post-release behavior, target-continuity reliability and a capture-age upper bound
+remain Claude's verification. Live mode refuses synthetic or incomplete evidence.
+No actual trained-model refresh or physical test ran, and no full heavyweight suite
+was run during this lightweight shared-Mac window. No environment/model changes.
+
+**Architecture decision:** the browser/model process cannot own command cadence.
+One separate hardware process holds the canonical control checkout's lock and
+imports the audited SDK only after explicit gates. Motion is limited to one dispatch
+attempt/session. Unknown stop ACK stays unknown; measured stationary and RPC release
+are separate. It is a supervised software cycle, not navigation success.
 
 ## Current: browser one-answer review tool + paired-view experiment (2026-11-17)
 

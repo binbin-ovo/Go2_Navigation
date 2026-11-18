@@ -480,7 +480,8 @@ class InteractiveApp:
         self.trial = None
         single, self.single_answer = self.single_answer, False
         self.store.event("trial_ended", now, trial_id=trial.id, reason=reason)
-        self.say(f"Trial {trial.id} ended ({reason}). Advisory cancelled; no robot command was sent.")
+        notice = getattr(self, "trial_end_notice", "Advisory cancelled; no robot command was sent.")
+        self.say(f"Trial {trial.id} ended ({reason}). {notice}")
         if single:
             contact_sheet(self.store, trial.id, self._prediction_array)  # file only; page stays on the test
         else:

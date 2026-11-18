@@ -1,3 +1,31 @@
+## Opt-in supervised one-step boundary (2026-11-17)
+
+`run_vln_supervised.py` injects a supervised app into the existing interactive
+launcher; all ordinary read-only defaults remain the same. Camera observations,
+independent short trial histories, LightNav worker, calibrated preprocessing,
+recording and the four viewer panels are reused. A separate minimal navigation
+control box binds operator ROI/instance, preview and one authorization.
+
+`supervised.Cycle` consumes that authorization before collecting new observations.
+`supervised_target` checks local feature continuity of the reviewed physical ROI.
+No human evidence or geometry enters the model. A fresh request may only reproduce
+one primitive inside the authorized envelope, with unchanged instruction/epochs
+and a permitted pose change; missing evidence produces HOLD.
+
+`ExecutorClient` communicates with `vln_supervised_executor.py` via private JSONL
+pipes. Its cancel reader/heartbeat and audited motion loop run independently of
+inference/browser work. The hardware child owns one canonical checkout lock,
+rechecks fresh guards and authorization, and uses the pinned audited
+`go2_control.safety.execute`/`AvoidRoute` only after explicit live gates. A pinned
+hardware guard provider is the unresolved Claude integration boundary. The fake
+provider is synthetic and cannot arm live execution. Stop sends, observed stationary,
+release and a newer observation are separate records.
+
+See [contract/schema](SUPERVISED_NAVIGATION_CONTRACT.md) and
+[implementation, state flow and reproduction](SUPERVISED_NAVIGATION.md). Physical
+operation/model refresh remain unverified; the completed demonstrations are mocks.
+The historical architectures below remain available independently.
+
 ## Live advisory and opt-in latency path (2026-11-16)
 
 Claude's read-only camera bridge feeds existing observations through `shadow_live`

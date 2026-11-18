@@ -75,11 +75,13 @@ After authorization, collect a new independent short observation and make ONE
 new model request with the existing worker/preprocessing. All refresh images
 must be acquired after authorization. Preserve the existing independent
 short-observation policy; there is no cross-query model memory claim. A refresh
-must have new observation/prediction/image identities, identical instruction,
+must have new observation/prediction source identities, identical instruction,
 same epochs, and pose drift within explicit evidence tolerances. A fresh primitive
 must have the same type/direction and no greater magnitude, speed or duration.
 Changed geometry/target, STOP, stale result, missing bound or failed refresh HOLD;
-no automatic retries. The human may begin another reviewed cycle explicitly.
+no automatic retries. Identical pixels may have the same content hash; new source
+frame IDs and acquisition times, not a changed hash, establish a new observation.
+The human may begin another reviewed cycle explicitly.
 
 Same-target comparison requires the reviewed instance/ROI plus independent image
 correspondence at the nearly unchanged pose, and the fresh model point within
