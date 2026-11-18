@@ -20,6 +20,11 @@ import time
 from .supervised import (CONTROL_REVISION, Hold, age_check, capability_check, current_checks,
                          revalidate, validate_record)
 
+# Sport-state error_code values seen while the robot stands and walks normally (Go2 Pro, 2026-11-15/18:
+# every state sample of the canonical moves and statuses reads 100). The controller emergency stop sets
+# 1002 (2026-11-18). Anything else HOLDs.
+NOMINAL_ROBOT_ERROR_CODES = frozenset({100})
+
 
 def finite_json(value):
     """Keep unavailable raw telemetry explicit; never emit nonstandard JSON NaN/Inf."""
@@ -223,7 +228,7 @@ class HardwareMotion:
                     state = outer.monitor.snapshot()
                     result["events"].append(finite_json({"event": "current_guards", "monotonic_s": outer.clock(),
                                                         "guards": snap, "robot_state": state}))
-                    if state.get("error_code", -1) != 0:
+                    if state.get("error_code") not in NOMINAL_ROBOT_ERROR_CODES:
                         raise Hold("robot_error_state")
                 except Exception as error:
                     reason.append(str(error))

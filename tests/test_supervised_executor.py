@@ -47,7 +47,7 @@ def hardware_fakes(tmp_path, *, failure=None):
             return not (failure == "failed_stop" and "velocity" in calls)
 
         def snapshot(self):
-            return {"error_code": 0}
+            return {"error_code": 1002 if failure == "robot_error" else 100}
 
     class Route:
         def avoidance_enabled(self):
@@ -104,7 +104,8 @@ def test_audited_wrapper_cadence_stop_dwell_and_release_separate(tmp_path):
     assert "unitree_sdk2py" not in sys.modules and "cyclonedds" not in sys.modules
 
 
-@pytest.mark.parametrize("failure", ["stale_remote", "stale_state", "missing_geometry", "heartbeat", "avoidance_disabled"])
+@pytest.mark.parametrize("failure", ["stale_remote", "stale_state", "missing_geometry", "heartbeat", "avoidance_disabled",
+                                     "robot_error"])
 def test_guard_failure_never_claims_or_moves(tmp_path, failure):
     motion, ticket, cancel, calls, clock = hardware_fakes(tmp_path, failure=failure)
     result = motion(ticket, ticket["action"], result_record(ticket, False, clock()), cancel)
