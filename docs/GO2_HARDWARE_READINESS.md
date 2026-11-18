@@ -248,6 +248,7 @@ after the stop; odometry under-read by ~20 % on 2026-11-15, so the true travel i
 At 2.0 rad/s the coast after the heading stop is direction-dependent in this pair: +4.4° right (with
 springback) vs +10.8° left; right turns again translate more (6.0 vs 1.0 cm, cf. 7.0 vs 1.3 cm at
 15°/1.0 rad/s). One run per condition; no precision claim.
+Operator: all three runs clearly visible and clean (2026-11-18).
 
 ## Historical: what blocked the first model-directed forward action (all resolved above)
 

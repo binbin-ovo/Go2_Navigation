@@ -41,7 +41,7 @@ canonical control logs under `~/Desktop/Go2_Navigation-go2-control/data/outputs/
 - **Faster caps (user request)**: control checkout `6d555d3` raises the utility to forward 1.0 m/s
   (distance target required above 0.30) and turn 2.0 rad/s. Controller-only: 1.0 m/s → peak 0.91 m/s,
   0.71 m odom for a 0.6 m stop, still 0.15 s; 30° at 2.0 rad/s → right −34.4° (6.0 cm), left +40.8°
-  (1.0 cm). Supervised path still pins `742cfe4` (refuses to arm) until deliberately re-pinned.
+  (1.0 cm); operator: all visible and clean. Supervised path still pins `742cfe4` (refuses to arm) until deliberately re-pinned.
 - **Next**: repeat 15° turns per direction for spread; locate the turning centre vs base_link/model
   origin; rear swept-disc coverage; then consider an operator-cleared turn scope (report section 4).
 - **Mac**: ~/Desktop is iCloud-offloaded (disk 96 % full); hardware imports are local, recordings and
