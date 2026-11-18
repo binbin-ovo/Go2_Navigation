@@ -1,3 +1,25 @@
+## Current: supervised navigation contract publication (2026-11-17)
+
+Branch `feature/vln-supervised-navigation`, based on interactive
+`fdb5451e25cdc1f5971bbf0e1c7887ec51ff634a`. Main and the read-only launcher are unchanged.
+The current task is one supervised bounded action, with Claude responsible for
+hardware verification and the physical trial. Earlier read-only milestones below
+remain historical; they do not authorize movement.
+
+Published interface: [SUPERVISED_NAVIGATION_CONTRACT](SUPERVISED_NAVIGATION_CONTRACT.md),
+[schema](../src/go2_perception/vln/schemas/supervised-navigation-v1.schema.json),
+[synthetic fixture](../examples/supervised_navigation/synthetic_cycle.json).
+Read the contract before preparing capability evidence. Synthetic values are not
+Go2 limits or calibration. Required evidence: frame registration for each action,
+independent intervention, obstacle handling, stop verification, motion bounds and
+target correspondence; plus a pinned live guard provider and one canonical
+control checkout/lock shared by every command process. Unknowns keep live disabled.
+
+Initial contract validation: `python -m pytest -q tests/test_supervised_contract.py`
+with `GO2_HARDWARE=0`: **3 passed**. Planner/executor/UI implementation is in
+progress, not yet verified or ready for a physical trial. No model or hardware
+was loaded for this publication.
+
 ## Current: browser one-answer review tool + paired-view experiment (2026-11-17)
 
 Branch `feature/vln-interactive-review` (worktree `/Users/yushan/Desktop/Go2_Navigation-vln-interactive`;

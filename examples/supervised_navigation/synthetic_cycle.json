@@ -1,0 +1,171 @@
+{
+  "schema": "go2-supervised-navigation-v1",
+  "synthetic": true,
+  "capability": {
+    "capability_id": "synthetic-capability-v1",
+    "kind": "synthetic",
+    "configuration_id": "invented-static-room",
+    "valid_until_wall_s": 4102444800,
+    "control": null,
+    "evidence": {
+      "frame_mapping": {
+        "status": "verified",
+        "reference": "SYNTHETIC ONLY: fixture, not hardware verification"
+      },
+      "intervention": {
+        "status": "verified",
+        "reference": "SYNTHETIC ONLY: fixture, not hardware verification"
+      },
+      "obstacle_handling": {
+        "status": "verified",
+        "reference": "SYNTHETIC ONLY: fixture, not hardware verification"
+      },
+      "stop_verification": {
+        "status": "verified",
+        "reference": "SYNTHETIC ONLY: fixture, not hardware verification"
+      },
+      "motion_bounds": {
+        "status": "verified",
+        "reference": "SYNTHETIC ONLY: fixture, not hardware verification"
+      },
+      "target_correspondence": {
+        "status": "verified",
+        "reference": "SYNTHETIC ONLY: fixture, not hardware verification"
+      }
+    },
+    "mapping": {
+      "from_frame": "lightnav_decision",
+      "to_frame": "base_link",
+      "translation_m": [
+        0,
+        0
+      ],
+      "yaw_rad": 0,
+      "verified_actions": [
+        "forward",
+        "turn"
+      ]
+    },
+    "limits": {
+      "forward_m": 0.15,
+      "turn_rad": 0.25,
+      "forward_mps": 0.1,
+      "turn_radps": 0.2,
+      "duration_s": 2.0,
+      "resend_period_s": 0.05,
+      "state_age_s": 0.2,
+      "geometry_age_s": 0.2,
+      "stationary_dwell_s": 0.3,
+      "auth_ttl_s": 10,
+      "pose_translation_m": 0.02,
+      "pose_yaw_rad": 0.03,
+      "lateral_m": 0.015,
+      "straight_yaw_rad": 0.05,
+      "turn_translation_m": 0.015
+    }
+  },
+  "proposal": {
+    "identity": {
+      "session_id": "synthetic-session_id",
+      "trial_id": "synthetic-trial_id",
+      "instruction_id": "synthetic-instruction_id",
+      "prediction_id": "synthetic-prediction_id",
+      "observation_id": "synthetic-observation_id",
+      "clock_epoch": "synthetic-clock_epoch",
+      "instruction": "Approach the synthetic box.",
+      "source_image_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "observed_monotonic_s": 100.0,
+      "received_monotonic_s": 100.01,
+      "uncertainty_bound_s": 0.01,
+      "pose": {
+        "frame": "synthetic_odom",
+        "robot_epoch": "synthetic-boot",
+        "monotonic_s": 100.0,
+        "x_m": 0.0,
+        "y_m": 0.0,
+        "yaw_rad": 0.0
+      },
+      "geometry": {
+        "available": true,
+        "monotonic_s": 100.0,
+        "frame": "synthetic_odom",
+        "robot_epoch": "synthetic-boot",
+        "source": "invented fully observed clearance",
+        "directions": [
+          "forward",
+          "left",
+          "right"
+        ],
+        "forward_clear_m": 1.0,
+        "turn_clear_rad": 1.0
+      }
+    },
+    "model_identity": {
+      "checkpoint": "SYNTHETIC \u2014 no inference",
+      "revision": "synthetic",
+      "processor_revision": "synthetic"
+    },
+    "native_output": "SYNTHETIC scripted forward proposal",
+    "waypoints": [
+      [
+        0.1,
+        0.0,
+        0.0
+      ],
+      [
+        0.2,
+        0.0,
+        0.0
+      ],
+      [
+        0.30000000000000004,
+        0.0,
+        0.0
+      ],
+      [
+        0.4,
+        0.0,
+        0.0
+      ],
+      [
+        0.5,
+        0.0,
+        0.0
+      ],
+      [
+        0.6000000000000001,
+        0.0,
+        0.0
+      ],
+      [
+        0.7000000000000001,
+        0.0,
+        0.0
+      ],
+      [
+        0.8,
+        0.0,
+        0.0
+      ],
+      [
+        0.9,
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        0.0,
+        0.0
+      ]
+    ],
+    "native_stop": false,
+    "point_fraction": [
+      0.5,
+      0.5
+    ],
+    "synthetic": true
+  },
+  "authorization": null,
+  "execution_result": null,
+  "post_observation": null
+}
