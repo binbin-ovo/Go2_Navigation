@@ -251,6 +251,7 @@ def test_automatic_end_does_not_swallow_the_next_command(tmp_path):
     assert app.trial is None and app.dialog is None
     assert any(f"review {trial.id}" in m for m in messages)
     app.handle("target chair", clock(), {}, clock())  # a command, not a review answer
+    app.handle("yes", clock(), {}, clock())  # the run's single safety question
     assert app.trial is not None and app.trial.record["operator_text"] == "chair"
     assert not (app.store.root / "trials" / trial.id / "human_labels.jsonl").exists()
 
@@ -528,7 +529,7 @@ def test_cli_trial_mark_end_review_and_reopen(tmp_path):
     out = tmp_path / "run"
     env = {**os.environ, "PYTHONPATH": str(ROOT / "src")}
     commands = "\n".join([
-        "help", "target blue box", "__wait__", "mark looks right", "note box is centred", "end",
+        "help", "target blue box", "yes", "__wait__", "mark looks right", "note box is centred", "end",
         "The model marked the box.", "present", "correct", "plausible", "not_applicable", "", "yes",
         "status", "quit"])
     proc = subprocess.Popen([PY, "-u", ROOT / "scripts/run_vln_interactive.py", "--camera", "synthetic",
@@ -600,3 +601,31 @@ def test_interactive_paths_have_no_control_route():
     receivers = (ROOT / "src/go2_perception/adapters/go2/receivers.py").read_text()
     assert "ChannelSubscriber" in receivers and "ChannelPublisher" not in receivers
     assert os.environ.get("GO2_HARDWARE", "0") in ("0", "")
+
+
+def test_one_safety_question_per_run_and_next_hints(tmp_path):
+    app, clock, feed, messages = make_app(tmp_path, worker=PointingMockWorker(0.5))
+    app.handle("target chair", clock(), {}, clock())
+    assert app.trial is None and "[yes/no]" in messages[-1] and messages[-1].count("?") == 1
+    app.handle("no", clock(), {}, clock())
+    assert app.trial is None and "\nNEXT: `target" in messages[-1]
+    app.handle("target chair", clock(), {}, clock())
+    app.handle("maybe", clock(), {}, clock())
+    assert "yes or no" in messages[-1] and app.trial is None
+    app.handle("yes", clock(), {}, clock())
+    first = app.trial
+    assert first is not None and messages[-1].startswith("NEXT: keep the robot still") and "~20 s" in messages[-1]
+    assert first.record["operator_safety_confirmation"]["answer"] == "yes"
+    feed(12)
+    assert any(m.startswith("Answer P001") and "points at the +" in m for m in messages)
+    assert "NEXT: `mark <what you see>`" in "\n".join(messages)
+    app.handle("mark plus is on the chair", clock(), app.viewer_snapshot(), clock())
+    assert messages[-1].startswith("NEXT: `mark <...>` again")
+    app.handle("end", clock(), {}, clock())
+    for line in ("seen", "present", "correct", "plausible", "not_applicable", "", "yes"):
+        app.handle(line, clock(), {}, clock())
+    assert messages[-1].startswith("NEXT: `target <object>` for a new trial")
+    app.handle("target door", clock(), {}, clock())  # asked once per run: starts directly
+    assert app.trial is not None and app.trial.id != first.id
+    events = [e["event"] for e in read_jsonl(app.store.root / "events.jsonl")]
+    assert events.count("safety_question_confirmed") == 1 and events.count("safety_question_declined") == 1

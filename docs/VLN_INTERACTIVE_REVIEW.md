@@ -115,6 +115,30 @@ Starting a new `target`/`instruction` while a trial is active ends that trial
 (`superseded_by_new_trial`); it can be reviewed later with `review ID`. `end` and `quit`
 call only the session's advisory `cancel` (`physical_robot_stop_sent: false`).
 
+## Step-by-step test (what to type, what you should see)
+
+The terminal prints a `NEXT:` line after every step with the commands that make sense at
+that moment, and announces every model answer in plain words. The robot stays still for
+the whole test. This tool never moves it.
+
+| # | You type | You should see | Then |
+|---|---|---|---|
+| 1 | *(start the tool, ~45 s model load)* | `Model ready.` and `NEXT: target chair …` | — |
+| 2 | `target chair` | the **single** safety question (stationary, remote owns control, avoidance on, clearance/cable checked) | — |
+| 3 | `yes` | `Trial … started`, `NEXT: keep the robot still … stops by itself after ~20 s` | watch panel B |
+| 4 | *(wait 2–3 s)* | `Answer P001 after … s (CURRENT/STALE): model points at the + in panel B` or `… NOT VISIBLE (OPOS-0)` | check the + on panel B's image |
+| 5 | `mark the + is on the chair` (your own words) | `Mark M001 → prediction …`, `NEXT: mark … again · end …` | optional more marks |
+| 6 | `end` | `Trial … ended`, then the first review question | — |
+| 7 | answer the 6 questions (comment; present/absent/uncertain; correct/wrong/ambiguous/not_applicable; plausible/inappropriate/uncertain; appropriate/inappropriate/uncertain/not_applicable; initials) | the full record, then `Confirm … [yes/no]` | — |
+| 8 | `yes` | `Saved human review …`, `NEXT: target <object> … · quit` | next object, or step 9 |
+| 9 | `quit` | `Closed (operator_quit). No robot command was sent.` | — |
+
+The safety question is asked once per run, at the first `target`. A trial that stops by
+itself (history limit, camera gap, time or resource limit) does **not** open the
+questions; it prints `NEXT: review <ID> …` so your next line stays a command. A suggested
+set: one clearly visible object, one absent object, one ambiguous object (two similar
+items).
+
 ## Window
 
 The header shows the mode in large type: **LIVE**, **REPLAY**, **SYNTHETIC** or **REVIEW**.
@@ -250,7 +274,7 @@ from this tool). The disk counter counts prepared-cache hard links once.
 
 ## Tests
 
-`tests/test_vln_interactive.py`, 23 tests, no hardware, model or DDS:
+`tests/test_vln_interactive.py`, 24 tests, no hardware, model or DDS:
 
 - Template saved before inference.
 - Target change keeps the late result with its original trial (SUPERSEDED).
@@ -276,7 +300,7 @@ from this tool). The disk counter counts prepared-cache hard links once.
 - AST check: no control route in any new file; the LiDAR bridge subscribes to
   `cloud_base` only.
 
-Results: `23 passed` (one added after the live session for automatic trial ends). Full core suite on this branch: **702 passed, 0 failed, 11 skipped**
+Results: `24 passed` (one added after the live session for automatic trial ends, one for the single safety question and NEXT hints). Full core suite on this branch: **702 passed, 0 failed, 11 skipped**
 in 51.9 s. The skips are environment-only (pinned LightNav source/RVQ, SmolVLM cache,
 simulator, `GO2_HARDWARE=1`), listed in
 `data/outputs/vln_interactive/audit/full_core_regression.log` (private). Ruff is clean on

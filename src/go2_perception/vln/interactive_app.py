@@ -46,6 +46,19 @@ HELP = """Commands (terminal; the browser only displays and accepts review click
 During a review dialog every line is an answer; `!cancel` discards it, `!quit` quits."""
 
 GAP_S = 0.375  # the session's own native-history gap rule
+SAFETY_QUESTION = ("Before the first trial: is the Go2 stationary, does the handheld remote own control "
+                   "(no app/API control), is onboard avoidance on, and are body clearance and cable slack "
+                   "checked? [yes/no]")
+NEXT = {
+    "ready": "NEXT: `target chair` (any object you can name) to start a trial · `help` for all commands",
+    "started": ("NEXT: keep the robot still and wait ~2-3 s for the first answer (panel B); "
+                "the trial stops by itself after ~{limit:.0f} s"),
+    "answer": "NEXT: `mark <what you see>` to record whether the + is right · `end` to finish this trial",
+    "marked": "NEXT: `mark <...>` again for a later answer · `end` to finish and review this trial",
+    "ended": "NEXT: `review {id}` to answer the review questions · `target <object>` for a new trial · `quit`",
+    "reviewed": "NEXT: `target <object>` for a new trial · `review` to list trials · `quit` to finish",
+    "no_trial": "NEXT: `target <object>` to start a trial · `review` to list saved trials · `quit`",
+}
 
 
 def label_for(reason):
@@ -310,6 +323,8 @@ class InteractiveApp:
         self.last_receipt = None
         self.review = None
         self.dialog = None
+        self.safety_confirmation = None  # one combined operator answer per run
+        self.pending_spec = None
         self.viewer = {}
         self.resource_stop = None
         self.camera_down = False
@@ -388,6 +403,7 @@ class InteractiveApp:
                 "max_requests_per_trial": self.config["max_requests_per_trial"],
                 "trial_max_s": self.config["trial_max_s"],
             },
+            "operator_safety_confirmation": self.safety_confirmation,
             "session_id": self.session.session_id,
             "instruction_revision": self.session.revision + 1,
             "model_identity_file": self.run_info.get("model_identity_file"),
@@ -408,7 +424,35 @@ class InteractiveApp:
                          template_id=spec["template_id"])
         self.say(f"Trial {trial.id} started. Instruction: {spec['instruction']!r}"
                  + (f" (template {spec['template_id']})" if spec["template_id"] else ""))
+        self.say(NEXT["started"].format(limit=self.session.limits.history_s))
         return trial
+
+    def request_trial(self, spec, now):
+        """Start a trial; the first one in a run asks the single safety question first."""
+        if self.safety_confirmation is not None:
+            return self.start_trial(spec, now)
+        refusal = self._refuse_trial()
+        if refusal:
+            self.say(refusal)
+            return None
+        self.pending_spec = spec
+        self.say(SAFETY_QUESTION)
+        return None
+
+    def _answer_safety(self, line, now):
+        answer = line.strip().lower()
+        if answer not in ("yes", "y", "no", "n"):
+            self.say("Please answer yes or no.\n" + SAFETY_QUESTION)
+            return
+        spec, self.pending_spec = self.pending_spec, None
+        if answer in ("no", "n"):
+            self.store.event("safety_question_declined", now)
+            self.say("Not started. Nothing was sent to the robot.\n" + NEXT["no_trial"])
+            return
+        self.safety_confirmation = {"answer": "yes", "question": SAFETY_QUESTION, "wall_utc": utc_now(),
+                                    "note": "operator confirmation; the app cannot verify it and sends nothing"}
+        self.store.event("safety_question_confirmed", now, **self.safety_confirmation)
+        self.start_trial(spec, now)
 
     def end_trial(self, reason, now, *, review=True):
         trial = self.trial
@@ -429,7 +473,7 @@ class InteractiveApp:
         self.open_review(trial.id, now, dialog=review)
         if not review:
             # Automatic ends never open the question dialog: the next typed line stays a command.
-            self.say(f"Type `review {trial.id}` to answer its review questions.")
+            self.say(NEXT["ended"].format(id=trial.id))
         return trial
 
     # ---------- review ----------
@@ -555,6 +599,7 @@ class InteractiveApp:
         self.store.event("mark_saved", now, trial_id=self.trial.id, mark_id=record["mark_id"],
                          prediction_id=pred_id, frame_id=frame_id)
         self.say(f"Mark {record['mark_id']} → prediction {pred_id or 'none shown'}, camera frame {frame_id} ({binding}).")
+        self.say(NEXT["marked"])
         return record
 
     def note(self, text, typed_s, viewer, now):
@@ -587,6 +632,12 @@ class InteractiveApp:
 
     # ---------- commands ----------
     def handle(self, line, typed_s, viewer, now):
+        if self.pending_spec is not None:
+            if line.strip() == "!quit":
+                self.pending_spec = None
+                return self.handle("quit", typed_s, viewer, now)
+            self._answer_safety(line, now)
+            return True
         if self.dialog is not None:
             if line.strip() == "!quit":
                 self.dialog = None
@@ -596,14 +647,15 @@ class InteractiveApp:
             if self.dialog.done:
                 self.dialog = None
                 self._refresh_review()
+                self.say(NEXT["reviewed"])
             return True
         command, _, rest = line.lstrip().partition(" ")  # rest stays verbatim (notes)
         command = command.lower()
         try:
             if command == "target":
-                self.start_trial(expand_target(rest), now)
+                self.request_trial(expand_target(rest), now)
             elif command == "instruction":
-                self.start_trial(as_instruction(rest), now)
+                self.request_trial(as_instruction(rest), now)
             elif command == "mark":
                 self.mark(rest, typed_s, viewer, now)
             elif command == "note":
@@ -636,7 +688,7 @@ class InteractiveApp:
             elif command:
                 self.say("Unknown command. " + HELP)
         except ValueError as error:
-            self.say(f"Rejected: {error}")
+            self.say(f"Not done: {error}")
         return True
 
     def save(self, now):
@@ -746,6 +798,11 @@ class InteractiveApp:
             append_jsonl(folder / "predictions.jsonl", pred)
             if self.trial is not None and self.trial.id == trial_id:
                 self.trial.prediction_ids.append(pred["prediction_id"])
+                what = ("model says the target is NOT VISIBLE (OPOS-0)" if pred["opos_not_visible"]
+                        else "model points at the + in panel B" if pred["target_fraction"] else "no target point")
+                self.say(f"Answer {pred['prediction_id'].rsplit('-', 1)[-1]} after "
+                         f"{(pred['inference_duration_s'] or 0):.1f} s ({pred['label_at_receipt']}): {what}.")
+                self.say(NEXT["answer"])
         self.store.event("prediction_received", now, prediction_id=pred["prediction_id"],
                          trial_id=trial_id, label=pred["label_at_receipt"],
                          reason=record["rejection_reason"])
@@ -884,7 +941,7 @@ class InteractiveApp:
                                    ("checkpoint", "upstream_code", "patch_sha256", "runtime", "load_s",
                                     "load_memory", "preparation_mode", "tensor_evidence", "backend", "note")}
             self.store.event("model_ready", now, identity=self.model_identity)
-            self.say("Model ready. Type `help` for commands.")
+            self.say("Model ready.\n" + NEXT["ready"])
         self._publish(self.monotonic())
 
     def close(self, now):
