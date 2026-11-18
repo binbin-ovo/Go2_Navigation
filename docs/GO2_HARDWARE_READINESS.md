@@ -149,7 +149,56 @@ hardware imports (numpy, cyclonedds, unitree_sdk2py) load in 0.3 s, so the runti
 background read is restoring the rest. If a launch stalls with no CPU, an offloaded file is the first
 suspect. Freeing disk space or marking these folders "Keep Downloaded" in Finder prevents it (user's call).
 
-## Blocking the first model-directed forward action
+## 8. Live evidence and the first model-directed step (2026-11-18)
+
+All on one robot boot (`go2_odom_boot:-1766947283`), Go2 standing in the kitchen, avoidance read enabled
+before and after every step, no `SportClient.Move`, no `SwitchSet`. Logs are local and git-ignored.
+
+| Item | Experiment | Result |
+|---|---|---|
+| Intervention under API ownership | `ownership --execute --seconds 40`, no Move; operator pressed the controller emergency button | press seen at 17.6 s, `error_code` 100 → 1002 at 18.9 s, operator saw the robot **freeze standing**; release code 0; avoidance enabled; operator cleared → 100 |
+| Obstacle handling (forward corridor) | provider live, stationary, box placed | open: nearest 2.88 m / clear 1.80 m; box centred ~1.1 m from the nose: 1.53 / 1.03 m; box 20 cm left: 1.58 / 1.08 m; geometry age ≤ 0.11 s |
+| Capture-age bound | `hardware/capture_latency.py`: Mac screen flashes black/white at random 0.4–0.9 s in front of the camera; switch time taken before drawing | 39/39 switches; switch→first-RTP receipt median 0.117 s, max 0.176 s (includes display lag and up to one 0.07 s frame); bound = 0.176 − 0.048 + 0.020 = **0.148 s** for this boot |
+| Target correspondence on the trial target | read-only viewer `live_14`, box as target, operator ROI around the box | operator judged 9/9 model points on the box; same view 0.3–1.1 s apart 20/24 valid (box at the left image edge refused); point outside the ROI 0/6; box moved between requests 0/5 |
+| Model answers vs the forward primitive | same session | box ~1.1 m: native STOP, zero waypoints; box off-centre: every answer combined a 15–30° turn with travel → planner HOLD (`unsupported_reverse_lateral_or_combined_primitive`); box dead centre ~2.5 m: 3/3 straight (first row 0.15 m, yaw ≤ 0.01 rad) → forward 0.143–0.145 m |
+| Answer delay | same session | first request 3.07 s (warm-up, STALE); then 1.94–2.04 s frame-to-answer (inference ~1.67 s) |
+
+**Executor fixes found by the live runs** (both small, tested, committed):
+- `error_code` nominal value on this robot is **100**, not 0; the executor's `!= 0` check would have
+  held every live step before claim. Only 100 is accepted; 1002 (emergency stop) and anything else HOLD.
+- First supervised cycle `claude_one_step_01` held before claim with `stale_or_future_observation`: the
+  1.0 s pre-claim stationary dwell only started after the model answer, so the frame was 3.02 s old at
+  the last check (limit 3.0 − 0.148). The idle loop now samples fresh stillness every ~0.05 s and the
+  dwell continues that run only if the last sample is ≤ 0.1 s old; any moving/stale sample resets it.
+  Dwell length and the 3.0 s limit are unchanged.
+
+**First integrated step, `claude_one_step_02`** (operator: preview → ROI "cardboard box" → confirm →
+authorize once; box dead centre ~2.45 m from base_link):
+
+| Stage | Value |
+|---|---|
+| Authorized envelope | forward 0.143 m, 0.30 m/s, 4.0 s |
+| Refreshed answer | forward 0.143 m, row 0 mapped (0.151, 0.0045, −0.00003) |
+| Frame age at claim | 2.03 s (limit 2.852 s) |
+| Velocity phase | 23 Move commands over 1.27 s, then zero ×3 |
+| Stop | fused progress 0.154 m ("target reached"); still 0.27 s after the first zero |
+| Release / after | release 0, still before and after release, avoidance enabled; post-step frame captured |
+| Displacement | odometry 0.129 m at stop, 0.152 m settled (odometry under-reads ~20 % → ~0.18–0.19 m); LiDAR clearance 1.93–1.96 → 1.74 m (~0.19–0.22 m); heading −1.1°, lateral −4 mm |
+| Operator | "clean small step" |
+
+A 0.14 m request stops inside the walking ramp and coasts ~4–5 cm: the magnitude is a requested bound,
+not a precise stop. The planner uses only the first non-identity waypoint (0.15 m minus mapping slack),
+so a model-directed step is currently ≤ ~0.15 m requested.
+
+## Status after the live session
+
+The forward primitive is verified end to end for one supervised step. Remaining before turns:
+yaw response and stop below 30°, springback, translation, clearance of body/legs/cable over the swept
+disc (sections 3–4), and the model/body mapping translation (`translation_m` null). A turn is next
+tested **controller-only** with the audited utility (no model, no executor), labelled a control test.
+
+## Historical: what blocked the first model-directed forward action (all resolved above)
+
 1. **Intervention while the API owns control** is unverified. The user's controller has an emergency
    button; it has never been exercised while `UseRemoteCommandFromApi(True)` is held. Smallest
    experiment: stationary `ownership --execute --seconds 20`, the user presses the emergency button at

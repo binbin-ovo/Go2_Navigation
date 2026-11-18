@@ -1,10 +1,25 @@
 ## Go2 hardware readiness (Claude, 2026-11-18) — branch `feature/go2-hardware-readiness`
 
-Report: [GO2_HARDWARE_READINESS](GO2_HARDWARE_READINESS.md). Based on `4063c73`; main unchanged; not pushed.
-**No physical action has been taken in this task.** Recordings/logs are local and git-ignored
-(`data/outputs/hw_readiness/` in the readiness worktree, canonical control logs under
-`~/Desktop/Go2_Navigation-go2-control/data/outputs/go2_control/`).
+Report: [GO2_HARDWARE_READINESS](GO2_HARDWARE_READINESS.md) (section 8 = live results). Main unchanged;
+not pushed. Recordings/logs are local and git-ignored (`data/outputs/hw_readiness/`, `data/outputs/
+vln_interactive/live_14`, `data/outputs/supervised/claude_one_step_0{1,2}` in the readiness worktree;
+canonical control logs under `~/Desktop/Go2_Navigation-go2-control/data/outputs/go2_control/`).
 
+- **First model-directed step done (`claude_one_step_02`)**: box dead centre ~2.5 m, operator ROI +
+  one authorization → refreshed LightNav answer → forward 0.143 m at 0.30 m/s → 1.27 s of Move, stop
+  still in 0.27 s, release 0, avoidance on; ~0.19 m actual (odometry 0.152 m, LiDAR ~0.2 m), heading
+  −1.1°. Operator: clean small step. The capability (`hardware/make_capability.py`) passes the live check
+  for **forward only**.
+- **Live evidence**: emergency button while the API owns control freezes the robot standing
+  (`error_code` 100 → 1002, cleared to 100); provider clearance tracks a placed box; capture-age bound
+  0.148 s on this boot (`hardware/capture_latency.py`, screen flashes; boot-specific); correspondence on
+  the box 20/24 same-view, 0/6 outside, 0/5 moved box.
+- **Executor fixes** (tested): nominal `error_code` is 100 on this robot; the pre-claim stillness dwell
+  now continues the idle stillness run (was restarting after the model answer → 3.02 s frame → HOLD).
+- **Model behaviour**: STOP at ~1.1 m; any off-centre target gives turn+travel → planner HOLD (correct);
+  answers 1.94–2.04 s after the frame once warm. The viewer/app must be launched from Claude's shell, not
+  the Terminal panel: the panel-launched camera child received 0 RTP packets (likely macOS local-network
+  permission).
 - **Calibration**: measured intrinsics reused unchanged (sha `f5dedd82…`); live pipeline loads them and
   rectifies (fisheye, balance 0, no crop) then stretches to 448×256. `T_base_camera` stays null.
 - **Forward mapping (verified for forward only)**: camera yaw +0.8° from the static wall capture
@@ -18,12 +33,10 @@ Report: [GO2_HARDWARE_READINESS](GO2_HARDWARE_READINESS.md). Based on `4063c73`;
   rear returns to ~1 m (unvalidated); nothing beyond ~1.3 m behind (occlusion). Provider reports
   `turn_clear_rad = 0`. Next turn step is a controller-only, operator-inspected control test.
 - **Correspondence gate offline**: stationary 21/24 valid, moved 0/18, outside-ROI 0/42.
-- **Provider** `hardware/supervised_guards.py` (read-only, 13 mock tests); capability generator
-  `hardware/make_capability.py` computes versions/hashes; current draft refuses live arming on
-  `unverified_intervention` (then obstacle handling, target correspondence, capture bound).
-- **Blocking the first model-directed forward step**: (1) emergency button while the API owns control,
-  stationary; (2) capture-age upper bound on the current boot (camera views a screen clock);
-  (3) live provider check with a box ~1 m ahead. All three are stationary.
+- **Provider** `hardware/supervised_guards.py` (read-only); capability generator
+  `hardware/make_capability.py` computes versions/hashes and names the evidence for each status.
+- **Next**: controller-only 30° turn test (audited utility, no model), then evidence for smaller turns,
+  rear/side swept-disc clearance and the model-origin translation before any model-directed turn.
 - **Mac**: ~/Desktop is iCloud-offloaded (disk 96 % full); hardware imports are local, recordings and
   the model env are being restored. A launch stalling at 0 % CPU means an offloaded file.
 
