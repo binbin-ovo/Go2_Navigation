@@ -99,6 +99,8 @@ def main(argv=None):
     p.add_argument("--operator-direction", required=True, help="direction the OPERATOR chose, e.g. 'left'")
     p.add_argument("--operator-report", default="", help="operator's own words about the turn (verbatim)")
     p.add_argument("--threshold-deg", type=float, default=2.0)
+    p.add_argument("--rate-deg-s", type=float, default=5.0,
+                   help="Turning = yaw rate above this over a 0.5 s window (robust to slow creep/drift)")
     a = p.parse_args(argv)
     run = a.run.resolve()
     before, after = trial_evidence(run, a.before), trial_evidence(run, a.after)
@@ -132,6 +134,23 @@ def main(argv=None):
                                "transport latency (a few ms); camera receipt is about 48 ms after exposure (single-boot estimate); both are this "
                                "computer's host-monotonic receipt times",
             }
+            # Rate-based interval: slow stance creep or odometry drift can cross the deviation
+            # threshold long before the operator turns; the turn itself is where yaw changes fast.
+            window_s = 0.5
+            idx = np.searchsorted(t, t - window_s)
+            rate = np.abs(y - y[idx]) / np.maximum(t - t[idx], 1e-3)
+            fast = np.nonzero((rate > a.rate_deg_s) & (t - t[idx] > 0.4))[0]
+            if len(fast):
+                r_start, r_end = float(t[fast[0]] - window_s), float(t[fast[-1]])
+                turn["rate_based"] = {"turn_start_host_monotonic_s": r_start, "turn_end_host_monotonic_s": r_end,
+                                      "duration_s": r_end - r_start, "rate_threshold_deg_s": a.rate_deg_s,
+                                      "window_s": window_s,
+                                      "yaw_drift_before_turn_deg": float(y[t < r_start][-1] - ref) if np.any(t < r_start) else None}
+                start, end = min(start, r_start), max(end, r_end)  # conservative for the post-turn check
+            turn["method_version"] = 2
+            turn["deviation_based"] = {"turn_start_host_monotonic_s": turn.pop("turn_start_host_monotonic_s"),
+                                       "turn_end_host_monotonic_s": turn.pop("turn_end_host_monotonic_s"),
+                                       "duration_s": turn.pop("duration_s")}
             margin = after["input_frames"]["first_s"] - end
             post_turn = {"verified": bool(margin > 0), "margin_s": margin,
                          "second_input_first_s": after["input_frames"]["first_s"], "turn_end_s": end,
@@ -150,6 +169,7 @@ def main(argv=None):
         "before": before, "after": after,
         "independent_histories": before["instruction_revision"] != after["instruction_revision"],
         "model_feedback": False,
+        "note": "append-only; a later record for the same pair supersedes earlier ones (see method_version)",
     }
     out = run / "evaluation"
     out.mkdir(exist_ok=True)

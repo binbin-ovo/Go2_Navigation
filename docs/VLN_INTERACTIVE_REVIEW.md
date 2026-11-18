@@ -234,6 +234,37 @@ not change the model's answer. That is one pair in one scene, with no general cl
 - The cable-slack check was not confirmed separately in words.
 - The odometry heading is relative and drifts; no camera-to-body calibration exists.
 
+### More paired views with obvious targets (`live_10`, 2026-11-17)
+
+Same procedure and preflight: avoidance read on, `cloud_base` at 15 Hz, odometry at
+159 Hz. For each pair the operator confirmed clearance and cable slack and chose the
+direction, all logged as run notes. 0 robot commands, 0 camera losses, 0 dropped LiDAR
+chunks. Every answer was **CURRENT** at receipt (1.9–2.9 s).
+
+**Turn detection, method v2:** in the microwave pair, slow heading creep of +2.6° before
+the turn crossed the 2° deviation threshold, and v1 reported a 76.7 s "turn". v2 measures
+the turn as the interval where the yaw rate exceeds 5°/s over a 0.5 s window. The
+post-turn check uses the union of both intervals (conservative). All pairs, including
+the chair pair from `live_09`, were re-linked with v2; the earlier records stay in the
+append-only file.
+
+| Pair | Before: model / operator | Turn (odometry, v2) | After: model / operator | Post-turn input |
+|---|---|---|---|---|
+| chair (`live_09`) | not visible / **wrong, IS in view** ("partially visiable") | −35.5° right, 8.9 s | not visible / **wrong, IS in view** ("right infront") | verified, +28.1 s |
+| oven | not visible / right, not in view | −64.2° right, 6.5 s | point (0.59, 0.46) / **correct** | verified, +43.0 s |
+| microwave oven | not visible / right, not in view | −101.2° right, 15.7 s | point (0.66, 0.06) / **correct** | verified, +33.2 s |
+| dish washer | point (0.49, 0.50) / **target not in view** ("This is not the dish washer. it is just a cabinet.") | +63.4° left, 2.8 s | point (0.51, 0.50) / **correct** | verified, +135.5 s |
+
+Observations from four pairs in one scene (no accuracy claim):
+- For oven and microwave, the answer changed from not visible to a correct point after
+  the operator's turn.
+- For the dish washer, the "before" point was a false detection on a cabinet. Both
+  dish-washer points sit at the image center, so the correct "after" answer may partly
+  reflect the operator centering the target.
+- For the chair, the model missed it both times.
+
+Trial and prediction IDs are in `evaluation/paired_views.jsonl` of each private run.
+
 ## Window
 
 The header shows the mode in large type: **LIVE**, **REPLAY**, **SYNTHETIC** or **REVIEW**.

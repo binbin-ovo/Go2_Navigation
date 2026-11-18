@@ -36,6 +36,11 @@ that the second answer used post-turn input. Tests: 712 core passed / 11 environ
 said NOT VISIBLE both times; the operator saw the chair both times (partially, then
 directly ahead). One pair; independent observations, not temporal navigation. Details
 are in the review doc.
+**live_10 (three more pairs, obvious targets):** oven and microwave changed from not
+visible to a correct point after the operator's turn. The dish washer went from a false
+point on a cabinet to a correct (image-centered) point. All second inputs were verified
+post-turn. Turn detection is now rate-based (method v2); slow heading creep had
+inflated one v1 interval.
 
 ## Advisory latency: input-equivalent optimization (2026-11-16)
 

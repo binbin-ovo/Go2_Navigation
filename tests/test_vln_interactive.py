@@ -832,7 +832,8 @@ def test_paired_view_link_verifies_post_turn_input(tmp_path):
     assert result.returncode == 0, result.stdout + result.stderr
     record = read_jsonl(out / "evaluation/paired_views.jsonl")[0]
     turn = record["viewpoint_change"]["measured"]
-    assert turn["available"] and abs(turn["yaw_change_deg"] - 60) < 3 and 1.0 < turn["duration_s"] < 3.5, (turn, record["before"]["input_frames"], record["after"]["input_frames"])
+    assert turn["available"] and abs(turn["yaw_change_deg"] - 60) < 3, turn
+    assert turn["method_version"] == 2 and 1.0 < turn["rate_based"]["duration_s"] < 3.5, turn
     post = record["second_answer_uses_post_turn_view"]
     assert post["verified"] is True and post["first_input_before_turn"] is True, (post, turn)
     assert record["independent_histories"] and record["viewpoint_change"]["direction_chosen_by"] == "operator"
