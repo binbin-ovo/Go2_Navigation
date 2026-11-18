@@ -155,7 +155,48 @@ Operator verdicts across six answers in one scene: 5 agreed with the model, 1 di
 (a missed small object). This is not an accuracy estimate. The bag comment is kept
 verbatim and not interpreted.
 
+### Guided-flow safeguards (after source review)
 
+- A new answer immediately covers the canvas ("Loading the model's image…").
+- Save stays disabled until **that** image has loaded and a verdict is chosen.
+- Image-load errors keep Save disabled, and late callbacks from older answers are ignored.
+- Save sends `trial_id`, `prediction_id` and the archived image SHA-256. The server
+  rejects mismatched, stale, replayed or duplicate (double-click) saves.
+- The card shows "status when the answer arrived" and "this image is now N s old"
+  separately.
+- If a terminal command, resource limit or cancellation ends the trial:
+  - while asking: the box returns to step 1 with the reason;
+  - while answering: the verdict on that image can still be saved, flagged
+    `trial_already_ended_before_save`.
+- Review-only mode hides the Test box; reopened reviews list guided verdicts
+  (`choice_text`, `prediction_id`, verbatim comment) next to older review records.
+
+## Paired-view experiment (before / manual turn / after)
+
+Run with `--record-lidar-continuously` so odometry is also recorded between trials
+(LiDAR chunks tagged `between_trials`).
+
+1. **Before:** stationary robot, Ask "chair", save the verdict.
+2. **Turn:** the operator turns the Go2 with the handheld remote in a direction they
+   choose, with onboard avoidance on and clearance and cable slack checked. The app
+   sends nothing.
+3. **After:** robot stopped, Ask "chair" again (identical wording), save the verdict.
+4. Link the pair:
+   `scripts/link_paired_views.py --run <run> --before <T1> --after <T2> --operator-direction <dir> --operator-report "<words>"`
+
+The script compares this process's host-monotonic receipt times of every archived
+model-input frame with the odometry yaw (receipt converted with its own wall-minus-
+monotonic sample):
+- **turn start:** yaw leaves the pre-turn median by more than 2°;
+- **turn end:** yaw last differs from the post-turn median by more than 2°.
+
+It records `second_answer_uses_post_turn_view` (with margins) and appends to
+`evaluation/paired_views.jsonl`. The two answers are **independent observations**: each
+Ask starts a fresh instruction history. This is not continuous temporal navigation or
+autonomous search. A synthetic test checks a verified pair; a too-early second Ask was
+reported as not verified during development.
+
+## Window
 
 The header shows the mode in large type: **LIVE**, **REPLAY**, **SYNTHETIC** or **REVIEW**.
 The status strip shows the trial, model state, last inference time, observation age,
@@ -290,7 +331,7 @@ from this tool). The disk counter counts prepared-cache hard links once.
 
 ## Tests
 
-`tests/test_vln_interactive.py`, 26 tests, no hardware, model or DDS:
+`tests/test_vln_interactive.py`, 31 tests, no hardware, model or DDS:
 
 - Template saved before inference.
 - Target change keeps the late result with its original trial (SUPERSEDED).
@@ -316,8 +357,8 @@ from this tool). The disk counter counts prepared-cache hard links once.
 - AST check: no control route in any new file; the LiDAR bridge subscribes to
   `cloud_base` only.
 
-Results: `26 passed` (plus: single safety question and NEXT hints; one-answer guided test end to end; guided endpoint token). Full core suite on this branch: **707 passed, 0 failed, 11 skipped**
-in 55.4 s. The skips are environment-only (pinned LightNav source/RVQ, SmolVLM cache,
+Results: `31 passed` (plus: single safety question and NEXT hints; one-answer guided test end to end; guided endpoint token). Full core suite on this branch: **712 passed, 0 failed, 11 skipped**
+in 68.2 s. The skips are environment-only (pinned LightNav source/RVQ, SmolVLM cache,
 simulator, `GO2_HARDWARE=1`), listed in
 `data/outputs/vln_interactive/audit/full_core_regression.log` (private). Ruff is clean on
 the new files.
