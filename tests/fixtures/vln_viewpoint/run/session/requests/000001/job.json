@@ -1,0 +1,27 @@
+{
+  "clock_epoch": "synthetic-camera-epoch-0",
+  "decision_id": "1",
+  "decision_time_s": 100.51,
+  "episode_id": "synthetic-pair-session.r1",
+  "frames": [
+    {
+      "available_s": 100.01,
+      "observation_s": 100.0,
+      "path": "session/requests/000001/frame_0000.png",
+      "sha256": "a2fb02b3229e57fe131be79d3709c64f8d06df167cc54c1d90f743c53c403b5b"
+    },
+    {
+      "available_s": 100.26,
+      "observation_s": 100.25,
+      "path": "session/requests/000001/frame_0001.png",
+      "sha256": "8926ca5ca5b102ec71cff428ed75f8ce63ae50c0c8da260d2a7736f5a722e9d1"
+    },
+    {
+      "available_s": 100.51,
+      "observation_s": 100.5,
+      "path": "session/requests/000001/frame_0002.png",
+      "sha256": "5347a9aa8b34f2acdac54bc1d5e75012f23db13bf9776b3b0aacabc2f2980cd1"
+    }
+  ],
+  "instruction": "Go to the chair and stop."
+}

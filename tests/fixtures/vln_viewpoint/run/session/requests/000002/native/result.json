@@ -1,0 +1,76 @@
+{
+  "clock_epoch": "synthetic-camera-epoch-0",
+  "completion_verified": false,
+  "decision_id": "2",
+  "decoder_stop": false,
+  "episode_id": "synthetic-pair-session.r2",
+  "execution_authorized": false,
+  "explicit_stop_code": false,
+  "fixture_note": "Canned synthetic output, NOT a model prediction",
+  "native_output": "<opos_655><act_l0_201><act_l1_230><act_l2_226><|im_end|>",
+  "native_selected_frame_indices": [
+    0,
+    1,
+    2
+  ],
+  "pointing": {
+    "opos": 655,
+    "posxy": {},
+    "sentinels": {}
+  },
+  "status": "decoded",
+  "waypoint_convention": "absolute_ego_SE2_x_forward_y_left_yaw_CCW_metres_radians",
+  "waypoint_time_base": null,
+  "waypoints": [
+    [
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.05,
+      0.0,
+      0.0
+    ],
+    [
+      0.1,
+      0.0,
+      0.0
+    ],
+    [
+      0.15,
+      0.0,
+      0.0
+    ],
+    [
+      0.2,
+      0.0,
+      0.0
+    ],
+    [
+      0.25,
+      0.0,
+      0.0
+    ],
+    [
+      0.3,
+      0.0,
+      0.0
+    ],
+    [
+      0.35,
+      0.0,
+      0.0
+    ],
+    [
+      0.4,
+      0.0,
+      0.0
+    ],
+    [
+      0.45,
+      0.0,
+      0.0
+    ]
+  ]
+}

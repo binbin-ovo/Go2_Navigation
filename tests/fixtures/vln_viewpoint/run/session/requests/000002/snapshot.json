@@ -1,0 +1,115 @@
+{
+  "annotations_consumed": false,
+  "current_source": {
+    "available_s": 118.51,
+    "clock_epoch": "synthetic-camera-epoch-0",
+    "exposure_monotonic_s": 118.5,
+    "frame_id": "after-frame-2",
+    "monotonic_mapping": "Synthetic shared clock, offset 0, explicit error bound 0.002 seconds",
+    "observation_s": 118.5,
+    "provenance": {
+      "exposure_monotonic_error_bound_s": 0.002,
+      "synthetic": true
+    },
+    "received_monotonic_s": 118.51,
+    "source_id": "synthetic-only",
+    "stamp": {
+      "clock": "synthetic_camera",
+      "semantics": "exposure",
+      "t": 118.5,
+      "uncertainty_s": 0.002
+    }
+  },
+  "history": [
+    {
+      "rectification": {
+        "note": "Synthetic pinhole fixture; no real fisheye calibration used",
+        "synthetic": true
+      },
+      "source": {
+        "available_s": 118.01,
+        "clock_epoch": "synthetic-camera-epoch-0",
+        "exposure_monotonic_s": 118.0,
+        "frame_id": "after-frame-0",
+        "monotonic_mapping": "Synthetic shared clock, offset 0, explicit error bound 0.002 seconds",
+        "observation_s": 118.0,
+        "provenance": {
+          "exposure_monotonic_error_bound_s": 0.002,
+          "synthetic": true
+        },
+        "received_monotonic_s": 118.01,
+        "source_id": "synthetic-only",
+        "stamp": {
+          "clock": "synthetic_camera",
+          "semantics": "exposure",
+          "t": 118.0,
+          "uncertainty_s": 0.002
+        }
+      }
+    },
+    {
+      "rectification": {
+        "note": "Synthetic pinhole fixture; no real fisheye calibration used",
+        "synthetic": true
+      },
+      "source": {
+        "available_s": 118.26,
+        "clock_epoch": "synthetic-camera-epoch-0",
+        "exposure_monotonic_s": 118.25,
+        "frame_id": "after-frame-1",
+        "monotonic_mapping": "Synthetic shared clock, offset 0, explicit error bound 0.002 seconds",
+        "observation_s": 118.25,
+        "provenance": {
+          "exposure_monotonic_error_bound_s": 0.002,
+          "synthetic": true
+        },
+        "received_monotonic_s": 118.26,
+        "source_id": "synthetic-only",
+        "stamp": {
+          "clock": "synthetic_camera",
+          "semantics": "exposure",
+          "t": 118.25,
+          "uncertainty_s": 0.002
+        }
+      }
+    },
+    {
+      "rectification": {
+        "note": "Synthetic pinhole fixture; no real fisheye calibration used",
+        "synthetic": true
+      },
+      "source": {
+        "available_s": 118.51,
+        "clock_epoch": "synthetic-camera-epoch-0",
+        "exposure_monotonic_s": 118.5,
+        "frame_id": "after-frame-2",
+        "monotonic_mapping": "Synthetic shared clock, offset 0, explicit error bound 0.002 seconds",
+        "observation_s": 118.5,
+        "provenance": {
+          "exposure_monotonic_error_bound_s": 0.002,
+          "synthetic": true
+        },
+        "received_monotonic_s": 118.51,
+        "source_id": "synthetic-only",
+        "stamp": {
+          "clock": "synthetic_camera",
+          "semantics": "exposure",
+          "t": 118.5,
+          "uncertainty_s": 0.002
+        }
+      }
+    }
+  ],
+  "history_policy": "synthetic fixture of archived selected inputs",
+  "host_submit_monotonic_s": 118.6,
+  "identity": {
+    "clock_epoch": "synthetic-camera-epoch-0",
+    "history_generation": 2,
+    "instruction_revision": 2,
+    "sequence": 2,
+    "session_id": "synthetic-pair-session",
+    "source_id": "synthetic-only"
+  },
+  "previous_actions_supplied": false,
+  "reset_policy": "reconstruct_complete_causal_instruction_history_per_request"
+}

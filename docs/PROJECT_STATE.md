@@ -1,3 +1,35 @@
+## Offline paired-view evaluation (2026-11-17)
+
+Branch `feature/vln-viewpoint-evaluation`, based exactly on published interactive
+commit `73c83f19cf83ee01640e467e09085dd669e51763`. Added an offline evaluator for
+two independent browser Ask trials using archived outputs only. Main, operational
+defaults, Claude's active website, sensor/calibration environments, model/history
+configuration and robot-control code are unchanged.
+
+Completed: explicit trial/prediction selection; closed-run checks; own-trial identity,
+causal selected-input and image-hash validation; versioned evaluation-only sidecar;
+clock-aware turn comparison; guided and legacy human review scopes/conflicts; local
+HTML/JSON/timeline outputs; synthetic fixtures and CLI. Native paths remain
+unexecuted and unregistered. No model rerun, GPU workload, robot connection or command.
+
+Verified: **69 focused tests passed, 0 failed, 0 skipped in 2.89 s** (62 new plus
+seven existing mocked interactive contracts); Ruff and diff checks passed. Existing
+Python 3.12.11 core environment reused without changes. Synthetic report generated;
+all eight image instances and ten local links resolve. Browser appearance was not
+independently verified. Six completed stationary `live_08` predictions/reviews passed
+schema and selected-image checks; 128 consumed source files remained unchanged.
+This is compatibility validation, **not** a manual-turn experiment.
+
+Pending: a suitable explicitly linked real before/turn/stop/after pair and annotation
+provenance. Unknown exposure bounds prevent verified turn ordering; current live
+capture estimates have no explicit bounded error. Guided feedback assesses targets,
+not path quality/stopping/navigation. Group labels never become per-prediction truth.
+No general success rate or recognition-accuracy claim is made. Full regression,
+model and hardware tests were intentionally not run under the lightweight-only
+restriction. Next action is to wait for Claude's completed pair and analyze it with
+the [documented command](VLN_VIEWPOINT_EVALUATION.md), with timing incomplete where
+appropriate. See [handoff](AGENT_HANDOFF.md) for input and continuation boundaries.
+
 ## Advisory latency: input-equivalent optimization (2026-11-16)
 
 Current development branch `feature/vln-live-latency`, based exactly on live-shadow

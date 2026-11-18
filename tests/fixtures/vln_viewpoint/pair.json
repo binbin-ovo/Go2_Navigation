@@ -1,0 +1,25 @@
+{
+  "after_trial_id": "synthetic-after",
+  "before_trial_id": "synthetic-before",
+  "episode_id": "synthetic-chair-pair",
+  "schema": "go2-vln-viewpoint-pair-v1",
+  "target_wording": "chair",
+  "turn": {
+    "direction": "left",
+    "end": {
+      "clock": "host_monotonic",
+      "clock_epoch": "synthetic-pair-session",
+      "time_s": 112.0,
+      "uncertainty_s": 0.01
+    },
+    "provenance": {
+      "source": "synthetic fixture, no robot movement"
+    },
+    "start": {
+      "clock": "host_monotonic",
+      "clock_epoch": "synthetic-pair-session",
+      "time_s": 110.0,
+      "uncertainty_s": 0.01
+    }
+  }
+}

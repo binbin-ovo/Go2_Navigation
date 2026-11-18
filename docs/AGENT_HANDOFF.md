@@ -1,3 +1,61 @@
+## Offline paired-view evaluator → Claude / next agent (2026-11-17)
+
+Branch **`feature/vln-viewpoint-evaluation`**, isolated worktree, exact base
+`73c83f19cf83ee01640e467e09085dd669e51763` from the published interactive-review
+branch. Main/defaults and Claude's active worktree are unchanged. This is an
+optional **post-collection** analysis tool; it does not block or operate the demo.
+
+Read [VLN_VIEWPOINT_EVALUATION](VLN_VIEWPOINT_EVALUATION.md) first, then the newer
+browser-guided workflow and stationary `live_08` report in
+[VLN_INTERACTIVE_REVIEW](VLN_INTERACTIVE_REVIEW.md). The older terminal description
+below is historical. Browser Ask starts a fresh trial/revision/history and makes one
+request; a before/after experiment consists of two independent queries. Do not call
+it continuous navigation, retained memory, autonomous search or navigation success.
+
+Implemented `scripts/analyze_vln_viewpoint_trial.py`, the read-only archive reader
+and static HTML/JSON/timeline report in `vln/viewpoint*.py`, deterministic synthetic
+archive/annotation under `tests/fixtures/vln_viewpoint/`, its generator, and focused
+tests. Use existing isolated core Python; no dependency installation, model, GPU,
+receiver, DDS, control client or physical command is needed. Exact commands and the
+evaluation-only sidecar contract are in the guide.
+
+Inputs: one **closed** interactive run (`summary.json` plus both trial ends), explicit
+before/after trial IDs, optionally exact prediction IDs and an evaluation-only pair
+sidecar. Use the same saved target/instruction. A fresh Git-ignored output directory
+receives `index.html`, `summary.json`, `timeline.json`, and image copies. Consumed
+source files are hash-checked for concurrent changes; originals are never modified.
+Do not analyze an archive still being written or reopened for review. Missing or
+intentionally deleted inputs remain missing and are reported, never reconstructed.
+
+Verified **69 passed / 0 failed / 0 skipped in 2.89 s**: 62 new CPU-only tests and
+seven existing mocked interactive contracts. Ruff/diff checks pass. Static report
+links/images resolve; browser visual appearance was not independently verified.
+The synthetic example produces wrong→correct in its two reviewed views relative to
+its synthetic turn annotation; this is not model performance. The six completed
+stationary `live_08` trials (six predictions, six guided reviews) pass schema/input
+compatibility checks; 128 consumed files unchanged. No private images/comments are
+published. Full regression and inference were deliberately not run during the
+current lightweight-only window; hardware tests were not selected and opt-ins were
+disabled.
+
+Important evidence limits: each mark belongs to its own selected native image;
+arrival after a turn does not prove post-turn capture. Preserve original clock
+domains/epochs and unknown bounds. Current live exposure mappings provide point
+estimates without a bounded capture error, so turn verification can remain incomplete
+even with a valid reviewed pair. Never substitute zero uncertainty or calibration
+sigma as a guaranteed bound. Receipt freshness and review age are separate. Guided
+target-only labels do not review path/stopping/navigation. Group reviews are never
+distributed across predictions, and conflicting/repeated reviews remain distinct.
+All native paths are **UNEXECUTED**, without real metric registration.
+
+**Pending / next step:** Claude completes the operator-guided before/turn/stop/after
+recording and identifies the two trials and available annotation provenance. Close
+the run, then run the documented command locally. If no reliable turn timing is
+available, omit it and report only reviewed-image change with timing unverified.
+No suitable explicitly linked completed pair was available at implementation time;
+`live_08` is stationary compatibility evidence only. Stop at this scope and wait for
+the real pair; do not start another model experiment or change the live website.
+
 ## Interactive four-panel review tool → next agent (2026-11-16)
 
 Branch **`feature/vln-interactive-review`** (worktree

@@ -1,0 +1,13 @@
+{
+  "instruction": "Go to the chair and stop.",
+  "instruction_revision": 1,
+  "kind": "target",
+  "operator_text": "chair",
+  "operator_text_is_verified_label": false,
+  "schema": "go2-vln-interactive-trial-v1",
+  "session_id": "synthetic-pair-session",
+  "single_answer_guided_test": true,
+  "source_mode": "synthetic_archive",
+  "started_host_monotonic_s": 99.0,
+  "trial_id": "synthetic-before"
+}

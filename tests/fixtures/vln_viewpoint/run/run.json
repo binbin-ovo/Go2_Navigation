@@ -1,0 +1,8 @@
+{
+  "backend": "synthetic_archive",
+  "git_commit": "fixture-no-inference",
+  "physical_execution_authorized": false,
+  "robot_commands_sent": 0,
+  "schema": "go2-vln-interactive-run-v1",
+  "synthetic": true
+}
