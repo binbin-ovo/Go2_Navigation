@@ -115,29 +115,23 @@ Starting a new `target`/`instruction` while a trial is active ends that trial
 (`superseded_by_new_trial`); it can be reviewed later with `review ID`. `end` and `quit`
 call only the session's advisory `cancel` (`physical_robot_stop_sent: false`).
 
-## Step-by-step test (what to type, what you should see)
+## Step-by-step test: one answer at a time, in the browser
 
-The terminal prints a `NEXT:` line after every step with the commands that make sense at
-that moment, and announces every model answer in plain words. The robot stays still for
-the whole test. This tool never moves it.
+The terminal-driven flow (`target`, `mark`, `end`) proved hard to use live. Output landed
+in the middle of typing, answers streamed continuously, and trials ended on their own.
+The default operator flow is now the **Test** box at the top of the page. The terminal is
+only a log; its old commands still work for scripted use.
 
-| # | You type | You should see | Then |
-|---|---|---|---|
-| 1 | *(start the tool, ~45 s model load)* | `Model ready.` and `NEXT: target chair …` | — |
-| 2 | `target chair` | the **single** safety question (stationary, remote owns control, avoidance on, clearance/cable checked) | — |
-| 3 | `yes` | `Trial … started`, `NEXT: keep the robot still … stops by itself after ~20 s` | watch panel B |
-| 4 | *(wait 2–3 s)* | `Answer P001 after … s (CURRENT/STALE): model points at the + in panel B` or `… NOT VISIBLE (OPOS-0)` | check the + on panel B's image |
-| 5 | `mark the + is on the chair` (your own words) | `Mark M001 → prediction …`, `NEXT: mark … again · end …` | optional more marks |
-| 6 | `end` | `Trial … ended`, then the first review question | — |
-| 7 | answer the 6 questions (comment; present/absent/uncertain; correct/wrong/ambiguous/not_applicable; plausible/inappropriate/uncertain; appropriate/inappropriate/uncertain/not_applicable; initials) | the full record, then `Confirm … [yes/no]` | — |
-| 8 | `yes` | `Saved human review …`, `NEXT: target <object> … · quit` | next object, or step 9 |
-| 9 | `quit` | `Closed (operator_quit). No robot command was sent.` | — |
+| Step shown | You do | What happens |
+|---|---|---|
+| **1 · Choose target** | type `chair`; the first time per run, tick the one safety statement; press **Ask the model** | a single-answer trial starts (`trial.json` records the instruction and your confirmation) |
+| **2 · Model is answering** | keep the robot still (Cancel is available) | ~1 s of frames is collected, then **one** request; frame archiving stops |
+| **3 · Your verdict** | look at the image the model saw, with its pink +, and press one button; optionally comment | point: *Yes / No / Not sure / Not in view*. OPOS-0: *Right, not in view / Wrong, it IS in view / Not sure* |
+| **4 · Saved** | press **Save**; the box is ready for the next target | verdict → `human_labels.jsonl` (separate from model output); trial ends `guided_answer_saved` |
 
-The safety question is asked once per run, at the first `target`. A trial that stops by
-itself (history limit, camera gap, time or resource limit) does **not** open the
-questions; it prints `NEXT: review <ID> …` so your next line stays a command. A suggested
-set: one clearly visible object, one absent object, one ambiguous object (two similar
-items).
+When finished, press **Close tool**; it closes only this read-only tool. Nothing waits on a
+timer while you decide; a request that gets no answer within 60 s is reported and nothing
+is saved. Suggested set: a visible object, an absent object, an ambiguous object.
 
 ## Window
 
@@ -274,7 +268,7 @@ from this tool). The disk counter counts prepared-cache hard links once.
 
 ## Tests
 
-`tests/test_vln_interactive.py`, 24 tests, no hardware, model or DDS:
+`tests/test_vln_interactive.py`, 26 tests, no hardware, model or DDS:
 
 - Template saved before inference.
 - Target change keeps the late result with its original trial (SUPERSEDED).
@@ -300,8 +294,8 @@ from this tool). The disk counter counts prepared-cache hard links once.
 - AST check: no control route in any new file; the LiDAR bridge subscribes to
   `cloud_base` only.
 
-Results: `24 passed` (one added after the live session for automatic trial ends, one for the single safety question and NEXT hints). Full core suite on this branch: **702 passed, 0 failed, 11 skipped**
-in 51.9 s. The skips are environment-only (pinned LightNav source/RVQ, SmolVLM cache,
+Results: `26 passed` (plus: single safety question and NEXT hints; one-answer guided test end to end; guided endpoint token). Full core suite on this branch: **707 passed, 0 failed, 11 skipped**
+in 55.4 s. The skips are environment-only (pinned LightNav source/RVQ, SmolVLM cache,
 simulator, `GO2_HARDWARE=1`), listed in
 `data/outputs/vln_interactive/audit/full_core_regression.log` (private). Ruff is clean on
 the new files.

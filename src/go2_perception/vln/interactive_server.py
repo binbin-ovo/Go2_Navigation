@@ -93,6 +93,9 @@ def make_handler(app, token, monotonic=time.monotonic):
                 if self.path == "/api/viewing":
                     app.report_view(payload, now)
                     return self._send(200, {"ok": True})
+                if self.path == "/api/guided":
+                    app.guided.enqueue(payload, now)
+                    return self._send(200, {"ok": True, "queued": payload.get("action")})
                 if self.path == "/api/correction":
                     record = app.correction(payload, now)
                     return self._send(200, {"ok": True, "correction_id": record["correction_id"]})

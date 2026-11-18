@@ -39,11 +39,34 @@ table{font:12px ui-monospace,Menlo,monospace;border-collapse:collapse;width:100%
 .sheet{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
 .tile{border:1px solid var(--line);border-radius:8px;padding:6px}.tile canvas{cursor:crosshair}
 #review{border:2px solid var(--review);margin-bottom:12px;display:none}
+#test{border:3px solid var(--replay);margin-bottom:12px}
+.steps{display:flex;gap:6px;margin:0 0 10px;flex-wrap:wrap}.steps span{padding:4px 12px;border-radius:999px;border:1px solid var(--line);font-size:13px}
+.steps span.on{background:var(--replay);color:#fff;border-color:var(--replay)}.steps span.done{opacity:.55}
+#tmsg{font-size:18px;font-weight:600;margin:4px 0 10px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}
+input[type=text]{font:inherit;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);min-width:220px}
+button.big{font-size:16px;padding:8px 16px}button.primary{background:var(--replay);color:#fff;border-color:var(--replay)}
+.choices button{font-size:15px;padding:8px 14px}.choices button.sel{background:var(--live);color:#fff}
+#tanswer{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}@media(max-width:900px){#tanswer{grid-template-columns:1fr}}
 </style></head><body>
 <header><strong id="banner">ADVISORY ONLY — NO ROBOT COMMANDS</strong><span id="mode" class="mode">…</span>
 <span id="trialhead"></span></header>
 <div class="strip" id="strip"></div>
 <main>
+<section id="test"><h2>Test — one model answer at a time</h2>
+<div class="steps"><span id="st1">1 · Choose target</span><span id="st2">2 · Model is answering</span><span id="st3">3 · Your verdict</span><span id="st4">4 · Saved</span></div>
+<div id="tmsg"></div>
+<div id="tready"><div class="row"><label for="ttarget">Target:</label><input id="ttarget" type="text" placeholder="e.g. chair" maxlength="200">
+<button id="task" class="big primary">Ask the model</button><span style="flex:1"></span><button id="tquit">Close tool</button></div>
+<div class="row" id="tsafety"><label><input type="checkbox" id="tsafe"> <span id="tsafetext"></span></label></div></div>
+<div id="tasking" class="row"><span class="note" id="taskingtime"></span><button id="tcancel1">Cancel</button></div>
+<div id="tanswerbox"><div id="tanswer"><canvas id="tcanvas" width="448" height="256"></canvas>
+<div><div id="tverdict" style="font-size:18px;font-weight:700"></div><div id="tqmeta" class="meta"></div>
+<p id="tquestion" style="font-weight:600"></p><div class="row choices" id="tchoices"></div>
+<div class="row"><input id="tcomment" type="text" placeholder="Comment in your own words (optional)" maxlength="2000" style="flex:1"></div>
+<div class="row"><button id="tsave" class="big primary">Save</button><button id="tcancel2">Discard</button></div></div></div></div>
+
+<p class="note">Read-only: the model only proposes; nothing is sent to the robot. Keep the robot still while the model answers. Your verdicts are stored separately and never given to the model. Panels A–D below are live context.</p></section>
 <section id="review"><h2><span class="badge" style="background:var(--review)">REVIEW</span><span id="rtitle"></span></h2>
 <p class="note">Saved records, separated by origin: model outputs (never labels), operator marks/notes (verbatim), confirmed human reviews, and optional target corrections. Click a prediction image to store a correction for that image only (separate file, never sent to the model). Answer the review questions in the terminal.</p>
 <div id="rmeta" class="meta"></div><div class="sheet" id="sheet"></div><div id="rlabels" class="meta"></div></section>
@@ -92,7 +115,7 @@ function drawPred(p,img){const cv=$("pimg"),g=cv.getContext("2d");cv.width=img?i
   g.beginPath();g.moveTo(x-14,y);g.lineTo(x+14,y);g.moveTo(x,y-14);g.lineTo(x,y+14);g.stroke();g.strokeStyle=getComputedStyle(document.body).getPropertyValue("--pt");g.lineWidth=3;g.stroke()}
  if(p.opos_not_visible){g.fillStyle="rgba(0,0,0,.65)";g.fillRect(0,0,cv.width,34);g.fillStyle="#fff";g.font="bold 18px system-ui";g.fillText("OPOS-0: model says target NOT VISIBLE",10,23)}
  shownPred=p.prediction_id;shownPredObj=p;report();drawPath(p)}
-function panelB(){const p=S.prediction;if(!p){$("plabel").textContent="NO PREDICTION";$("pid").textContent="";$("pmeta").textContent="No model output yet. Type `target TEXT` in the terminal.";shownPredObj=null;drawPath(null);return}
+function panelB(){const p=S.prediction;if(!p){$("plabel").textContent="NO PREDICTION";$("pid").textContent="";$("pmeta").textContent="No model output yet. Use the Test box above.";shownPredObj=null;drawPath(null);return}
  if(p.prediction_id!==shownPred&&p.prediction_id!==loadingPred){loadingPred=p.prediction_id;const snap=p;
   if(p.image_url){const img=new Image();img.onload=()=>{loadingPred=null;drawPred(snap,img)};img.onerror=()=>{loadingPred=null;drawPred(snap,null)};img.src=p.image_url+"&t="+Date.now()}
   else{loadingPred=null;drawPred(snap,null)}}
@@ -141,6 +164,28 @@ function drawLidar(){const cv=$("lidar"),g=cv.getContext("2d");g.clearRect(0,0,4
  "counts: scan gaps "+st.counts.scan_seq_gaps+" (missing "+st.counts.scans_missing+") · epoch changes "+st.counts.robot_epoch_changes+" · refused (no pose) "+JSON.stringify(st.counts.refused_no_pose),
  ...st.unknowns.map(u=>"unknown: "+u)].join("\n")}
 document.querySelectorAll("button[data-v]").forEach(b=>b.onclick=()=>{lidarView=b.dataset.v;report()});
+let tChoice=null,tShown=null;
+function act(body){return fetch("/api/guided",{method:"POST",headers:{"Content-Type":"application/json","X-Review-Token":TOKEN},body:JSON.stringify(body)})}
+$("task").onclick=()=>{act({action:"ask",target:$("ttarget").value,safety_confirmed:$("tsafe").checked})};
+$("ttarget").addEventListener("keydown",e=>{if(e.key==="Enter")$("task").click()});
+$("tcancel1").onclick=$("tcancel2").onclick=()=>act({action:"cancel"});
+$("tsave").onclick=()=>{if(!tChoice){alert("Choose one of the verdict buttons first.");return}act({action:"answer",choice:tChoice,comment:$("tcomment").value})};
+$("tquit").onclick=()=>{if(confirm("Close the tool? Saved tests stay on disk. Nothing is sent to the robot."))act({action:"quit"})};
+function panelTest(){const G=S.guided;if(!G)return;const order=["READY","ASKING","ANSWER","SAVED"],i=order.indexOf(G.step);
+ ["st1","st2","st3","st4"].forEach((id,k)=>{$(id).className=k===i?"on":k<i?"done":""});
+ $("tmsg").textContent=G.message;$("tready").style.display=(G.step==="READY"||G.step==="SAVED")?"block":"none";
+ $("tsafety").style.display=G.safety_needed?"flex":"none";$("tsafetext").textContent="I confirm: "+G.safety_statement;
+ $("tasking").style.display=G.step==="ASKING"?"flex":"none";$("taskingtime").textContent=G.step==="ASKING"?"Asking the model about “"+G.target+"” — "+fmt(G.asking_for_s,0)+" s (usually 2–4 s)":"";
+ if(G.step==="SAVED"&&tShown){$("ttarget").value="";tShown=null}$("tanswerbox").style.display=G.step==="ANSWER"?"block":"none";
+ if(G.step!=="ANSWER"){tShown=null;tChoice=null;return}
+ const a=G.answer;if(!a)return;
+ if(tShown!==a.prediction_id){tShown=a.prediction_id;tChoice=null;$("tcomment").value="";
+  const cv=$("tcanvas"),g=cv.getContext("2d");if(a.image_url){const img=new Image();img.onload=()=>{cv.width=img.naturalWidth;cv.height=img.naturalHeight;g.drawImage(img,0,0);
+   if(a.target_fraction){const x=a.target_fraction[0]*cv.width,y=a.target_fraction[1]*cv.height;g.strokeStyle="#000";g.lineWidth=7;g.beginPath();g.moveTo(x-16,y);g.lineTo(x+16,y);g.moveTo(x,y-16);g.lineTo(x,y+16);g.stroke();g.strokeStyle="#ff2fc8";g.lineWidth=4;g.stroke()}};img.src=a.image_url}
+  const box=$("tchoices");box.replaceChildren();Object.entries(G.choices).forEach(([k,v])=>{const b=document.createElement("button");b.textContent=v;b.onclick=()=>{tChoice=k;[...box.children].forEach(c=>c.classList.toggle("sel",c===b))};box.append(b)})}
+ $("tverdict").textContent=a.opos_not_visible?"Model: the "+G.target+" is NOT VISIBLE here.":a.target_fraction?"Model: the "+G.target+" is at the pink + .":"Model gave no usable point.";
+ $("tquestion").textContent=a.target_fraction?"Is the + on the "+G.target+"?":a.opos_not_visible?"Is that right — is the "+G.target+" really not in view?":"What do you see?";
+ $("tqmeta").textContent="answer "+a.prediction_id.split("-").pop()+" · "+fmt(a.inference_duration_s,1)+" s · "+a.label_at_receipt+(a.mock?" · MOCK (no model)":"")+"\nimage = exactly what the model saw (frame "+a.source_frame_id+")"}
 let reviewKey=null;
 function panelReview(){const R=S.review,box=$("review");if(!R){box.style.display="none";reviewKey=null;return}box.style.display="block";
  $("rtitle").textContent=R.trial_id+" · "+R.trial.instruction+(R.dialog_open?" · answer the questions in the terminal":"");
@@ -164,7 +209,7 @@ function panelReview(){const R=S.review,box=$("review");if(!R){box.style.display
    "frame "+(mk.camera_frame?mk.camera_frame.frame_id:"none"),"note (verbatim): "+(mk.verbatim_note||"")].join("\n");t.append(im,m);sh.append(t)})}
  $("rlabels").textContent=[...R.notes.map(n=>"NOTE "+n.note_id+" ("+n.context+"): "+n.verbatim_note),...R.human_labels.map(h=>"HUMAN REVIEW "+h.review_id+" by "+h.reviewer+" at "+h.reviewed_wall_utc+": present="+h.target_presence+" marking="+h.marking+" path="+h.path+" stopping="+h.stopping+" · comment (verbatim): "+h.verbatim_comment)].join("\n")||"No notes or confirmed human reviews yet."}
 async function poll(){try{const r=await fetch("/api/state");S=await r.json();$("mode").textContent=S.view;$("mode").className="mode "+S.view;
- $("trialhead").textContent=S.trial?"trial "+S.trial.trial_id+" · "+S.trial.instruction+(S.trial.feeding_paused?" · INFERENCE PAUSED: "+S.trial.feeding_paused:""):"no active trial";
- strip();panelReview();panelA();panelB();if(!S.prediction)drawPath(null);if(Date.now()-lastReport>1000)report()}catch(e){$("mode").textContent="DISCONNECTED";$("mode").className="mode"}setTimeout(poll,250)}
+ $("trialhead").textContent=S.trial?"trial "+S.trial.trial_id+" · "+S.trial.instruction+(S.trial.feeding_paused&&S.trial.feeding_paused!=="single_answer_requested"?" · INFERENCE PAUSED: "+S.trial.feeding_paused:""):"no active trial";
+ strip();panelTest();panelReview();panelA();panelB();if(!S.prediction)drawPath(null);if(Date.now()-lastReport>1000)report()}catch(e){$("mode").textContent="DISCONNECTED";$("mode").className="mode"}setTimeout(poll,250)}
 poll();pollLidar();
 </script></body></html>"""

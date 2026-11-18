@@ -629,3 +629,64 @@ def test_one_safety_question_per_run_and_next_hints(tmp_path):
     assert app.trial is not None and app.trial.id != first.id
     events = [e["event"] for e in read_jsonl(app.store.root / "events.jsonl")]
     assert events.count("safety_question_confirmed") == 1 and events.count("safety_question_declined") == 1
+
+
+# ---------- one-answer guided test (browser-driven) ----------
+
+def guided_run(app, clock, feed, payload, steps=1):
+    app.guided.enqueue(payload, clock())
+    feed(steps)
+    return app.guided.public(clock())
+
+
+def test_guided_one_answer_then_wait_then_save(tmp_path):
+    app, clock, feed, messages = make_app(tmp_path, worker=PointingMockWorker(0.5), history_s=5.0)
+    g = guided_run(app, clock, feed, {"action": "ask", "target": "chair"})
+    assert g["step"] == "READY" and "safety" in g["message"] and app.trial is None
+    g = guided_run(app, clock, feed, {"action": "ask", "target": "chair", "safety_confirmed": True})
+    assert g["step"] == "ASKING" and app.trial.record["single_answer_guided_test"] is True
+    feed(30)  # well past the 5 s history limit: one answer, then everything waits
+    g = app.guided.public(clock())
+    assert g["step"] == "ANSWER" and app.session.counts["submitted"] == 1
+    assert g["answer"]["target_fraction"] and set(g["choices"]) == {"correct", "wrong", "unsure", "target_not_in_view"}
+    received = app.session.counts["received"]
+    feed(40)
+    assert app.session.counts["received"] == received  # no archiving while the operator decides
+    assert app.trial is not None and app.guided.step == "ANSWER"  # never ends mid-decision
+    g = guided_run(app, clock, feed, {"action": "answer", "choice": "bogus"})
+    assert g["message"].startswith("Not done") and g["step"] == "ANSWER"
+    trial_id = app.trial.id
+    g = guided_run(app, clock, feed, {"action": "answer", "choice": "wrong", "comment": "  it's the shoe rack "})
+    assert g["step"] == "SAVED" and app.trial is None and app.review is None
+    label = read_jsonl(app.store.root / "trials" / trial_id / "human_labels.jsonl")[0]
+    assert label["choice"] == "wrong" and label["verbatim_comment"] == "  it's the shoe rack "
+    assert label["model_feedback"] is False and label["prediction_id"] == g["saved"]["prediction_id"]
+    assert json.loads((app.store.root / "trials" / trial_id / "trial_end.json").read_text())["end_reason"] == \
+        "guided_answer_saved"
+    # Second test: no safety tick needed again; an OPOS-0 answer offers the not-visible choices.
+    guided_run(app, clock, feed, {"action": "next"})
+    g = guided_run(app, clock, feed, {"action": "ask", "target": "bag"}, steps=30)
+    assert g["step"] == "ANSWER" and g["answer"]["opos_not_visible"]
+    assert set(g["choices"]) == {"agree_not_in_view", "disagree_target_in_view", "unsure"}
+    g = guided_run(app, clock, feed, {"action": "cancel"})
+    assert g["step"] == "READY" and app.trial is None
+    events = [e["event"] for e in read_jsonl(app.store.root / "events.jsonl")]
+    assert events.count("safety_question_confirmed") == 1 and events.count("guided_answer_saved") == 1
+    with pytest.raises(ValueError):
+        app.guided.enqueue({"action": "move"}, clock())
+
+
+def test_guided_endpoint_requires_token(tmp_path):
+    app, clock, feed, _ = make_app(tmp_path)
+    server = DisplayServer(app, 0)
+    server.start()
+    try:
+        body = json.dumps({"action": "ask", "target": "chair"}).encode()
+        with pytest.raises(urllib.error.HTTPError) as error:
+            urllib.request.urlopen(urllib.request.Request(server.url + "api/guided", data=body), timeout=5)
+        assert error.value.code == 403
+        token = re.search(r'const TOKEN="([^"]+)"', urllib.request.urlopen(server.url, timeout=5).read().decode()).group(1)
+        ok = urllib.request.Request(server.url + "api/guided", data=body, headers={"X-Review-Token": token})
+        assert json.loads(urllib.request.urlopen(ok, timeout=5).read())["queued"] == "ask"
+    finally:
+        server.close()

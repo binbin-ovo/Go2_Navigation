@@ -28,6 +28,7 @@ from .episodes import file_sha256
 from .interactive_trials import (Trial, ReviewDialog, append_jsonl, as_instruction, contact_sheet,
                                  correction_record, expand_target, file_bytes, load_review,
                                  pixel_sha256, read_jsonl, utc_now)
+from .interactive_guided import GuidedTest
 from .shadow_display import target_fraction
 from .shadow_sources import ObservationInbox
 from .shadow_worker import MockWorker
@@ -50,7 +51,8 @@ SAFETY_QUESTION = ("Before the first trial: is the Go2 stationary, does the hand
                    "(no app/API control), is onboard avoidance on, and are body clearance and cable slack "
                    "checked? [yes/no]")
 NEXT = {
-    "ready": "NEXT: `target chair` (any object you can name) to start a trial · `help` for all commands",
+    "ready": ("NEXT: in the browser page, type a target and press “Ask the model”. "
+              "(This terminal is a log; `quit` closes the tool.)"),
     "started": ("NEXT: keep the robot still and wait ~2-3 s for the first answer (panel B); "
                 "the trial stops by itself after ~{limit:.0f} s"),
     "answer": "NEXT: `mark <what you see>` to record whether the + is right · `end` to finish this trial",
@@ -325,6 +327,8 @@ class InteractiveApp:
         self.dialog = None
         self.safety_confirmation = None  # one combined operator answer per run
         self.pending_spec = None
+        self.single_answer = False
+        self.guided = GuidedTest(self)
         self.viewer = {}
         self.resource_stop = None
         self.camera_down = False
@@ -383,7 +387,7 @@ class InteractiveApp:
             return f"Trial budget reached ({self.config['max_trials']}); restart the tool for more."
         return None
 
-    def start_trial(self, spec, now):
+    def start_trial(self, spec, now, single_answer=False):
         refusal = self._refuse_trial()
         if refusal:
             self.say(refusal)
@@ -404,6 +408,7 @@ class InteractiveApp:
                 "trial_max_s": self.config["trial_max_s"],
             },
             "operator_safety_confirmation": self.safety_confirmation,
+            "single_answer_guided_test": single_answer,
             "session_id": self.session.session_id,
             "instruction_revision": self.session.revision + 1,
             "model_identity_file": self.run_info.get("model_identity_file"),
@@ -418,13 +423,15 @@ class InteractiveApp:
         self.trial_submitted = 0
         self.trial_frames = {}
         self.feeding_paused = None
+        self.single_answer = single_answer
         if self.lidar_recorder is not None:
             self.lidar_recorder.start(trial.id)
         self.store.event("trial_started", now, trial_id=trial.id, instruction=spec["instruction"],
                          template_id=spec["template_id"])
         self.say(f"Trial {trial.id} started. Instruction: {spec['instruction']!r}"
                  + (f" (template {spec['template_id']})" if spec["template_id"] else ""))
-        self.say(NEXT["started"].format(limit=self.session.limits.history_s))
+        if not single_answer:
+            self.say(NEXT["started"].format(limit=self.session.limits.history_s))
         return trial
 
     def request_trial(self, spec, now):
@@ -468,10 +475,14 @@ class InteractiveApp:
                   history_error=self.session.history_error,
                   frames_received=len(self.trial_frames))
         self.trial = None
+        single, self.single_answer = self.single_answer, False
         self.store.event("trial_ended", now, trial_id=trial.id, reason=reason)
         self.say(f"Trial {trial.id} ended ({reason}). Advisory cancelled; no robot command was sent.")
-        self.open_review(trial.id, now, dialog=review)
-        if not review:
+        if single:
+            contact_sheet(self.store, trial.id, self._prediction_array)  # file only; page stays on the test
+        else:
+            self.open_review(trial.id, now, dialog=review)
+        if not review and not single:
             # Automatic ends never open the question dialog: the next typed line stays a command.
             self.say(NEXT["ended"].format(id=trial.id))
         return trial
@@ -802,7 +813,8 @@ class InteractiveApp:
                         else "model points at the + in panel B" if pred["target_fraction"] else "no target point")
                 self.say(f"Answer {pred['prediction_id'].rsplit('-', 1)[-1]} after "
                          f"{(pred['inference_duration_s'] or 0):.1f} s ({pred['label_at_receipt']}): {what}.")
-                self.say(NEXT["answer"])
+                if not self.single_answer:
+                    self.say(NEXT["answer"])
         self.store.event("prediction_received", now, prediction_id=pred["prediction_id"],
                          trial_id=trial_id, label=pred["label_at_receipt"],
                          reason=record["rejection_reason"])
@@ -848,6 +860,7 @@ class InteractiveApp:
                 "requests": self.trial_submitted},
             "model": self._model_state(),
             "prediction": self._current_prediction(now),
+            "guided": self.guided.public(now),
             "review": None if review is None else {
                 "trial_id": review["trial_id"], **review["data"],
                 "dialog_open": self.dialog is not None},
@@ -910,19 +923,25 @@ class InteractiveApp:
         # 3. Bounded scheduling: at most one new request, only for the active trial.
         now = self.monotonic()
         if self.trial is not None:
-            if self.trial_submitted >= self.config["max_requests_per_trial"]:
+            if self.trial_submitted >= (1 if self.single_answer else self.config["max_requests_per_trial"]):
                 s.pending = False
+                if self.single_answer and not self.feeding_paused:
+                    # One answer only: stop archiving frames while the operator decides.
+                    self.feeding_paused = "single_answer_requested"
             warm = (self.trial_first_available is not None and s.latest is not None
                     and s.latest["available_s"] - self.trial_first_available >= self.config["warmup_s"])
             before = s.counts["submitted"]
             s.tick(now, allow_submit=warm)
             self.trial_submitted += s.counts["submitted"] - before
-            if now - self.trial.record["started_host_monotonic_s"] > self.config["trial_max_s"]:
+            if self.single_answer:
+                pass  # the guided test ends on Save/Cancel (or its own timeout), never mid-decision
+            elif now - self.trial.record["started_host_monotonic_s"] > self.config["trial_max_s"]:
                 self.end_trial("trial_time_limit", now, review=False)
             elif self.feeding_paused and s.inflight is None:
                 # No further inference is possible in this trial (history limit, gap or
                 # interruption); end it once its last in-flight result has been recorded.
                 self.end_trial("inference_paused: " + self.feeding_paused, now, review=False)
+        self.guided.process(self.monotonic())
         # 4. Resources: stop new trials and finalize without deleting anything.
         if self.monitor is not None:
             low = self.monitor.snapshot().get("low") or []
