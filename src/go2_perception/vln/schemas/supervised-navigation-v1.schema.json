@@ -354,12 +354,19 @@
                   "const": "base_link"
                 },
                 "translation_m": {
-                  "type": "array",
-                  "items": {
-                    "type": "number"
-                  },
-                  "minItems": 2,
-                  "maxItems": 2
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 },
                 "yaw_rad": {
                   "type": "number"
@@ -372,6 +379,14 @@
                       "turn"
                     ]
                   }
+                },
+                "translation_bound_m": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "yaw_uncertainty_rad": {
+                  "type": "number",
+                  "minimum": 0
                 }
               },
               "required": [

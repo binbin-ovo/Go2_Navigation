@@ -97,6 +97,12 @@ def capability_check(cap, *, live, wall_s):
             raise Hold("unverified_" + key)
     if cap["mapping"] is None:
         raise Hold("missing_frame_mapping")
+    if cap["mapping"]["translation_m"] is None:
+        # An unregistered model origin is usable only where it cancels to a bounded residual.
+        if "turn" in cap["mapping"]["verified_actions"]:
+            raise Hold("turn_requires_registered_mapping_translation")
+        if "translation_bound_m" not in cap["mapping"]:
+            raise Hold("unknown_mapping_translation_without_bound")
     limits = cap["limits"]
     if limits is None or any(not math.isfinite(v) or v <= 0 for v in limits.values()):
         raise Hold("missing_or_invalid_physical_limits")
@@ -116,13 +122,28 @@ def capability_check(cap, *, live, wall_s):
 
 
 def mapped_pose(row, mapping):
-    """T @ P @ inv(T), not T @ P (a displacement, not a world target)."""
+    """T @ P @ inv(T), not T @ P (a displacement, not a world target).
+
+    With an unregistered translation only the rotated displacement is returned; the
+    omitted term (I - R_yaw) t is charged by mapping_slack as a worst case, never as zero.
+    """
     x, y, yaw = row
     angle = mapping["yaw_rad"]
-    tx, ty = mapping["translation_m"]
     rx, ry = math.cos(angle)*x - math.sin(angle)*y, math.sin(angle)*x + math.cos(angle)*y
+    if mapping["translation_m"] is None:
+        return [rx, ry, wrap(yaw)]
+    tx, ty = mapping["translation_m"]
     c, s = math.cos(yaw), math.sin(yaw)
     return [rx + tx - (c*tx - s*ty), ry + ty - (s*tx + c*ty), wrap(yaw)]
+
+
+def mapping_slack(row, mapping):
+    """Worst-case translation error of a mapped row from declared mapping uncertainty."""
+    x, y, yaw = row
+    slack = math.hypot(x, y) * 2 * math.sin(min(mapping.get("yaw_uncertainty_rad", 0.), math.pi) / 2)
+    if mapping["translation_m"] is None:
+        slack += 2 * abs(math.sin(wrap(yaw) / 2)) * mapping["translation_bound_m"]
+    return slack
 
 
 def plan(proposal, cap):
@@ -139,10 +160,11 @@ def plan(proposal, cap):
         if math.hypot(*row[:2]) <= .005 and abs(wrap(row[2])) <= .005:
             continue
         x, y, yaw = mapped_pose(row, m)
-        residual = math.hypot(x, y)
-        if x > .005 and abs(y) <= lim["lateral_m"] and abs(yaw) <= lim["straight_yaw_rad"]:
-            kind, direction, magnitude, speed, unit = "forward", "forward", min(x, lim["forward_m"]), lim["forward_mps"], "m"
-            residual, residual_yaw = abs(y), abs(yaw)
+        slack = mapping_slack(row, m)
+        residual = math.hypot(x, y) + slack
+        if x - slack > .005 and abs(y) + slack <= lim["lateral_m"] and abs(yaw) <= lim["straight_yaw_rad"]:
+            kind, direction, magnitude, speed, unit = "forward", "forward", min(x - slack, lim["forward_m"]), lim["forward_mps"], "m"
+            residual, residual_yaw = abs(y) + slack, abs(yaw)
         elif abs(yaw) > .005 and residual <= lim["turn_translation_m"]:
             kind, direction, magnitude, speed, unit = "turn", "left" if yaw > 0 else "right", min(abs(yaw), lim["turn_rad"]), lim["turn_radps"], "rad"
             residual_yaw = 0.

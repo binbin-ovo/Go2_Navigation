@@ -1,3 +1,32 @@
+## Go2 hardware readiness (Claude, 2026-11-18) — branch `feature/go2-hardware-readiness`
+
+Report: [GO2_HARDWARE_READINESS](GO2_HARDWARE_READINESS.md). Based on `4063c73`; main unchanged; not pushed.
+**No physical action has been taken in this task.** Recordings/logs are local and git-ignored
+(`data/outputs/hw_readiness/` in the readiness worktree, canonical control logs under
+`~/Desktop/Go2_Navigation-go2-control/data/outputs/go2_control/`).
+
+- **Calibration**: measured intrinsics reused unchanged (sha `f5dedd82…`); live pipeline loads them and
+  rectifies (fisheye, balance 0, no crop) then stretches to 448×256. `T_base_camera` stays null.
+- **Forward mapping (verified for forward only)**: camera yaw +0.8° from the static wall capture
+  (`hardware/camera_heading.py`), model yaw 0.0294 rad incl. the 0.85° image-centre ray, declared ±3°;
+  model-frame origin **unknown** (`translation_m: null`, bound 0.5 m), which cancels for a pure translation
+  and is charged as worst-case slack otherwise. Small contract change in `supervised.py` + schema
+  (`mapping_slack`); null translation can never verify `turn`. Scale unverified, capped.
+- **Turn**: only 30° heading targets at 1.0 rad/s are measured (→ 35.1° / 35.4°, coast 2.6–4.9°, ≤ 4 cm
+  translation); 0.5 rad/s timed turns sprang back up to 8°. No smaller turn is claimed. `cloud_base` has
+  0 returns in the rear of the r = 0.55 m swept disc (processing removal); the raw cloud has sparse
+  rear returns to ~1 m (unvalidated); nothing beyond ~1.3 m behind (occlusion). Provider reports
+  `turn_clear_rad = 0`. Next turn step is a controller-only, operator-inspected control test.
+- **Correspondence gate offline**: stationary 21/24 valid, moved 0/18, outside-ROI 0/42.
+- **Provider** `hardware/supervised_guards.py` (read-only, 13 mock tests); capability generator
+  `hardware/make_capability.py` computes versions/hashes; current draft refuses live arming on
+  `unverified_intervention` (then obstacle handling, target correspondence, capture bound).
+- **Blocking the first model-directed forward step**: (1) emergency button while the API owns control,
+  stationary; (2) capture-age upper bound on the current boot (camera views a screen clock);
+  (3) live provider check with a box ~1 m ahead. All three are stationary.
+- **Mac**: ~/Desktop is iCloud-offloaded (disk 96 % full); hardware imports are local, recordings and
+  the model env are being restored. A launch stalling at 0 % CPU means an offloaded file.
+
 ## Supervised navigation → Claude hardware handoff (2026-11-17)
 
 Branch **`feature/vln-supervised-navigation`**, based on interactive

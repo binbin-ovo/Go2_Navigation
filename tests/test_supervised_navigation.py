@@ -250,3 +250,38 @@ def test_live_launcher_blocks_before_model_or_robot_import(tmp_path):
     result = subprocess.run([sys.executable, str(ROOT / "scripts/run_vln_supervised.py"), "--navigation-mode", "live"],
                             capture_output=True, text=True, env=env)
     assert result.returncode == 2 and "Live needs" in result.stderr
+
+
+def test_unregistered_translation_is_bounded_not_zero():
+    cap, p = deepcopy(FIXTURE["capability"]), deepcopy(FIXTURE["proposal"])
+    cap["mapping"].update(translation_m=None, yaw_rad=0., verified_actions=["forward"])
+    with pytest.raises(Hold, match="without_bound"):
+        capability_check(cap, live=False, wall_s=1)
+    cap["mapping"]["translation_bound_m"] = .5
+    capability_check(cap, live=False, wall_s=1)
+    p["waypoints"] = [[.3, 0., 0.]]*10       # pure translation: the origin cancels exactly
+    assert plan(p, cap)["residual_translation_m"] == pytest.approx(0.)
+    yaw = cap["limits"]["straight_yaw_rad"]
+    p["waypoints"] = [[.3, 0., yaw]]*10      # heading change: worst case 2 sin(yaw/2) * bound
+    worst = 2*math.sin(yaw/2)*.5
+    if worst > cap["limits"]["lateral_m"]:
+        with pytest.raises(Hold, match="unsupported"):
+            plan(p, cap)
+    else:
+        action = plan(p, cap)
+        assert action["residual_translation_m"] == pytest.approx(worst)
+        assert action["magnitude"] == pytest.approx(min(.3 - worst, cap["limits"]["forward_m"]))
+    cap["mapping"]["verified_actions"] = ["forward", "turn"]
+    with pytest.raises(Hold, match="turn_requires_registered"):
+        capability_check(cap, live=False, wall_s=1)
+
+
+def test_mapping_yaw_uncertainty_widens_lateral_residual():
+    cap, p = deepcopy(FIXTURE["capability"]), deepcopy(FIXTURE["proposal"])
+    cap["mapping"].update(translation_m=[0., 0.], yaw_rad=0., verified_actions=["forward"])
+    lateral = cap["limits"]["lateral_m"]
+    p["waypoints"] = [[.2, lateral*.9, 0.]]*10
+    assert plan(p, cap)["type"] == "forward"
+    cap["mapping"]["yaw_uncertainty_rad"] = math.radians(3)
+    with pytest.raises(Hold, match="unsupported"):
+        plan(p, cap)
