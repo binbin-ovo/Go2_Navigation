@@ -110,7 +110,8 @@ def test_unknown_or_disabled_avoidance_blocks(enabled):
     "req",
     [
         MoveRequest(-0.1, 0.0, 1.0),  # reverse
-        MoveRequest(0.5, 0.0, 1.0),  # too fast
+        MoveRequest(0.5, 0.0, 1.0),  # above the timed forward limit without a distance stop
+        MoveRequest(1.1, 0.0, 3.0, 0.05, target=0.5),  # above the forward limit even with a stop
         MoveRequest(0.0, 1.0, 1.0),  # turn too fast
         MoveRequest(0.1, 0.2, 1.0),  # combined
         MoveRequest(0.0, 0.0, 1.0),  # zero is not a move
@@ -340,9 +341,10 @@ def test_longer_stall_grace_lets_a_late_start_through_but_stays_bounded():
 
 def test_heading_target_turns():
     validate(MoveRequest(0.0, -1.0, 3.0, 0.05, target=0.5236))
+    validate(MoveRequest(0.0, 2.0, 3.0, 0.05, target=0.5236))
     for req in (
         MoveRequest(0.0, 1.0, 1.0, 0.05),  # fast turn without a heading stop
-        MoveRequest(0.0, 1.2, 3.0, 0.05, target=0.5),  # faster than the turn limit
+        MoveRequest(0.0, 2.1, 3.0, 0.05, target=0.5),  # faster than the turn limit
     ):
         with pytest.raises(Refused):
             validate(req)
@@ -352,3 +354,10 @@ def test_heading_target_turns():
     out, route = run(req=req, clock=clock, progress=lambda: (clock.t - 100.0) * 0.6)
     assert out.end_reason.startswith("target reached")
     assert all(c[2] == -1.0 for c in route.calls if isinstance(c, tuple))
+
+
+def test_faster_forward_only_with_distance_target():
+    validate(MoveRequest(1.0, 0.0, 4.0, 0.05, target=0.5))
+    validate(MoveRequest(0.3, 0.0, 2.0, 0.05))
+    with pytest.raises(Refused, match="distance target"):
+        validate(MoveRequest(0.4, 0.0, 2.0, 0.05))

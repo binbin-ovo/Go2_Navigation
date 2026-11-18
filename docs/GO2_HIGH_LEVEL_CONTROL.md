@@ -53,9 +53,9 @@ not `sport`:
 | Position modes | `obstacles_avoid` Move `mode` 1 or 2 | increment or absolute pose | – | position | – | – | – | – | not used | **SRC** |
 
 Utility limits (`src/go2_control/safety.py`):
-- forward ≤ 0.30 m/s
+- forward ≤ 1.0 m/s; above 0.30 m/s only with a distance target (raised 2026-11-18 at the user's request)
 - reverse ≤ 0.75 m/s, and only with a distance target
-- |yaw| ≤ 1.0 rad/s; above 0.5 rad/s only with a heading target
+- |yaw| ≤ 2.0 rad/s (was 1.0 until 2026-11-18); above 0.5 rad/s only with a heading target
 - targets ≤ 1.6 m or ≤ 1.6 rad
 - duration ≤ 2 s, or ≤ 8 s with a target
 - no combined translation and turn
