@@ -1,3 +1,35 @@
+## Go2 high-level control audit: forward / turn / stop with avoidance on (2026-11-15)
+
+**Branch:** `feature/go2-high-level-control-audit` (worktree `~/Desktop/Go2_Navigation-go2-control`),
+based on `45154f6b9f05227de74254cb4562d7e0ad07b7dd`. Not merged into main. Hardware session on
+the Go2 Pro over the `en9` tether, SDK `unitree_sdk2_python` `814556d`. Service versions:
+obstacles_avoid 1.0.0.2, sport 1.0.0.1, motion_switcher 1.0.0.1, robot_state 1.0.0.2.
+Firmware version was not read.
+
+**Route:** `obstacles_avoid` SwitchGet true → UseRemoteCommandFromApi(True) → Move (velocity
+mode, 20 Hz) → zero ×3 → still → UseRemoteCommandFromApi(False). SportClient.Move is never used.
+
+**Verified on hardware:**
+- +x forward: 1.495 m by LiDAR at 0.30 m/s. Tape agrees with LiDAR; odom under-reads by about 20 %.
+- −x backward: reliable only at 0.75 m/s (3/3, 1.87 m on a 1.5 m target). At 0.25–0.50 m/s, the robot is held or pushed back after 0.1–0.3 m. The remote reverse showed the same hold.
+- +yaw left / −yaw right: about 35° each with a 30° IMU heading stop at 1.0 rad/s. At 0.5 rad/s, turns are asymmetric and spring back.
+- A zero Move stops the robot in 0.2–0.4 s. One command lives about 1 s.
+- The release returns control to the remote.
+- Avoidance read `{"enable":true}` before and after every move.
+
+**Not verified:**
+- remote override while the API holds control
+- stopping before an obstacle
+- any avoidance-off behaviour: the SwitchSet 1001 interface exists but was never called or registered
+
+**Incident:** an accidental link loss mid-turn (D3, cable pulled). The robot stopped. The leftover
+API claim was cleared by an approved `stop` after reconnecting.
+
+**Tests:** the full suite gives 579 passed, 7 skipped (core-env, `.venv` link). The new mock tests: 40 pass, 1 skipped.
+
+**Read:** [GO2_HIGH_LEVEL_CONTROL](GO2_HIGH_LEVEL_CONTROL.md),
+[GO2_NATIVE_AVOIDANCE_AUDIT](GO2_NATIVE_AVOIDANCE_AUDIT.md). VLN is still not connected to motion.
+
 ## Phase 6C — navigation-trained checkpoint and small-scene experiment (2026-11-13)
 
 **Branch:** `phase6-pretrained-vln`; isolated from verified Phase 6B
