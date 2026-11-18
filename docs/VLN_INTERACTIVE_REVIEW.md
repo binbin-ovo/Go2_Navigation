@@ -133,7 +133,29 @@ When finished, press **Close tool**; it closes only this read-only tool. Nothing
 timer while you decide; a request that gets no answer within 60 s is reported and nothing
 is saved. Suggested set: a visible object, an absent object, an ambiguous object.
 
-## Window
+### Live result (`live_08`, 2026-11-17)
+
+The Go2 was standing and stationary with the remote owning control (operator-confirmed).
+A read-only check showed avoidance on (`obstaclesAvoidSwitch: true`), `cloud_base` at
+15.5 Hz and odometry at 162 Hz. Six tests in 304 s, all saved with the browser flow,
+closed with **Close tool**. 0 robot commands, 0 camera buffer overflows, 0 receipt gaps.
+Every answer was **CURRENT** (1.6–2.5 s, 5 frames each), because each test asks once
+right after it starts.
+
+| Target | Model answer | Operator verdict | Operator comment (verbatim) |
+|---|---|---|---|
+| bag | OPOS-0 (not visible) | right, not in view | "the bag is look like a target" |
+| oven | point (0.68, 0.50) | + is on the target | — |
+| dish washer | point (0.24, 0.50) | + is on the target | — |
+| wine | OPOS-0 (not visible) | **wrong, it IS in view** | "It is on the dish washer" |
+| microwave oven | point (0.68, 0.17) | + is on the target | — |
+| sofa | OPOS-0 (not visible) | right, not in view | "Can let the Go2 turn around and check" |
+
+Operator verdicts across six answers in one scene: 5 agreed with the model, 1 disagreed
+(a missed small object). This is not an accuracy estimate. The bag comment is kept
+verbatim and not interpreted.
+
+
 
 The header shows the mode in large type: **LIVE**, **REPLAY**, **SYNTHETIC** or **REVIEW**.
 The status strip shows the trial, model state, last inference time, observation age,
