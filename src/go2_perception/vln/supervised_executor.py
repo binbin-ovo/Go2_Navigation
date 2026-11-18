@@ -24,6 +24,7 @@ from .supervised import (CONTROL_REVISION, Hold, age_check, capability_check, cu
 # every state sample of the canonical moves and statuses reads 100). The controller emergency stop sets
 # 1002 (2026-11-18). Anything else HOLDs.
 NOMINAL_ROBOT_ERROR_CODES = frozenset({100})
+IDLE_SAMPLE_GAP_S = 0.1  # longest gap between idle stillness samples that still counts as continuous
 
 
 def finite_json(value):
@@ -200,6 +201,22 @@ class HardwareMotion:
         self.safety, self.route, self.monitor, self.guards = safety, route, monitor, guards
         self.cap, self.heartbeat, self.clock = cap, heartbeat, monotonic
         self.sleep, self.wall = sleep, wall
+        self.idle_still_since = self.idle_sampled_at = None
+
+    def sample_idle(self):
+        """Called by the executor's idle loop (every ~0.05 s) while no action is dispatched.
+
+        Keeps the start of the current continuous run of fresh, still state samples, so the pre-claim
+        dwell can count stillness that preceded dispatch instead of restarting after the model answer.
+        Any moving or stale sample resets it.
+        """
+        now, age = self.clock(), self.monitor.state_age()
+        fresh = age is not None and 0 <= age <= self.cap["limits"]["state_age_s"]
+        if fresh and self.monitor.is_still() is True:
+            self.idle_still_since = self.idle_still_since or now
+        else:
+            self.idle_still_since = None
+        self.idle_sampled_at = now
 
     def __call__(self, ticket, action, result, cancelled):
         outer = self
@@ -207,8 +224,14 @@ class HardwareMotion:
         reason = []
         lease_deadline = [None]
 
+        # Continue an unbroken idle stillness run only if it was sampled moments ago.
+        continuing = (self.idle_still_since if self.idle_sampled_at is not None
+                      and self.clock() - self.idle_sampled_at <= IDLE_SAMPLE_GAP_S else None)
+        result["events"].append({"event": "idle_stillness_at_dispatch", "monotonic_s": self.clock(),
+                                 "still_since_monotonic_s": continuing, "last_idle_sample_s": self.idle_sampled_at})
+
         class Monitor:
-            stationary_since = None
+            stationary_since = continuing
 
             def state_age(self):
                 age = outer.monitor.state_age()

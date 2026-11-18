@@ -200,3 +200,40 @@ def test_hardware_environment_is_not_compared_by_shared_base_python(tmp_path):
                "python": str(tmp_path / "wrong-venv/bin/python")}
     with pytest.raises(Hold, match="wrong_hardware_environment"):
         canonical_control_check(control, root)
+
+
+def idle_run(motion, clock, seconds, gap=.05):
+    """Idle executor-loop stillness samples ending at the current fake time."""
+    end = clock.t
+    clock.t -= seconds
+    while clock.t < end:
+        motion.sample_idle()
+        clock.t = min(end, clock.t + gap)
+
+
+@pytest.mark.parametrize("idle_s,gap,carried", [(1.2, .05, True), (0., .05, False), (1.2, .5, False), (.1, .05, True)])
+def test_pre_claim_dwell_counts_only_continuous_fresh_idle_stillness(tmp_path, idle_s, gap, carried):
+    motion, ticket, cancel, calls, clock = hardware_fakes(tmp_path)
+    if idle_s:
+        idle_run(motion, clock, idle_s, gap)
+    if gap > .1:
+        clock.t += gap  # last idle sample too old to continue the run
+    start = clock()
+    result = motion(ticket, ticket["action"], result_record(ticket, False, clock()), cancel)
+    assert calls[:2] == ["claim", "velocity"] and result["observed_stationary"]
+    waited = result["started_monotonic_s"] - start
+    dwell = motion.cap["limits"]["stationary_dwell_s"]
+    expected = max(0., dwell - idle_s) if carried else dwell  # only the remaining dwell is waited
+    assert expected - .001 <= waited <= expected + .06, (waited, expected)
+    first = result["events"][0]
+    assert first["event"] == "idle_stillness_at_dispatch" and (first["still_since_monotonic_s"] is not None) == carried
+
+
+def test_moving_idle_sample_resets_the_carried_run(tmp_path):
+    motion, ticket, cancel, calls, clock = hardware_fakes(tmp_path)
+    idle_run(motion, clock, 1.2)
+    real = motion.monitor.is_still
+    motion.monitor.is_still = lambda: False
+    motion.sample_idle()
+    motion.monitor.is_still = real
+    assert motion.idle_still_since is None

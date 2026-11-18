@@ -119,6 +119,8 @@ def main(argv=None):
                     emit({"type": "guards", "snapshot": guards.snapshot(), "nonce": a.nonce})
                 except Exception as error:
                     emit({"type": "guard_error", "error": str(error)})
+                if motion is not None:
+                    motion.sample_idle()
                 last = time.monotonic()
             try:
                 message = queue.get(timeout=.01)
