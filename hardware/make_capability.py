@@ -31,14 +31,25 @@ EVIDENCE = {
                                   "(hardware/camera_heading.py), +0.85 deg image-centre convention, declared "
                                   "+/-3 deg; model origin unknown, bounded 0.5 m (translation_m null); scale "
                                   "unverified, capped by forward_m and LiDAR clearance; turn not verified"),
-    "intervention": ("unknown", "emergency button while API owns control not yet exercised"),
-    "obstacle_handling": ("unknown", "provider LiDAR clearance not yet checked live against a placed box"),
+    "intervention": ("verified", "2026-11-18 go2_control/20261118_102052_ownership: API held control (claim 0, "
+                                 "no Move); controller emergency button at 17.6 s -> error_code 100->1002 at "
+                                 "18.9 s, operator saw it freeze standing; release 0, avoidance enabled; "
+                                 "cleared by operator -> error_code 100 (20261118_102255_status)"),
+    "obstacle_handling": ("verified", "FORWARD CORRIDOR ONLY, 2026-11-18 live provider (stationary): open floor "
+                                      "nearest 2.88 m / clear 1.80 m; box centred ~1.1 m ahead of nose -> nearest "
+                                      "1.53 m / clear 1.03 m; box 20 cm left -> nearest 1.58 m / clear 1.08 m; "
+                                      "geometry age <= 0.11 s; rear/turn sweep not covered (turns not offered); "
+                                      "onboard avoidance stays enabled as the independent layer"),
     "stop_verification": ("verified", "canonical logs 2026-11-15: zero Move x3 still in 0.2-0.4 s from "
                                       "0.3 m/s (C4, X2, C5), released code 0, avoidance enabled after"),
     "motion_bounds": ("verified", "forward 0.30 m/s: realized ~70 % of command, target 0.5 m stopped at "
                                   "0.505 m LiDAR (X2); heading drift +1.7..+6.8 deg, lateral 3.5-12 cm"),
-    "target_correspondence": ("unknown", "offline on live_09/10: stationary 21/24, moved 0/18, outside "
-                                         "0/42; not yet observed on the trial target"),
+    "target_correspondence": ("verified", "trial target (box), live_14 2026-11-18, robot stationary, operator ROI "
+                                          "around the box: same view 0.3-1.1 s apart 20/24 valid (box at the "
+                                          "left image edge refused 4/4, conservative); point outside ROI 0/6; "
+                                          "box moved between requests 0/5 (changed_or_ambiguous_target_roi). "
+                                          "Operator judged all 6 model points on the box. Earlier offline "
+                                          "live_09/10: stationary 21/24, robot moved 0/18, outside 0/42"),
 }
 
 LIMITS = {
