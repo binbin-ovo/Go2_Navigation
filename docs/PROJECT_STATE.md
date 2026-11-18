@@ -31,8 +31,11 @@ operator saw it on the dish washer). One scene; not an accuracy estimate. 0 robo
 pair of trials and verify from archived host-monotonic receipt times and odometry yaw
 that the second answer used post-turn input. Tests: 712 core passed / 11 environment skips.
 
-**Next:** one operator-guided paired-view experiment (chair outside view → manual turn
-with the remote → same target again). Independent observations, not temporal navigation.
+**First paired view (live_09):** "chair", before and after a −35.5° manual right turn
+(odometry, 9.1 s). The second input was verified post-turn (+28.1 s margin). The model
+said NOT VISIBLE both times; the operator saw the chair both times (partially, then
+directly ahead). One pair; independent observations, not temporal navigation. Details
+are in the review doc.
 
 ## Advisory latency: input-equivalent optimization (2026-11-16)
 

@@ -196,6 +196,44 @@ Ask starts a fresh instruction history. This is not continuous temporal navigati
 autonomous search. A synthetic test checks a verified pair; a too-early second Ask was
 reported as not verified during development.
 
+### First paired-view result (`live_09`, 2026-11-17)
+
+Preflight: the robot was reachable, `cloud_base` arrived at 16 Hz, odometry at 163 Hz,
+and avoidance read on (read-only `rt/multiplestate`). The operator confirmed clearance;
+the cable-slack check was given as a condition in the turn instruction. 0 robot commands.
+
+| | Before | After |
+|---|---|---|
+| Trial / prediction | `T20261117-210333-01-11a2` / `P001` | `T20261117-210902-02-75f6` / `P002` |
+| Model output | OPOS-0 (not visible) | OPOS-0 (not visible) |
+| Receipt status | STALE (2.98 s since receipt, 3.03 s since est. exposure; first request of the session includes warm-up) | CURRENT (1.98 s / 2.02 s) |
+| Operator verdict | Wrong — the target IS in view | Wrong — the target IS in view |
+| Operator comment (verbatim) | "The chair is partially visiable" | "The chair now is right infront of the Go2." |
+| Age of the image when reviewed | 65.5 s | 26.2 s |
+
+**The manual turn:**
+- The operator chose to turn right. The note was logged at 02:06:18Z, before the turn.
+- Odometry yaw changed by **−35.5°**, from 02:08:25.07Z to 02:08:34.15Z (9.1 s).
+- Odometry position moved by about 0.06 m.
+- The operator reported "stopped" at 02:08:48Z.
+- **Uncertainty:** turn start and end depend on the 2° threshold, the 6.7 ms odometry
+  sampling interval and unknown transport latency (milliseconds). Camera receipt is
+  about 48 ms after exposure (single-boot estimate).
+- **Post-turn verified:** the second answer's first input frame was received 28.1 s after
+  the turn ended, and yaw varied 0.02° during those input frames. The first answer's
+  inputs ended 290.5 s before the turn began.
+- The two answers come from independent instruction histories.
+
+**Outcome:** the operator judged the chair visible in both images, partially before the
+turn and directly ahead after it. The model said NOT VISIBLE both times, so the turn did
+not change the model's answer. That is one pair in one scene, with no general claim.
+
+**Gaps in the evidence:**
+- The verdicts are per image and say nothing about how much of the chair was visible
+  beyond the operator's own words.
+- The cable-slack check was not confirmed separately in words.
+- The odometry heading is relative and drifts; no camera-to-body calibration exists.
+
 ## Window
 
 The header shows the mode in large type: **LIVE**, **REPLAY**, **SYNTHETIC** or **REVIEW**.
