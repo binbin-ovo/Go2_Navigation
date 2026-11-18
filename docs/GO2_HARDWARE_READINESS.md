@@ -225,6 +225,30 @@ Missing for a model-directed turn: repeated runs per direction at 15° (spread o
 translation), the relation of the turning centre to base_link and to the model origin, sensor coverage
 of the rear/side-rear swept disc (section 4), and cable handling.
 
+## 10. Faster controller-only tests (control tests; 2026-11-18)
+
+The operator could not see the 15° turns, so at the user's request the audited utility's caps were raised
+in the control checkout (`6d555d3`, branch `feature/go2-high-level-control-audit`): forward ≤ 1.0 m/s
+(above 0.30 m/s only with a distance target), turn ≤ 2.0 rad/s (above 0.5 rad/s only with a heading
+target). The supervised path still pins `742cfe4` and therefore refuses to arm until it is re-pinned
+deliberately; its own limits stay 0.30 m/s / 1.0 rad/s.
+
+| | Forward 1.0 m/s, 0.6 m stop | Right 2.0 rad/s, 30° stop | Left 2.0 rad/s, 30° stop |
+|---|---|---|---|
+| Log (`go2_control/`) | `20261118_112542_move` | `20261118_112635_move` | `20261118_112705_move` |
+| Move commands | 24 (1.30 s) | 12 (0.60 s) | 12 (0.60 s) |
+| At stop request | LiDAR 0.66 m, odom 0.61 m | −31.8° | +31.0° |
+| Peak / settled | odom 0.71 / 0.71 m; peak speed 0.91 m/s at 1.25 s | −37.2° / **−34.4°** (springback 2.8°) | +41.0° / **+40.8°** |
+| Drift / translation | heading +3.4°, lateral 0.9 cm | 6.0 cm (fwd 5.8, left −1.3) | 1.0 cm |
+| Still after first zero | 0.15 s | 0.51 s | 0.34 s |
+| Release / avoidance after | 0 / enabled | 0 / enabled | 0 / enabled |
+
+At 1.0 m/s the robot reaches ~90 % of the command (vs ~70 % at 0.30 m/s) and coasts ~0.1 m (odometry)
+after the stop; odometry under-read by ~20 % on 2026-11-15, so the true travel is likely ~0.75–0.85 m.
+At 2.0 rad/s the coast after the heading stop is direction-dependent in this pair: +4.4° right (with
+springback) vs +10.8° left; right turns again translate more (6.0 vs 1.0 cm, cf. 7.0 vs 1.3 cm at
+15°/1.0 rad/s). One run per condition; no precision claim.
+
 ## Historical: what blocked the first model-directed forward action (all resolved above)
 
 1. **Intervention while the API owns control** is unverified. The user's controller has an emergency
