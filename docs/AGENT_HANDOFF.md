@@ -1,3 +1,22 @@
+## Browser one-answer workflow + paired views → next agent (2026-11-17)
+
+Same branch/worktree as below (`feature/vln-interactive-review`). Read
+[VLN_INTERACTIVE_REVIEW](VLN_INTERACTIVE_REVIEW.md) sections "Step-by-step test" and
+"Paired-view experiment" first.
+
+- **Launch live** from a process with macOS Local Network access (not the app's terminal
+  panel): the command in the doc, plus `--record-lidar-continuously` for paired views.
+  Operators act only in the browser Test box; the terminal is a log; **Close tool** quits.
+- **Records:** one trial per Ask. `predictions.jsonl` holds model output;
+  `human_labels.jsonl` holds the operator verdict and verbatim comment, bound to the
+  trial, prediction and image hash. `evaluation/paired_views.jsonl` (from
+  `scripts/link_paired_views.py`) links a before/after pair with the measured turn
+  interval and the post-turn check.
+- **live_08** results are in PROJECT_STATE and the doc (6 tests, all CURRENT; operator
+  agreed 5/6). Private run directories stay under `data/outputs/vln_interactive/`.
+- **Do not:** enable the bounded-context policy, change the 3 s limit or the model, or
+  connect waypoints to robot commands (a separate decision for the motion-control work).
+
 ## Interactive four-panel review tool → next agent (2026-11-16)
 
 Branch **`feature/vln-interactive-review`** (worktree

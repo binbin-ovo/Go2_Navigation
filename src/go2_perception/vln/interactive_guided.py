@@ -11,7 +11,9 @@ No streaming answers, no automatic end while the operator is deciding. Browser a
 queued and applied by the main loop, so the HTTP threads never change application state.
 """
 
+import json
 from queue import Full, Queue
+import threading
 
 from .interactive_trials import append_jsonl, expand_target, utc_now
 
@@ -48,15 +50,25 @@ class GuidedTest:
         self.message = "Type a target and press “Ask the model”."
         self.saved = None
         self.count = 0
+        self.lock = threading.Lock()
+        self.pending_save = None  # prediction ID of a queued, not yet processed Save
 
     # ---------- browser thread ----------
     def enqueue(self, payload, now):
         if payload.get("action") not in ("ask", "answer", "cancel", "next", "quit"):
             raise ValueError("Unknown action")
-        try:
-            self.actions.put_nowait((dict(payload), now))
-        except Full:
-            raise ValueError("Busy; try again") from None
+        with self.lock:
+            if payload["action"] == "answer":
+                if self.pending_save is not None:
+                    raise ValueError("a Save is already being processed")
+                if not payload.get("prediction_id") or not payload.get("trial_id"):
+                    raise ValueError("Save must name the trial and prediction it judges")
+            try:
+                self.actions.put_nowait((dict(payload), now))
+            except Full:
+                raise ValueError("Busy; try again") from None
+            if payload["action"] == "answer":
+                self.pending_save = payload["prediction_id"]
 
     # ---------- main loop ----------
     def process(self, now):
@@ -66,17 +78,38 @@ class GuidedTest:
                 getattr(self, "_" + payload["action"])(payload, now)
             except ValueError as error:
                 self.message = f"Not done: {error}"
+            finally:
+                if payload["action"] == "answer":
+                    with self.lock:
+                        self.pending_save = None
         app = self.app
-        if self.step == ASKING and app.trial is not None and app.trial.id == self.trial_id:
+        if (self.step == ANSWER and (app.trial is None or app.trial.id != self.trial_id)
+                and "trial was ended" not in self.message):
+            self.message = (f"The trial was ended ({self._end_reason()}). Your verdict on THIS image can still "
+                            "be saved, or Discard it.")
+        if self.step == ASKING:
             pred = next((p for p in reversed(app.predictions.values()) if p["trial_id"] == self.trial_id), None)
+            ended = app.trial is None or app.trial.id != self.trial_id
             if pred is not None:
                 self.prediction_id, self.step = pred["prediction_id"], ANSWER
                 self.message = "Answer ready. Choose what you see, add a comment if you like, then Save."
                 app.say(f"[guided] answer ready: {pred['prediction_id']}")
+            elif ended:
+                # Ended or replaced elsewhere (terminal command, resource limit, source stop).
+                self.step = READY
+                self.message = (f"That test ended before an answer arrived ({self._end_reason()}). "
+                                "Nothing was saved. Ask again when ready.")
             elif app.session.history_error:
                 self._fail(f"the model could not run ({app.session.history_error})", now)
             elif now - self.asked_s > ASK_TIMEOUT_S:
                 self._fail("no answer within 60 s", now)
+
+    def _end_reason(self):
+        try:
+            path = self.app.store.trial_dir(self.trial_id) / "trial_end.json"
+            return json.loads(path.read_text())["end_reason"]
+        except (OSError, ValueError, KeyError, FileNotFoundError):
+            return "ended elsewhere"
 
     def _fail(self, why, now):
         if self.app.trial is not None and self.app.trial.id == self.trial_id:
@@ -107,8 +140,13 @@ class GuidedTest:
     def _answer(self, payload, now):
         app = self.app
         if self.step != ANSWER:
-            raise ValueError("there is no answer to judge")
+            raise ValueError("there is no answer to judge (it may already be saved or cancelled)")
+        if payload.get("trial_id") != self.trial_id or payload.get("prediction_id") != self.prediction_id:
+            raise ValueError("this Save refers to an older answer; the page now shows a different one")
         pred = app.predictions.get(self.prediction_id)
+        image = (pred or {}).get("source_image") or {}
+        if not image.get("file_sha256") or payload.get("image_sha256") != image["file_sha256"]:
+            raise ValueError("the image you judged does not match the archived model input; reload and retry")
         choices = choices_for(pred)
         choice = payload.get("choice")
         if choice not in choices:
@@ -122,7 +160,10 @@ class GuidedTest:
             "question": "Is the + on the target?" if pred and pred.get("target_fraction")
             else "The model says the target is NOT VISIBLE. Is that right?",
             "choice": choice, "choice_text": choices[choice], "verbatim_comment": comment,
-            "reviewer": app.config.get("reviewer"), "source_image": pred and pred.get("source_image"),
+            "reviewer": app.config.get("reviewer"), "source_image": image,
+            "displayed_image_sha256": payload["image_sha256"],
+            "observation_age_at_review_s": self._age_now(pred, now),
+            "trial_already_ended_before_save": app.trial is None or app.trial.id != self.trial_id,
             "prediction_label_at_receipt": pred and pred.get("label_at_receipt"),
             "reviewed_wall_utc": utc_now(), "reviewed_host_monotonic_s": now,
             "confirmed_by_user": True, "source": "human_operator", "model_feedback": False,
@@ -151,6 +192,11 @@ class GuidedTest:
     def _next(self, payload, now):
         self.step, self.message = READY, "Type a target and press “Ask the model”."
 
+    @staticmethod
+    def _age_now(pred, now):
+        received = (pred or {}).get("source_frame", {}).get("received_monotonic_s")
+        return None if received is None else now - received
+
     def public(self, now):
         pred = self.app.predictions.get(self.prediction_id) if self.prediction_id else None
         return {
@@ -163,7 +209,14 @@ class GuidedTest:
                 "prediction_id": pred["prediction_id"], "target_fraction": pred.get("target_fraction"),
                 "opos_not_visible": pred.get("opos_not_visible"), "label_at_receipt": pred["label_at_receipt"],
                 "inference_duration_s": pred.get("inference_duration_s"), "mock": pred.get("mock"),
+                "trial_id": pred["trial_id"],
+                "image_sha256": (pred.get("source_image") or {}).get("file_sha256"),
+                "age_at_receipt_s": (pred.get("display_timing_at_receipt") or {}).get("host_since_delivery_s"),
+                "exposure_age_at_receipt_s": (pred.get("display_timing_at_receipt") or {}).get(
+                    "observation_age_at_display_s"),
+                "age_now_s": self._age_now(pred, now),
                 "image_url": f"/api/pred_image?id={pred['prediction_id']}" if pred.get("source_image") else None,
                 "source_frame_id": pred["source_frame"]["frame_id"]},
             "saved": self.saved,
+            "pending_save": self.pending_save,
         }

@@ -30,6 +30,9 @@ def parser():
     p.add_argument("--pause-after-s", type=float, help="Stop sending for --pause-s once")
     p.add_argument("--pause-s", type=float, default=1.5)
     p.add_argument("--stamp-base", type=float, default=1000.0)
+    p.add_argument("--turn-at-s", type=float, help="Synthetic yaw turn (odometry only) starting at this time")
+    p.add_argument("--turn-deg", type=float, default=60.0)
+    p.add_argument("--turn-duration-s", type=float, default=2.0)
     return p
 
 
@@ -133,8 +136,12 @@ def main(argv=None):
             if not a.no_odom and elapsed >= next_odom:
                 next_odom += 1.0 / a.odom_hz
                 kind, xyz = "odom", None
+                yaw = 0.0
+                if a.turn_at_s is not None and elapsed > a.turn_at_s:
+                    yaw = np.radians(a.turn_deg) * min(1.0, (elapsed - a.turn_at_s) / a.turn_duration_s)
                 fields = {"stamp": robot_t, "frame_id": "odom", "child_frame_id": "base_link",
-                          "position": [0.0, 0.0, 0.31], "q_xyzw": [0.0, 0.0, 0.0, 1.0],
+                          "position": [0.0, 0.0, 0.31],
+                          "q_xyzw": [0.0, 0.0, float(np.sin(yaw / 2)), float(np.cos(yaw / 2))],
                           "linear": [0.0, 0.0, 0.0], "angular": [0.0, 0.0, 0.0]}
             elif elapsed >= next_scan:
                 next_scan += 1.0 / a.scan_hz

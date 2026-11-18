@@ -100,6 +100,9 @@ def parser():
     p.add_argument("--min-free-disk-gb", type=float, default=20.0)
     p.add_argument("--min-available-memory-gb", type=float, default=2.0)
     p.add_argument("--max-app-rss-gb", type=float, default=4.0)
+    p.add_argument("--record-lidar-continuously", action="store_true",
+                   help="Also record LiDAR/odometry between trials (chunks tagged between_trials), e.g. to "
+                        "measure a manual viewpoint change between two observations")
     p.add_argument("--port", type=int, default=8765, help="Loopback port (0 = any free port)")
     p.add_argument("--reviewer", help="Default reviewer name for review records")
     return p
@@ -233,6 +236,8 @@ def main(argv=None):
                             env={"PYTHONPATH": str(ROOT / "src") + sdk_path})
         recorder = LidarRecorder(store.root / "lidar", quota=lambda: True)
         lidar.recorder = recorder
+        if a.record_lidar_continuously:
+            recorder.start("between_trials")
     gib = 2**30
     monitor = ResourceMonitor(store.root, limits={
         "min_available_memory_bytes": a.min_available_memory_gb * gib,
@@ -248,7 +253,8 @@ def main(argv=None):
         recorder.quota = lambda: not monitor.snapshot().get("low")
     config = {"camera_silence_s": a.camera_silence_s, "warmup_s": a.warmup_s,
               "max_requests_per_trial": a.max_requests_per_trial, "trial_max_s": a.trial_max_s,
-              "max_trials": a.max_trials, "reviewer": a.reviewer}
+              "max_trials": a.max_trials, "reviewer": a.reviewer,
+              "record_lidar_continuously": a.record_lidar_continuously}
     run_info = {
         "schema": "go2-vln-interactive-run-v1",
         "created_wall_utc": utc_now(),

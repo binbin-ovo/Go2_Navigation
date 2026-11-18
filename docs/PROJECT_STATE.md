@@ -1,3 +1,39 @@
+## Current: browser one-answer review tool + paired-view experiment (2026-11-17)
+
+Branch `feature/vln-interactive-review` (worktree `/Users/yushan/Desktop/Go2_Navigation-vln-interactive`;
+published `73c83f1`, local corrections after it). Main and the motion-control PR untouched.
+Guide: [VLN_INTERACTIVE_REVIEW](VLN_INTERACTIVE_REVIEW.md).
+
+**Operator workflow (browser):** `scripts/run_vln_interactive.py` serves a loopback page.
+The Test box runs: choose target (one safety tick per run) → the model answers **once**
+on the exact archived input image → the operator presses a verdict button (+ optional
+verbatim comment) → Save. Verdicts go to `human_labels.jsonl` (schema
+`go2-vln-guided-answer-review-v1`), never to the model. The terminal is a log. Unchanged:
+LightNav weights, full-history policy (each Ask starts a fresh instruction history),
+cached preparation, calibration and the 3 s advisory limit. No robot command path.
+
+**live_08 (2026-11-17):** stationary standing Go2, avoidance on (read-only
+`rt/multiplestate`), 6 one-answer tests, every answer CURRENT at receipt (1.6–2.5 s, 5
+frames). The operator agreed with 5 of 6 (oven, dish washer, microwave correct; bag and
+sofa correctly not visible) and rejected 1 (wine: the model said not visible, the
+operator saw it on the dish washer). One scene; not an accuracy estimate. 0 robot commands.
+
+**Corrections after review:**
+- The answer canvas is cleared immediately and Save is enabled only after that exact
+  image has loaded; load errors and late callbacks are handled.
+- Save carries trial, prediction and image-hash identity and is validated (stale,
+  duplicate and mismatched saves are rejected).
+- Receipt status is shown separately from the current age.
+- Reopened reviews render guided verdicts.
+- The guided state reconciles when a trial is ended elsewhere.
+
+`scripts/link_paired_views.py` plus `--record-lidar-continuously` link a before/after
+pair of trials and verify from archived host-monotonic receipt times and odometry yaw
+that the second answer used post-turn input. Tests: 712 core passed / 11 environment skips.
+
+**Next:** one operator-guided paired-view experiment (chair outside view → manual turn
+with the remote → same target again). Independent observations, not temporal navigation.
+
 ## Advisory latency: input-equivalent optimization (2026-11-16)
 
 Current development branch `feature/vln-live-latency`, based exactly on live-shadow

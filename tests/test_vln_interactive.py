@@ -653,14 +653,17 @@ def test_guided_one_answer_then_wait_then_save(tmp_path):
     feed(40)
     assert app.session.counts["received"] == received  # no archiving while the operator decides
     assert app.trial is not None and app.guided.step == "ANSWER"  # never ends mid-decision
-    g = guided_run(app, clock, feed, {"action": "answer", "choice": "bogus"})
+    ident = {"trial_id": g["trial_id"], "prediction_id": g["prediction_id"], "image_sha256": g["answer"]["image_sha256"]}
+    g = guided_run(app, clock, feed, {"action": "answer", "choice": "bogus", **ident})
     assert g["message"].startswith("Not done") and g["step"] == "ANSWER"
     trial_id = app.trial.id
-    g = guided_run(app, clock, feed, {"action": "answer", "choice": "wrong", "comment": "  it's the shoe rack "})
+    g = guided_run(app, clock, feed, {"action": "answer", "choice": "wrong", "comment": "  it's the shoe rack ", **ident})
     assert g["step"] == "SAVED" and app.trial is None and app.review is None
     label = read_jsonl(app.store.root / "trials" / trial_id / "human_labels.jsonl")[0]
     assert label["choice"] == "wrong" and label["verbatim_comment"] == "  it's the shoe rack "
     assert label["model_feedback"] is False and label["prediction_id"] == g["saved"]["prediction_id"]
+    assert label["displayed_image_sha256"] == label["source_image"]["file_sha256"]
+    assert label["observation_age_at_review_s"] > 5
     assert json.loads((app.store.root / "trials" / trial_id / "trial_end.json").read_text())["end_reason"] == \
         "guided_answer_saved"
     # Second test: no safety tick needed again; an OPOS-0 answer offers the not-visible choices.
@@ -690,3 +693,147 @@ def test_guided_endpoint_requires_token(tmp_path):
         assert json.loads(urllib.request.urlopen(ok, timeout=5).read())["queued"] == "ask"
     finally:
         server.close()
+
+
+def ask_until_answer(app, clock, feed, target, **extra):
+    g = guided_run(app, clock, feed, {"action": "ask", "target": target, "safety_confirmed": True, **extra}, steps=30)
+    assert g["step"] == "ANSWER", g["message"]
+    return g, {"trial_id": g["trial_id"], "prediction_id": g["prediction_id"], "image_sha256": g["answer"]["image_sha256"]}
+
+
+def test_guided_save_rejects_stale_duplicate_and_mismatched_image(tmp_path):
+    app, clock, feed, _ = make_app(tmp_path, worker=PointingMockWorker(0.5))
+    g, ident = ask_until_answer(app, clock, feed, "chair")
+    a = g["answer"]
+    assert a["trial_id"] == g["trial_id"] and a["image_sha256"]
+    assert a["age_at_receipt_s"] is not None and a["age_now_s"] >= a["age_at_receipt_s"]
+    with pytest.raises(ValueError):
+        app.guided.enqueue({"action": "answer", "choice": "correct"}, clock())  # no identity at all
+    bad_image = {**ident, "image_sha256": "0" * 64}
+    g = guided_run(app, clock, feed, {"action": "answer", "choice": "correct", **bad_image})
+    assert "does not match the archived model input" in g["message"] and g["step"] == "ANSWER"
+    stale = {**ident, "prediction_id": ident["prediction_id"].replace("P001", "P000")}
+    g = guided_run(app, clock, feed, {"action": "answer", "choice": "correct", **stale})
+    assert "older answer" in g["message"]
+    app.guided.enqueue({"action": "answer", "choice": "correct", **ident}, clock())
+    with pytest.raises(ValueError, match="already being processed"):
+        app.guided.enqueue({"action": "answer", "choice": "wrong", **ident}, clock())  # double click
+    feed(1)
+    g = app.guided.public(clock())
+    assert g["step"] == "SAVED" and g["pending_save"] is None
+    g = guided_run(app, clock, feed, {"action": "answer", "choice": "wrong", **ident})  # replayed Save
+    assert g["step"] == "SAVED" and "no answer to judge" in g["message"]
+    labels = read_jsonl(app.store.root / "trials" / ident["trial_id"] / "human_labels.jsonl")
+    assert len(labels) == 1 and labels[0]["choice"] == "correct"
+
+
+def test_guided_reconciles_when_the_trial_is_ended_elsewhere(tmp_path):
+    app, clock, feed, messages = make_app(tmp_path, delay=3.0)
+    g = guided_run(app, clock, feed, {"action": "ask", "target": "chair", "safety_confirmed": True}, steps=2)
+    assert g["step"] == "ASKING"
+    app.safety_confirmation = app.safety_confirmation or {"answer": "yes"}
+    app.handle("target door", clock(), {}, clock())  # terminal command replaces the guided trial
+    feed(1)
+    g = app.guided.public(clock())
+    assert g["step"] == "READY" and "superseded_by_new_trial" in g["message"]
+    app.end_trial("operator_end", clock(), review=False)
+
+    class LowMonitor:
+        def snapshot(self):
+            return {"low": ["free disk 1.0 GiB below limit"]}
+
+    app2, clock2, feed2, _ = make_app(tmp_path / "second", delay=3.0)
+    g = guided_run(app2, clock2, feed2, {"action": "ask", "target": "chair", "safety_confirmed": True}, steps=2)
+    app2.monitor = LowMonitor()
+    feed2(1)
+    g = app2.guided.public(clock2())
+    assert g["step"] == "READY" and "resource_limit" in g["message"] and app2.trial is None
+
+
+def test_guided_answer_survives_external_end_and_can_still_be_saved(tmp_path):
+    app, clock, feed, _ = make_app(tmp_path, worker=PointingMockWorker(0.5))
+    g, ident = ask_until_answer(app, clock, feed, "chair")
+    app.end_trial("resource_limit", clock(), review=False)
+    feed(1)
+    g = app.guided.public(clock())
+    assert g["step"] == "ANSWER" and "trial was ended (resource_limit)" in g["message"]
+    g = guided_run(app, clock, feed, {"action": "answer", "choice": "unsure", **ident})
+    assert g["step"] == "SAVED"
+    label = read_jsonl(app.store.root / "trials" / ident["trial_id"] / "human_labels.jsonl")[0]
+    assert label["trial_already_ended_before_save"] is True
+
+
+def test_reopened_review_lists_guided_and_older_records(tmp_path):
+    app, clock, feed, _ = make_app(tmp_path, worker=PointingMockWorker(0.5))
+    g, ident = ask_until_answer(app, clock, feed, "chair")
+    guided_run(app, clock, feed, {"action": "answer", "choice": "correct", "comment": "on the seat", **ident})
+    app.open_review(ident["trial_id"], clock(), dialog=False)
+    data = app.state(clock())["review"]
+    guided = [h for h in data["human_labels"] if h.get("schema") == "go2-vln-guided-answer-review-v1"]
+    assert guided[0]["choice_text"].startswith("Yes") and guided[0]["prediction_id"] == ident["prediction_id"]
+    from go2_perception.vln.interactive_page import PAGE
+    assert 'h.schema==="go2-vln-guided-answer-review-v1"' in PAGE and "h.choice_text" in PAGE
+    assert (app.store.root / "trials" / ident["trial_id"] / "contact_sheet.png").is_file()
+
+
+def test_paired_view_link_verifies_post_turn_input(tmp_path):
+    """Synthetic camera + synthetic odometry that turns 60 deg between two guided answers."""
+    out = tmp_path / "run"
+    env = {**os.environ, "PYTHONPATH": str(ROOT / "src")}
+    proc = subprocess.Popen([PY, "-u", ROOT / "scripts/run_vln_interactive.py", "--camera", "synthetic",
+                             "--lidar", "synthetic", "--synthetic-lidar-option", "--turn-at-s 7 --turn-duration-s 2",
+                             "--record-lidar-continuously", "--backend", "mock", "--mock-pointing", "alternate",
+                             "--mock-delay-s", "0.5", "--output", out, "--port", "0", "--min-free-disk-gb", "1"],
+                            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+                            env=env, cwd=ROOT)
+    url = None
+    for _ in range(100):
+        line = proc.stdout.readline()
+        if line.startswith("Display: "):
+            url = line.split()[1]
+            break
+    token = re.search(r'const TOKEN="([^"]+)"', urllib.request.urlopen(url, timeout=5).read().decode()).group(1)
+
+    def post(body):
+        req = urllib.request.Request(url + "api/guided", data=json.dumps(body).encode(), headers={"X-Review-Token": token})
+        return json.loads(urllib.request.urlopen(req, timeout=5).read())
+
+    def state():
+        return json.loads(urllib.request.urlopen(url + "api/state", timeout=5).read())["guided"]
+
+    def observe(first):
+        post({"action": "ask", "target": "chair", "safety_confirmed": first})
+        for _ in range(100):
+            g = state()
+            if g["step"] == "ANSWER":
+                break
+            time.sleep(0.1)
+        post({"action": "answer", "choice": next(iter(g["choices"])), "comment": "synthetic", "trial_id": g["trial_id"],
+              "prediction_id": g["prediction_id"], "image_sha256": g["answer"]["image_sha256"]})
+        for _ in range(50):
+            if state()["step"] == "SAVED":
+                return g["trial_id"]
+            time.sleep(0.1)
+        raise AssertionError("not saved")
+
+    try:
+        time.sleep(1.5)
+        first = observe(True)        # synthetic odometry turns at ~7 s after the bridge starts
+        time.sleep(7.0)              # the scripted turn ends ~9-10 s after start
+        second = observe(False)
+        post({"action": "quit"})
+        proc.communicate(timeout=30)
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+    result = subprocess.run([PY, ROOT / "scripts/link_paired_views.py", "--run", out, "--before", first,
+                             "--after", second, "--operator-direction", "left (synthetic)"],
+                            capture_output=True, text=True, env=env, cwd=ROOT)
+    assert result.returncode == 0, result.stdout + result.stderr
+    record = read_jsonl(out / "evaluation/paired_views.jsonl")[0]
+    turn = record["viewpoint_change"]["measured"]
+    assert turn["available"] and abs(turn["yaw_change_deg"] - 60) < 3 and 1.0 < turn["duration_s"] < 3.5, (turn, record["before"]["input_frames"], record["after"]["input_frames"])
+    post = record["second_answer_uses_post_turn_view"]
+    assert post["verified"] is True and post["first_input_before_turn"] is True, (post, turn)
+    assert record["independent_histories"] and record["viewpoint_change"]["direction_chosen_by"] == "operator"
+    assert record["before"]["operator_verdicts"][0]["verbatim_comment"] == "synthetic"

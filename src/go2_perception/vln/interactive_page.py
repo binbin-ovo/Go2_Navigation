@@ -164,28 +164,46 @@ function drawLidar(){const cv=$("lidar"),g=cv.getContext("2d");g.clearRect(0,0,4
  "counts: scan gaps "+st.counts.scan_seq_gaps+" (missing "+st.counts.scans_missing+") · epoch changes "+st.counts.robot_epoch_changes+" · refused (no pose) "+JSON.stringify(st.counts.refused_no_pose),
  ...st.unknowns.map(u=>"unknown: "+u)].join("\n")}
 document.querySelectorAll("button[data-v]").forEach(b=>b.onclick=()=>{lidarView=b.dataset.v;report()});
-let tChoice=null,tShown=null;
+let tChoice=null,tShown=null,tLoaded=null,tSaving=false,tAnswer=null;
 function act(body){return fetch("/api/guided",{method:"POST",headers:{"Content-Type":"application/json","X-Review-Token":TOKEN},body:JSON.stringify(body)})}
 $("task").onclick=()=>{act({action:"ask",target:$("ttarget").value,safety_confirmed:$("tsafe").checked})};
 $("ttarget").addEventListener("keydown",e=>{if(e.key==="Enter")$("task").click()});
 $("tcancel1").onclick=$("tcancel2").onclick=()=>act({action:"cancel"});
-$("tsave").onclick=()=>{if(!tChoice){alert("Choose one of the verdict buttons first.");return}act({action:"answer",choice:tChoice,comment:$("tcomment").value})};
 $("tquit").onclick=()=>{if(confirm("Close the tool? Saved tests stay on disk. Nothing is sent to the robot."))act({action:"quit"})};
-function panelTest(){const G=S.guided;if(!G)return;const order=["READY","ASKING","ANSWER","SAVED"],i=order.indexOf(G.step);
+function canSave(G){return G&&G.step==="ANSWER"&&tAnswer&&tShown===tAnswer.prediction_id&&tLoaded===tShown&&tChoice&&!tSaving&&!G.pending_save}
+$("tsave").onclick=async()=>{const G=S&&S.guided;if(!tChoice){alert("Choose one of the verdict buttons first.");return}
+ if(!canSave(G))return;tSaving=true;$("tsave").disabled=true;
+ try{const r=await act({action:"answer",choice:tChoice,comment:$("tcomment").value,trial_id:tAnswer.trial_id,
+   prediction_id:tAnswer.prediction_id,image_sha256:tAnswer.image_sha256});
+  if(!r.ok){const e=await r.json().catch(()=>({}));alert("Not saved: "+(e.error||r.status))}}finally{tSaving=false}};
+function tCover(text){const cv=$("tcanvas"),g=cv.getContext("2d");cv.width=448;cv.height=256;g.fillStyle="#333";g.fillRect(0,0,448,256);
+ g.fillStyle="#fff";g.font="16px system-ui";g.fillText(text,16,130)}
+function panelTest(){const G=S.guided;$("test").style.display=S.mode==="REVIEW"?"none":"block";if(!G||S.mode==="REVIEW")return;const order=["READY","ASKING","ANSWER","SAVED"],i=order.indexOf(G.step);
  ["st1","st2","st3","st4"].forEach((id,k)=>{$(id).className=k===i?"on":k<i?"done":""});
  $("tmsg").textContent=G.message;$("tready").style.display=(G.step==="READY"||G.step==="SAVED")?"block":"none";
  $("tsafety").style.display=G.safety_needed?"flex":"none";$("tsafetext").textContent="I confirm: "+G.safety_statement;
  $("tasking").style.display=G.step==="ASKING"?"flex":"none";$("taskingtime").textContent=G.step==="ASKING"?"Asking the model about “"+G.target+"” — "+fmt(G.asking_for_s,0)+" s (usually 2–4 s)":"";
  if(G.step==="SAVED"&&tShown){$("ttarget").value="";tShown=null}$("tanswerbox").style.display=G.step==="ANSWER"?"block":"none";
- if(G.step!=="ANSWER"){tShown=null;tChoice=null;return}
+ if(G.step!=="ANSWER"){tShown=null;tChoice=null;tLoaded=null;tAnswer=null;return}
  const a=G.answer;if(!a)return;
- if(tShown!==a.prediction_id){tShown=a.prediction_id;tChoice=null;$("tcomment").value="";
-  const cv=$("tcanvas"),g=cv.getContext("2d");if(a.image_url){const img=new Image();img.onload=()=>{cv.width=img.naturalWidth;cv.height=img.naturalHeight;g.drawImage(img,0,0);
-   if(a.target_fraction){const x=a.target_fraction[0]*cv.width,y=a.target_fraction[1]*cv.height;g.strokeStyle="#000";g.lineWidth=7;g.beginPath();g.moveTo(x-16,y);g.lineTo(x+16,y);g.moveTo(x,y-16);g.lineTo(x,y+16);g.stroke();g.strokeStyle="#ff2fc8";g.lineWidth=4;g.stroke()}};img.src=a.image_url}
+ if(tShown!==a.prediction_id){const id=a.prediction_id;tShown=id;tAnswer=a;tChoice=null;tLoaded=null;$("tcomment").value="";
+  tCover("Loading the model's image for "+id.split("-").pop()+" …");  // never show the previous image
+  if(a.image_url){const img=new Image();
+   img.onload=()=>{if(tShown!==id)return;  // a late callback from an older answer
+    const cv=$("tcanvas"),g=cv.getContext("2d");cv.width=img.naturalWidth;cv.height=img.naturalHeight;g.drawImage(img,0,0);
+    if(a.target_fraction){const x=a.target_fraction[0]*cv.width,y=a.target_fraction[1]*cv.height;g.strokeStyle="#000";g.lineWidth=7;g.beginPath();g.moveTo(x-16,y);g.lineTo(x+16,y);g.moveTo(x,y-16);g.lineTo(x,y+16);g.stroke();g.strokeStyle="#ff2fc8";g.lineWidth=4;g.stroke()}
+    tLoaded=id};
+   img.onerror=()=>{if(tShown!==id)return;tCover("The model's image failed to load. Discard and ask again.")};
+   img.src=a.image_url+"&t="+Date.now()}
+  else tCover("No archived image for this answer. Discard and ask again.");
   const box=$("tchoices");box.replaceChildren();Object.entries(G.choices).forEach(([k,v])=>{const b=document.createElement("button");b.textContent=v;b.onclick=()=>{tChoice=k;[...box.children].forEach(c=>c.classList.toggle("sel",c===b))};box.append(b)})}
+ $("tsave").disabled=!canSave(G);$("tsave").textContent=G.pending_save||tSaving?"Saving…":tLoaded!==tShown?"Waiting for image…":"Save";
  $("tverdict").textContent=a.opos_not_visible?"Model: the "+G.target+" is NOT VISIBLE here.":a.target_fraction?"Model: the "+G.target+" is at the pink + .":"Model gave no usable point.";
  $("tquestion").textContent=a.target_fraction?"Is the + on the "+G.target+"?":a.opos_not_visible?"Is that right — is the "+G.target+" really not in view?":"What do you see?";
- $("tqmeta").textContent="answer "+a.prediction_id.split("-").pop()+" · "+fmt(a.inference_duration_s,1)+" s · "+a.label_at_receipt+(a.mock?" · MOCK (no model)":"")+"\nimage = exactly what the model saw (frame "+a.source_frame_id+")"}
+ $("tqmeta").textContent=["answer "+a.prediction_id.split("-").pop()+" · model took "+fmt(a.inference_duration_s,1)+" s"+(a.mock?" · MOCK (no model)":""),
+  "status when the answer arrived: "+a.label_at_receipt+" (observation was "+fmt(a.age_at_receipt_s,1)+" s old since receipt"+(a.exposure_age_at_receipt_s!=null?", "+fmt(a.exposure_age_at_receipt_s,1)+" s since estimated exposure":"")+")",
+  "this image is now "+fmt(a.age_now_s,0)+" s old: judge THIS image, not the live view",
+  "image = exactly what the model saw (frame "+a.source_frame_id+")"].join("\n")}
 let reviewKey=null;
 function panelReview(){const R=S.review,box=$("review");if(!R){box.style.display="none";reviewKey=null;return}box.style.display="block";
  $("rtitle").textContent=R.trial_id+" · "+R.trial.instruction+(R.dialog_open?" · answer the questions in the terminal":"");
@@ -207,7 +225,7 @@ function panelReview(){const R=S.review,box=$("review");if(!R){box.style.display
    if(mk.camera_frame&&mk.camera_frame.image)im.src="/api/mark_image?trial="+encodeURIComponent(R.trial_id)+"&mark="+encodeURIComponent(mk.mark_id);
    const m=document.createElement("div");m.className="meta";m.textContent=["MARK "+mk.mark_id+" ("+mk.binding+")","prediction "+(mk.prediction?mk.prediction.prediction_id:"none shown")+" · label then: "+fmt(mk.prediction_label_when_marked),
    "frame "+(mk.camera_frame?mk.camera_frame.frame_id:"none"),"note (verbatim): "+(mk.verbatim_note||"")].join("\n");t.append(im,m);sh.append(t)})}
- $("rlabels").textContent=[...R.notes.map(n=>"NOTE "+n.note_id+" ("+n.context+"): "+n.verbatim_note),...R.human_labels.map(h=>"HUMAN REVIEW "+h.review_id+" by "+h.reviewer+" at "+h.reviewed_wall_utc+": present="+h.target_presence+" marking="+h.marking+" path="+h.path+" stopping="+h.stopping+" · comment (verbatim): "+h.verbatim_comment)].join("\n")||"No notes or confirmed human reviews yet."}
+ $("rlabels").textContent=[...R.notes.map(n=>"NOTE "+n.note_id+" ("+n.context+"): "+n.verbatim_note),...R.human_labels.map(h=>h.schema==="go2-vln-guided-answer-review-v1"?"GUIDED VERDICT on "+h.prediction_id+" by "+(h.reviewer||"?")+" at "+h.reviewed_wall_utc+": "+h.choice_text+" ("+h.choice+") · comment (verbatim): "+(h.verbatim_comment||"—"):"HUMAN REVIEW "+h.review_id+" by "+h.reviewer+" at "+h.reviewed_wall_utc+": present="+h.target_presence+" marking="+h.marking+" path="+h.path+" stopping="+h.stopping+" · comment (verbatim): "+h.verbatim_comment)].join("\n")||"No notes or confirmed human reviews yet."}
 async function poll(){try{const r=await fetch("/api/state");S=await r.json();$("mode").textContent=S.view;$("mode").className="mode "+S.view;
  $("trialhead").textContent=S.trial?"trial "+S.trial.trial_id+" · "+S.trial.instruction+(S.trial.feeding_paused&&S.trial.feeding_paused!=="single_answer_requested"?" · INFERENCE PAUSED: "+S.trial.feeding_paused:""):"no active trial";
  strip();panelTest();panelReview();panelA();panelB();if(!S.prediction)drawPath(null);if(Date.now()-lastReport>1000)report()}catch(e){$("mode").textContent="DISCONNECTED";$("mode").className="mode"}setTimeout(poll,250)}

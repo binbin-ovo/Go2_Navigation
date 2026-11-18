@@ -469,7 +469,10 @@ class InteractiveApp:
         # Advisory cancel only: invalidates the in-flight request; nothing goes to the robot.
         self.session.cancel(now)
         if self.lidar_recorder is not None:
-            self.lidar_recorder.stop()
+            if self.config.get("record_lidar_continuously"):
+                self.lidar_recorder.start("between_trials")  # odometry across manual viewpoint changes
+            else:
+                self.lidar_recorder.stop()
         trial.end(reason, now, predictions=list(trial.prediction_ids), marks=trial.marks,
                   notes=trial.notes, inflight_at_end=self.session.inflight is not None,
                   history_error=self.session.history_error,
@@ -789,7 +792,9 @@ class InteractiveApp:
                              "available_s": source["available_s"], "clock": source["stamp"]["clock"],
                              "semantics": source["stamp"]["semantics"],
                              "uncertainty_s": source["stamp"]["uncertainty_s"],
-                             "clock_epoch": source["clock_epoch"]},
+                             "clock_epoch": source["clock_epoch"],
+                             "received_monotonic_s": source.get("received_monotonic_s"),
+                             "exposure_monotonic_s": source.get("exposure_monotonic_s")},
             "history_frames_in_job": len(job["frames"]),
             "display_timing_at_receipt": record["display_timing"],
             "inference_duration_s": response.get("inference_duration_s"),
@@ -941,7 +946,6 @@ class InteractiveApp:
                 # No further inference is possible in this trial (history limit, gap or
                 # interruption); end it once its last in-flight result has been recorded.
                 self.end_trial("inference_paused: " + self.feeding_paused, now, review=False)
-        self.guided.process(self.monotonic())
         # 4. Resources: stop new trials and finalize without deleting anything.
         if self.monitor is not None:
             low = self.monitor.snapshot().get("low") or []
@@ -951,6 +955,8 @@ class InteractiveApp:
                 self.say("RESOURCE LIMIT: " + "; ".join(low) + ". New trials stopped; recordings kept.")
                 if self.trial is not None:
                     self.end_trial("resource_limit", now, review=False)
+        # 5. Browser test actions and reconciliation with whatever ended or replaced a trial above.
+        self.guided.process(self.monotonic())
         if self.model_identity is None and s.worker.ready:
             path = getattr(s.worker, "output", None)
             model = None if path is None else Path(path) / "model.json"

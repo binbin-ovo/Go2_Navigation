@@ -361,6 +361,7 @@ class LidarRecorder:
                     "scan_seq": np.array([h["seq"] for h, _ in scans], np.int64),
                     "odom_stamp_robot": np.array([h["stamp"] for h in odom], float),
                     "odom_host_recv_wall": np.array([h["host_recv_wall_s"] for h in odom], float),
+                    "odom_wall_minus_monotonic": np.array([h["wall_minus_monotonic_s"] for h in odom], float),
                     "odom_position": np.array([h["position"] for h in odom], float).reshape(-1, 3),
                     "odom_q_xyzw": np.array([h["q_xyzw"] for h in odom], float).reshape(-1, 4),
                     "odom_seq": np.array([h["seq"] for h in odom], np.int64),

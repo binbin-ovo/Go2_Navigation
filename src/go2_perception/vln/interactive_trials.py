@@ -235,6 +235,8 @@ def contact_sheet(store, trial_id, prediction_image):
     """
     data = load_review(store, trial_id)
     preds, marks = data["predictions"], data["marks"]
+    verdicts = {h["prediction_id"]: h["choice_text"] for h in data["human_labels"]
+                if h.get("schema") == "go2-vln-guided-answer-review-v1"}
     cols, tw, th = 4, 320, 300
     items = [("pred", p) for p in preds] + [("mark", m) for m in marks]
     rows = max(1, math.ceil(len(items) / cols))
@@ -268,7 +270,8 @@ def contact_sheet(store, trial_id, prediction_image):
                      "OPOS-0: target NOT VISIBLE (native)" if item.get("opos_not_visible")
                      else f"native point {frac[0]:.3f}, {frac[1]:.3f}" if frac else "no native point",
                      f"STOP={item.get('native_stop')} · src {item['source_frame']['frame_id']}"[:48],
-                     f"source t={item['source_frame']['observation_s']:.3f} ({item['source_frame']['clock']})"[:48]]
+                     (f"OPERATOR: {verdicts[item['prediction_id']]}" if item["prediction_id"] in verdicts
+                      else f"source t={item['source_frame']['observation_s']:.3f} ({item['source_frame']['clock']})")[:48]]
         else:
             lines = [f"MARK {item['mark_id']} → {item['prediction']['prediction_id'].rsplit('-', 1)[-1] if item['prediction'] else 'none'}",
                      f"frame {item['camera_frame'] and item['camera_frame']['frame_id']}"[:48],
