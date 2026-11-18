@@ -197,6 +197,34 @@ yaw response and stop below 30°, springback, translation, clearance of body/leg
 disc (sections 3–4), and the model/body mapping translation (`translation_m` null). A turn is next
 tested **controller-only** with the audited utility (no model, no executor), labelled a control test.
 
+## 9. Controller-only turn test (control test, not model-directed; 2026-11-18)
+
+Audited utility only (`go2_hl_control.py move --vyaw -1.0 --turn-deg 15 --duration 3`), no model, no
+executor; operator inspected a clear r = 0.55 m disc and laid the cable with slack. Log
+`go2_control/20261118_111433_move`, summarised with `hardware/control_log_summary.py`.
+
+| | 15° right (11-18) | 30° right (11-15, D3r) | 30° left (11-15, D4) |
+|---|---|---|---|
+| Move commands | 11 (0.55 s) at 1.0 rad/s | – | – |
+| Heading at stop request | −16.7° | −32.8° | +30.2° |
+| Peak / settled | −19.4° / **−17.4°** | −35.8° / −35.4° | +35.1° / +35.1° |
+| Springback | 2.0° | 0.4° | 0.0° |
+| Translation (fwd, left) | **4.7, 5.2 cm (7.0 cm)** | 3.6, 2.0 cm | −0.7, 2.0 cm |
+| Still after first zero | 0.18 s | 0.43 s | 0.19 s |
+| Release / avoidance after | 0 / enabled | 0 / enabled | 0 / enabled |
+
+Operator: clean turn. Overshoot behaves like a roughly fixed coast after the stop (+2.4° here, ~+5° at
+30°), not a fraction of the target; one run, so no claim below 15°. The 7 cm translation exceeds the
+planner's `turn_translation_m` (0.05 m), so a model-directed 15° turn would currently HOLD on its own
+residual even with clearance. A single fixed rotation centre does not explain it (17.4° with 5.2 cm left
+implies ~0.17 m offset, the 30° runs imply ~0.03 m, and neither predicts the 4.7 cm forward), so it is
+more likely start/stop stepping than a geometric offset; the turning centre relative to the odometry
+point and to the model origin (`translation_m`) remains **unknown**.
+
+Missing for a model-directed turn: repeated runs per direction at 15° (spread of settled heading and
+translation), the relation of the turning centre to base_link and to the model origin, sensor coverage
+of the rear/side-rear swept disc (section 4), and cable handling.
+
 ## Historical: what blocked the first model-directed forward action (all resolved above)
 
 1. **Intervention while the API owns control** is unverified. The user's controller has an emergency

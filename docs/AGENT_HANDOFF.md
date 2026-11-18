@@ -35,8 +35,11 @@ canonical control logs under `~/Desktop/Go2_Navigation-go2-control/data/outputs/
 - **Correspondence gate offline**: stationary 21/24 valid, moved 0/18, outside-ROI 0/42.
 - **Provider** `hardware/supervised_guards.py` (read-only); capability generator
   `hardware/make_capability.py` computes versions/hashes and names the evidence for each status.
-- **Next**: controller-only 30° turn test (audited utility, no model), then evidence for smaller turns,
-  rear/side swept-disc clearance and the model-origin translation before any model-directed turn.
+- **Controller-only 15° right turn** (control test, `20261118_111433_move`): stop request at −16.7°,
+  settled −17.4° (peak −19.4°, springback 2.0°), still 0.18 s, release 0; **translation 7.0 cm** (> 0.05 m
+  turn limit), not explained by a fixed rotation centre. Operator: clean turn.
+- **Next**: repeat 15° turns per direction for spread; locate the turning centre vs base_link/model
+  origin; rear swept-disc coverage; then consider an operator-cleared turn scope (report section 4).
 - **Mac**: ~/Desktop is iCloud-offloaded (disk 96 % full); hardware imports are local, recordings and
   the model env are being restored. A launch stalling at 0 % CPU means an offloaded file.
 
