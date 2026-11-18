@@ -1,4 +1,105 @@
-# Supervised navigation contract v1
+# Supervised navigation contracts
+
+## Version 2 for the effective Go2 profile
+
+The opt-in `go2-effective-v1` profile uses the v2 cycle schema on
+`feature/vln-effective-motion`. The one-shot executor imports the audited control loop at
+`6d555d31c6eaa4ee194920925ab96238bf15b128`. Version 1 still describes the original
+first-row records and synthetic fixture. An archive declares its version in `schema`.
+The launcher requires its explicit profile to match the capability. [Version 2 schema](../src/go2_perception/vln/schemas/supervised-navigation-v2.schema.json)
+
+### From native path to one bounded primitive
+
+Each LightNav row is an **absolute** local pose in the same decision frame, in metres
+and radians, x forward, y left and counterclockwise yaw. Ten rows have no intrinsic
+execution time. The preview and refreshed proposal are planned independently by
+the same function. The child reproduces the refreshed plan before claiming control.
+Native STOP and an absent target point both end the attempt.
+
+The recorded forward mapping rotates by 0.02941 rad with angular uncertainty
+0.05236 rad. Translation remains null with a 0.50 m bound. For native translation
+`p` and heading `ψ`, the worst-case positional slack is
+`2‖p‖sin(δθ/2) + 2(0.50 m)|sin(ψ/2)|`. The second term accounts for the unknown
+origin in planar displacement conjugation. The projected forward distance uses
+the lower bound `x − slack`. Full camera/body registration and metric model scale
+remain unresolved.
+
+The planner skips leading near-identity poses (5 mm and 0.005 rad), then walks
+the rows in order from the original decision pose. Forward motion requires
+positive conservative progress, lateral offset plus slack ≤0.08 m, absolute heading
+≤0.10 rad, and a local lateral slope ≤15° with 5 mm jitter allowance. A reversal,
+bend or incompatible row ends the prefix. The maximum accepted endpoint is
+0.60 m, further limited by measured forward clearance after the stopping reserve.
+`selected_row` is the last checked bracket row. `segment.end_fraction` locates
+the endpoint within its scalar progress interval. The selected straight body
+primitive has zero lateral speed and zero yaw rate. All native rows survive
+independently of this approximation.
+
+For a turning prefix, the planar rotation in `T P T⁻¹` is always `ψ` regardless
+of the unknown origin. V2 records this narrow basis as `relative_planar_heading_ccw`
+alongside `verified_actions=["forward"]`. It follows only the sign-consistent
+heading of the contiguous native prefix, capped at 30°. The visible target must
+be on the corresponding side of the image, outside a 2.5% centre deadband.
+The image can veto a turn. Its pixel offset supplies no physical angle. Reversing,
+sideways or changing-intent segments end the prefix. All predicted travel is
+deferred, including the displacement residual and its mapping uncertainty.
+Smaller terminal requests stay in the archive. The pilot admission floors of
+0.30 m and 20° prevent low-amplitude retries or inflation. These are engineering
+thresholds. The fast hardware reference conditions were 0.60 m and 30°.
+
+### Command and stop contract
+
+| Primitive | Command | Max destination | Send zero at measured destination minus | Clearance beyond destination | Settled scoring tolerance | Measurement noise band |
+|---|---:|---:|---:|---:|---:|---:|
+| Forward | 1.0 m/s | 0.60 m | 0.10 m | 0.25 m | ±0.10 m | ±0.02 m |
+| Right | −2.0 rad/s | 30° | 4° | 8° | ±6° | ±2° |
+| Left | +2.0 rad/s | 30° | 10° | 12° | ±6° | ±2° |
+
+The envelope stores a positive magnitude and separate direction. Wire angles use
+radians. All three commands have a 3 s maximum drive duration and 0.05 s resend
+period. Faster commands require a positive audited distance or heading target.
+The child uses the adjusted trigger as that target, and keeps the intended destination
+for scoring. Forward progress comes from odometry and consistent front-surface
+LiDAR. Effective turn progress uses wrapped IMU yaw in the commanded direction,
+with a fresh, same-epoch odometry check. Forward clearance is recomputed in the
+current body frame. It must cover the remaining distance, the reserve, and
+command speed × current geometry age. Forward lateral/heading drift outside
+the reviewed corridor interrupts execution. Stalls, expired deadlines, unavailable
+feedback and operator intervention end the velocity phase directly.
+
+A zero send starts settling. The record gives the last fresh feedback sample around
+first zero with both timestamps, sampled peak, and a new settled sample after
+stationarity, release RPC and the three-second post-release observation.
+`motion_measurement.outcome` scores the settled sample against the intended
+destination using `target_within_tolerance`, `partial_progress`,
+`no_measurable_progress`, `overshoot`, `wrong_direction` or
+`measurement_unavailable`. `termination`, `interrupted_or_blocked`, and
+`stop_verified` are independent. A stalled or off-tolerance run with verified
+cleanup has status `ended`. A sent zero has no robot ACK on the native no-reply route.
+
+### Turn scope and post-turn replan
+
+The ordinary `sensor_only` scope requires measured clearance in the requested
+direction. Claude's current cloud provider reports zero turn coverage. For a
+static supervised experiment only, `operator_inspected_static_disc` requires
+the operator to inspect the entire 0.65 m radius around the body, the blind rear,
+legs and cable slack. The radius includes a 0.10 m drift allowance on the
+0.55 m footprint used in the control trials. The separate viewer button binds
+operator, session, reviewed image/identity, turn direction, pose, epoch, radius
+and inspection time for at most 30 s. Authorization still expires within 15 s.
+The ordinary fresh state and forward geometry must remain usable, with ≥0.10 m
+forward clearance. The observed disc needs floor returns and zero obstacle-height
+returns. An available restrictive turn-sector measurement vetoes an inspection.
+This partial sensor check cannot certify empty space behind the robot.
+
+After verified stop, release and a newer capture in the same epochs, the app
+opens one fresh independent RGB/instruction request for an advisory replan. Every
+image's capture lower bound must follow the end of the stopped cycle. The executor
+is already spent. The post-turn native proposal, selected candidate or refusal
+and `execution_authorized=false` are retained in `navigation/post_turn_advisory.json`.
+Another physical movement requires a new session, target review and authorization.
+
+## Historical version 1
 
 Canonical branch: `feature/vln-supervised-navigation`. This is the shared software
 interface for Codex and Claude, not permission to move a robot. Schema:

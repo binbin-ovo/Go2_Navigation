@@ -1,4 +1,35 @@
-## Current: supervised one-step software integration (2026-11-17)
+## Current supervised motion integration, 2026-11-18
+
+Branch `feature/vln-effective-motion` integrates Claude’s published
+`24f12ca80605325e88c976e1af5849077a918a55` hardware work with audited controller
+`6d555d31c6eaa4ee194920925ab96238bf15b128`. The first physical model-directed
+step already succeeded on the legacy profile. The current question is how closely
+the robot settles to a useful model-selected destination at the tested faster rate.
+
+- **Implemented.** An explicit 1.0 m/s and 2.0 rad/s supervised profile selects
+  one contiguous native prefix at preview and refresh. It retains all native
+  rows, mapping slack, stop trigger, clearance reserve, measured progress and
+  settled outcome. A yaw-only inspected trial can stop, acquire fresh observations
+  and replan once. The executor permits one dispatch.
+- **Physical evidence inherited.** Forward controller run settled at 0.714 m
+  odometry after its 0.60 m trigger. Right and left 30° runs settled at −34.4°
+  and +40.8°. Each condition was measured once.
+- **Offline evidence.** Both centred box proposals request 0.60 m under v2,
+  compared with 0.143 m in the physical v1 cycle. Four of five off-centre cases
+  yield a heading candidate. Nearby native STOP and reviewed target absence
+  both retain no motion. These records have no v2 physical outcomes.
+- **Verification.** 213 passed, zero failed/skipped in the selected core suite.
+  The canonical controller suite passed 42 and skipped one SDK-only helper.
+  No model inference, robot connection or hardware test ran for this integration.
+- **Remaining limits.** The effective stop leads and admission floors are pilot
+  settings. The robot's rear and cable lack sensor coverage, the model origin is
+  unknown, and camera capture-age evidence is boot-specific. The next trial is
+  one centred-box approach with measured settled error and verified release.
+
+[Next launch and recorded replay](SUPERVISED_NAVIGATION.md) ·
+[Versioned contract](SUPERVISED_NAVIGATION_CONTRACT.md) · [Agent handoff](AGENT_HANDOFF.md)
+
+## Historical supervised one-step software integration (2026-11-17)
 
 Branch `feature/vln-supervised-navigation`, base interactive
 `fdb5451e25cdc1f5971bbf0e1c7887ec51ff634a`. The shared contract was published first
@@ -24,12 +55,9 @@ Final executor + UI/schema follow-up: **25 passed in 10.25 s**,
 0 failed, 0 skipped. These cover the final epoch/telemetry and archive-consistency
 changes. Physical tests were not selected.
 
-**Unverified/blocked:** no real guard provider or capability evidence has been
-supplied; real mapping, independent intervention, obstacle stopping, physical limits,
-post-release behavior, target-continuity reliability and a capture-age upper bound
-remain Claude's verification. Live mode refuses synthetic or incomplete evidence.
-No actual trained-model refresh or physical test ran, and no full heavyweight suite
-was run during this lightweight shared-Mac window. No environment/model changes.
+Claude subsequently supplied the guard provider, capture-bound evidence, first
+integrated forward action and the three controller-only effective-rate trials.
+See the current status above and sections 8–10 of the hardware report.
 
 **Architecture decision:** the browser/model process cannot own command cadence.
 One separate hardware process holds the canonical control checkout's lock and

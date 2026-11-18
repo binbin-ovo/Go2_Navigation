@@ -17,7 +17,11 @@ from typing import Callable, Optional, Protocol
 
 # Conservative first-test limits. Unitree's documented ranges are far wider (vx -2.5..3.8 m/s,
 # vyaw -4..4 rad/s); these caps are ours.
-MAX_VX = 0.30  # m/s, forward
+# 0.30 m/s walked (C4) but a 0.14 m step ended inside the ~1.3 s ramp and the 15 deg turns at 1.0 rad/s
+# were not visibly distinguishable to the operator (2026-11-18). 1.0 m/s and 2.0 rad/s are the
+# user-requested next step; above the previous caps only with a measured stop (distance/heading target).
+MAX_VX = 1.0  # m/s, forward
+MAX_TIMED_VX = 0.30  # m/s; faster forward only with a distance target
 # Reverse: slower, and only with a measured distance stop. cloud_base had zero returns in a
 # 0.7 m-wide corridor behind the robot out to 4 m (2026-11-15), so nothing on board sees there.
 # 0.15 m/s forward never visibly walked (C, C2) while 0.30 did (C4), so a gait threshold is
@@ -28,7 +32,7 @@ MAX_VX = 0.30  # m/s, forward
 MAX_REVERSE_VX = 0.75  # m/s
 # D1/D2 (2026-11-15) at 0.50 rad/s reached only 0.24-0.62 rad/s and right turns ran slower, the same
 # under-delivery that made slow reverse stall. 1.0 is the user-requested step, with a heading stop.
-MAX_ABS_VYAW = 1.0  # rad/s
+MAX_ABS_VYAW = 2.0  # rad/s
 MAX_TIMED_VYAW = 0.50  # rad/s; faster turns only with a heading target
 MAX_YAW_TARGET = 1.6  # rad (~90 deg)
 MAX_DURATION = 2.0  # s
@@ -79,6 +83,8 @@ def validate(req: MoveRequest) -> MoveRequest:
         raise Refused("reverse motion needs a measured distance target")
     if req.vx > MAX_VX:
         raise Refused(f"vx {req.vx} exceeds {MAX_VX} m/s")
+    if req.vx > MAX_TIMED_VX and not req.target:
+        raise Refused(f"forward faster than {MAX_TIMED_VX} m/s needs a distance target")
     if abs(req.vyaw) > MAX_ABS_VYAW:
         raise Refused(f"|vyaw| {abs(req.vyaw)} exceeds {MAX_ABS_VYAW} rad/s")
     if abs(req.vyaw) > MAX_TIMED_VYAW and not req.target:

@@ -11,7 +11,8 @@ import secrets
 import sys
 import time
 
-from go2_perception.vln.supervised import Hold, capability_check
+from go2_perception.vln.motion_profile import PROFILE
+from go2_perception.vln.supervised import Hold, capability_check, contract_version
 from go2_perception.vln.supervised_app import StationaryMockSource, SupervisedApp
 from go2_perception.vln.supervised_executor import ExecutorClient
 import run_vln_interactive as interactive
@@ -23,6 +24,7 @@ def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__, add_help=False)
     p.add_argument("--help", action="store_true")
     p.add_argument("--navigation-mode", choices=["mock", "live"], default="mock")
+    p.add_argument("--profile", choices=["legacy-first-row", PROFILE], default="legacy-first-row")
     p.add_argument("--capability", type=Path)
     p.add_argument("--control-root", type=Path)
     p.add_argument("--execute-live", action="store_true")
@@ -49,7 +51,10 @@ def main(argv=None):
             p.error("This mock launcher accepts synthetic sources and mock worker only; no robot or model")
         capability = (json.loads(a.capability.read_text()) if a.capability else
                       json.loads((ROOT / "examples/supervised_navigation/synthetic_cycle.json").read_text())["capability"])
+    if capability.get("motion_profile", "legacy-first-row") != a.profile:
+        p.error("selected profile must match the generated capability")
     capability_check(capability, live=live, wall_s=time.time())
+    print(f"Selected {a.profile} | forward {capability['limits']['forward_mps']} m/s | turn {capability['limits']['turn_radps']} rad/s", flush=True)
     nonce = secrets.token_hex(24)
 
     def app_factory(**kwargs):
@@ -73,7 +78,7 @@ def main(argv=None):
         return SupervisedApp(capability=capability, executor=executor, live=live, nonce=nonce, **kwargs)
 
     return interactive.main(remaining, app_factory=app_factory, synthetic_source_factory=StationaryMockSource,
-                            run_fields={"integration": "supervised-navigation-v1", "navigation_mode": a.navigation_mode,
+                            run_fields={"integration": f"supervised-navigation-v{contract_version(capability)}", "profile": a.profile, "navigation_mode": a.navigation_mode,
                                         "physical_execution_authorized": False,
                                         "execution_note": "Permission is issued per fresh one-use cycle; see navigation_summary.json",
                                         "canonical_control_revision": capability["control"]["revision"] if live else None})

@@ -2,11 +2,13 @@
 
 Branch `feature/go2-hardware-readiness`, based on Codex's `feature/vln-supervised-navigation`
 @ `4063c73` (contract `2213ced`). Canonical command checkout: `~/Desktop/Go2_Navigation-go2-control`
-@ `742cfe4`, lock `data/outputs/go2_control/.command.lock`; SDK `814556d`. Main is unchanged.
+at the original `742cfe4` for the first step and `6d555d3` for the faster trials, lock `data/outputs/go2_control/.command.lock`; SDK `814556d`. Main is unchanged.
 Recordings and logs stay local and git-ignored; only aggregates are published here.
 
-**Status: no physical action has been taken in this task yet.** Model-directed forward motion is
-blocked by three facts listed under "Blocking the first model-directed forward action".
+The first supervised model-directed forward action succeeded in section 8.
+Section 10 reports the three faster controller-only trials. The integrated
+consumer is `feature/vln-effective-motion`. Its next trial and launch command
+are in the [supervised navigation guide](SUPERVISED_NAVIGATION.md).
 
 ## 1. Calibration reuse (no new lens calibration)
 
@@ -187,15 +189,15 @@ authorize once; box dead centre ~2.45 m from base_link):
 | Operator | "clean small step" |
 
 A 0.14 m request stops inside the walking ramp and coasts ~4–5 cm: the magnitude is a requested bound,
-not a precise stop. The planner uses only the first non-identity waypoint (0.15 m minus mapping slack),
-so a model-directed step is currently ≤ ~0.15 m requested.
+not a precise stop. The v1 planner used only the first non-identity waypoint (0.15 m minus mapping slack),
+which limited this recorded request to about 0.15 m.
 
 ## Status after the live session
 
-The forward primitive is verified end to end for one supervised step. Remaining before turns:
-yaw response and stop below 30°, springback, translation, clearance of body/legs/cable over the swept
-disc (sections 3–4), and the model/body mapping translation (`translation_m` null). A turn is next
-tested **controller-only** with the audited utility (no model, no executor), labelled a control test.
+The forward primitive was verified for one supervised step. Sections 9 and 10
+record the subsequent heading-response trials. Rear swept-disc coverage and the
+model-frame origin are still unknown. V2 provides an explicit supervised yaw-only
+scope and carries these limitations in the [contract](SUPERVISED_NAVIGATION_CONTRACT.md).
 
 ## 9. Controller-only turn test (control test, not model-directed; 2026-11-18)
 
@@ -215,23 +217,24 @@ executor; operator inspected a clear r = 0.55 m disc and laid the cable with sla
 
 Operator: clean turn. Overshoot behaves like a roughly fixed coast after the stop (+2.4° here, ~+5° at
 30°), not a fraction of the target; one run, so no claim below 15°. The 7 cm translation exceeds the
-planner's `turn_translation_m` (0.05 m), so a model-directed 15° turn would currently HOLD on its own
+planner's `turn_translation_m` (0.05 m), so the v1 planner would HOLD a model-directed 15° turn on its own
 residual even with clearance. A single fixed rotation centre does not explain it (17.4° with 5.2 cm left
 implies ~0.17 m offset, the 30° runs imply ~0.03 m, and neither predicts the 4.7 cm forward), so it is
 more likely start/stop stepping than a geometric offset; the turning centre relative to the odometry
 point and to the model origin (`translation_m`) remains **unknown**.
 
-Missing for a model-directed turn: repeated runs per direction at 15° (spread of settled heading and
-translation), the relation of the turning centre to base_link and to the model origin, sensor coverage
-of the rear/side-rear swept disc (section 4), and cable handling.
+The original v1 gate left turn repeatability, model origin, rear coverage and
+cable handling open. Section 10 supplies the faster directional measurements.
+The new yaw-only policy defers translation and offers a separate operator-inspected
+static scope. General sensor-certified turning still lacks rear coverage.
 
 ## 10. Faster controller-only tests (control tests; 2026-11-18)
 
 The operator could not see the 15° turns, so at the user's request the audited utility's caps were raised
 in the control checkout (`6d555d3`, branch `feature/go2-high-level-control-audit`): forward ≤ 1.0 m/s
 (above 0.30 m/s only with a distance target), turn ≤ 2.0 rad/s (above 0.5 rad/s only with a heading
-target). The supervised path still pins `742cfe4` and therefore refuses to arm until it is re-pinned
-deliberately; its own limits stay 0.30 m/s / 1.0 rad/s.
+target). The historical supervisor used `742cfe4`. The effective supervised profile on
+`feature/vln-effective-motion` pins `6d555d3` and exposes both tested command rates.
 
 | | Forward 1.0 m/s, 0.6 m stop | Right 2.0 rad/s, 30° stop | Left 2.0 rad/s, 30° stop |
 |---|---|---|---|

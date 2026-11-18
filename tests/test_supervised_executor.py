@@ -15,7 +15,7 @@ from go2_perception.vln.supervised_executor import (Executor, ExecutorClient, Ha
 from test_supervised_navigation import ROOT, ticket_for
 
 PURE_LOOP = ROOT / "tests/fixtures/supervised/audited_safety.py"
-assert hashlib.sha256(PURE_LOOP.read_bytes()).hexdigest() == "71f70f5706c3f8e93ede361d1a90ea74ad27d2d709a14b926d306ab002a36353"
+assert hashlib.sha256(PURE_LOOP.read_bytes()).hexdigest() == "7f0680b38fca0afc22d72056f94891accd08c8981dd5513bb7991f45599e90b7"
 SAFETY = load_module(PURE_LOOP, "supervised_test_audited_safety")
 
 

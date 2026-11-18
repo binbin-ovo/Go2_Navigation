@@ -1,0 +1,1304 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/binbin-ovo/Go2_Navigation/schemas/supervised-navigation-v2",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "go2-supervised-navigation-v2"
+    },
+    "synthetic": {
+      "type": "boolean"
+    },
+    "capability": {
+      "$ref": "#/$defs/capability"
+    },
+    "proposal": {
+      "$ref": "#/$defs/proposal"
+    },
+    "authorization": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/authorization"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "execution_result": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/execution_result"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "post_observation": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/post_observation"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "executed_action": {
+      "$ref": "#/$defs/action"
+    }
+  },
+  "required": [
+    "schema",
+    "synthetic",
+    "capability",
+    "proposal",
+    "authorization",
+    "execution_result",
+    "post_observation"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "pose": {
+      "type": "object",
+      "properties": {
+        "frame": {
+          "type": "string",
+          "minLength": 1
+        },
+        "robot_epoch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "monotonic_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "x_m": {
+          "type": "number"
+        },
+        "y_m": {
+          "type": "number"
+        },
+        "yaw_rad": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "frame",
+        "robot_epoch",
+        "monotonic_s",
+        "x_m",
+        "y_m",
+        "yaw_rad"
+      ],
+      "additionalProperties": false
+    },
+    "geometry": {
+      "type": "object",
+      "properties": {
+        "available": {
+          "type": "boolean"
+        },
+        "monotonic_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "frame": {
+          "type": "string",
+          "minLength": 1
+        },
+        "robot_epoch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "directions": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "forward",
+              "left",
+              "right"
+            ]
+          }
+        },
+        "forward_clear_m": {
+          "type": "number",
+          "minimum": 0
+        },
+        "turn_clear_rad": {
+          "type": "number",
+          "minimum": 0
+        },
+        "observed_turn_disc": {
+          "type": "object",
+          "properties": {
+            "radius_m": {
+              "type": "number",
+              "minimum": 0
+            },
+            "floor_returns": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "obstacle_returns": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "radius_m",
+            "floor_returns",
+            "obstacle_returns"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "available",
+        "monotonic_s",
+        "frame",
+        "robot_epoch",
+        "source",
+        "directions",
+        "forward_clear_m",
+        "turn_clear_rad"
+      ],
+      "additionalProperties": false
+    },
+    "identity": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "trial_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "instruction_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "instruction": {
+          "type": "string",
+          "minLength": 1
+        },
+        "prediction_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "observation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "clock_epoch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_image_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "observed_monotonic_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "received_monotonic_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "uncertainty_bound_s": {
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pose": {
+          "$ref": "#/$defs/pose"
+        },
+        "geometry": {
+          "$ref": "#/$defs/geometry"
+        }
+      },
+      "required": [
+        "session_id",
+        "trial_id",
+        "instruction_id",
+        "instruction",
+        "prediction_id",
+        "observation_id",
+        "clock_epoch",
+        "source_image_sha256",
+        "observed_monotonic_s",
+        "received_monotonic_s",
+        "uncertainty_bound_s",
+        "pose",
+        "geometry"
+      ],
+      "additionalProperties": false
+    },
+    "evidence": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "enum": [
+            "verified",
+            "unknown",
+            "failed"
+          ]
+        },
+        "reference": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "status",
+        "reference"
+      ],
+      "additionalProperties": false
+    },
+    "capability": {
+      "type": "object",
+      "properties": {
+        "capability_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "synthetic",
+            "hardware"
+          ]
+        },
+        "configuration_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "valid_until_wall_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "control": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "revision": {
+                  "const": "6d555d31c6eaa4ee194920925ab96238bf15b128"
+                },
+                "root": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "python": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "provider_path": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "provider_sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "shared_lock": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "revision",
+                "root",
+                "python",
+                "provider_path",
+                "provider_sha256",
+                "shared_lock"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "evidence": {
+          "type": "object",
+          "properties": {
+            "frame_mapping": {
+              "$ref": "#/$defs/evidence"
+            },
+            "intervention": {
+              "$ref": "#/$defs/evidence"
+            },
+            "obstacle_handling": {
+              "$ref": "#/$defs/evidence"
+            },
+            "stop_verification": {
+              "$ref": "#/$defs/evidence"
+            },
+            "motion_bounds": {
+              "$ref": "#/$defs/evidence"
+            },
+            "target_correspondence": {
+              "$ref": "#/$defs/evidence"
+            }
+          },
+          "required": [
+            "frame_mapping",
+            "intervention",
+            "obstacle_handling",
+            "stop_verification",
+            "motion_bounds",
+            "target_correspondence"
+          ],
+          "additionalProperties": false
+        },
+        "mapping": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "from_frame": {
+                  "const": "lightnav_decision"
+                },
+                "to_frame": {
+                  "const": "base_link"
+                },
+                "translation_m": {
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "yaw_rad": {
+                  "type": "number"
+                },
+                "verified_actions": {
+                  "type": "array",
+                  "items": {
+                    "enum": [
+                      "forward",
+                      "turn"
+                    ]
+                  }
+                },
+                "translation_bound_m": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "yaw_uncertainty_rad": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "orientation_basis": {
+                  "const": "relative_planar_heading_ccw"
+                }
+              },
+              "required": [
+                "from_frame",
+                "to_frame",
+                "translation_m",
+                "yaw_rad",
+                "verified_actions",
+                "orientation_basis",
+                "yaw_uncertainty_rad"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "limits": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "forward_m": {
+                  "type": "number",
+                  "const": 0.6
+                },
+                "turn_rad": {
+                  "type": "number",
+                  "const": 0.5235987755982988
+                },
+                "forward_mps": {
+                  "type": "number",
+                  "const": 1.0
+                },
+                "turn_radps": {
+                  "type": "number",
+                  "const": 2.0
+                },
+                "duration_s": {
+                  "type": "number",
+                  "const": 3.0
+                },
+                "resend_period_s": {
+                  "type": "number",
+                  "const": 0.05
+                },
+                "state_age_s": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "geometry_age_s": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "stationary_dwell_s": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "auth_ttl_s": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "pose_translation_m": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 0.05
+                },
+                "pose_yaw_rad": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 0.05
+                },
+                "lateral_m": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 0.08
+                },
+                "straight_yaw_rad": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 0.1
+                },
+                "turn_translation_m": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 0.05
+                }
+              },
+              "required": [
+                "forward_m",
+                "turn_rad",
+                "forward_mps",
+                "turn_radps",
+                "duration_s",
+                "resend_period_s",
+                "state_age_s",
+                "geometry_age_s",
+                "stationary_dwell_s",
+                "auth_ttl_s",
+                "pose_translation_m",
+                "pose_yaw_rad",
+                "lateral_m",
+                "straight_yaw_rad",
+                "turn_translation_m"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "motion_profile": {
+          "const": "go2-effective-v1"
+        },
+        "turn_scope": {
+          "enum": [
+            "sensor_only",
+            "operator_inspected_static_disc"
+          ]
+        }
+      },
+      "required": [
+        "capability_id",
+        "kind",
+        "configuration_id",
+        "valid_until_wall_s",
+        "control",
+        "evidence",
+        "mapping",
+        "limits",
+        "motion_profile",
+        "turn_scope"
+      ],
+      "additionalProperties": false
+    },
+    "action": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "forward",
+            "turn"
+          ]
+        },
+        "direction": {
+          "enum": [
+            "forward",
+            "left",
+            "right"
+          ]
+        },
+        "magnitude": {
+          "type": "number",
+          "minimum": 0
+        },
+        "unit": {
+          "enum": [
+            "m",
+            "rad"
+          ]
+        },
+        "speed": {
+          "type": "number",
+          "minimum": 0
+        },
+        "speed_unit": {
+          "enum": [
+            "m/s",
+            "rad/s"
+          ]
+        },
+        "duration_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "selected_row": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9
+        },
+        "mapped_pose": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "residual_translation_m": {
+          "type": "number",
+          "minimum": 0
+        },
+        "residual_yaw_rad": {
+          "type": "number",
+          "minimum": 0
+        },
+        "segment": {
+          "type": "object",
+          "properties": {
+            "profile": {
+              "const": "go2-effective-v1"
+            },
+            "policy": {
+              "const": "contiguous-prefix-v2"
+            },
+            "basis": {
+              "enum": [
+                "base_forward",
+                "yaw_only_stop_observe_replan"
+              ]
+            },
+            "prefix_start": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9
+            },
+            "end_fraction": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "boundary": {
+              "type": "string",
+              "minLength": 1
+            },
+            "mapped_prefix": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 10,
+              "items": {
+                "type": "object",
+                "properties": {
+                  "row": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9
+                  },
+                  "pose": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 3,
+                    "maxItems": 3
+                  },
+                  "slack_m": {
+                    "type": "number",
+                    "minimum": 0
+                  }
+                },
+                "required": [
+                  "row",
+                  "pose",
+                  "slack_m"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "stop_trigger": {
+              "type": "number",
+              "minimum": 0
+            },
+            "stop_lead": {
+              "type": "number",
+              "minimum": 0
+            },
+            "clearance_reserve": {
+              "type": "number",
+              "minimum": 0
+            },
+            "required_clearance": {
+              "type": "number",
+              "minimum": 0
+            },
+            "tolerance": {
+              "type": "number",
+              "minimum": 0
+            },
+            "noise_floor": {
+              "type": "number",
+              "minimum": 0
+            },
+            "sweep_radius_m": {
+              "type": "number",
+              "minimum": 0
+            },
+            "translation_budget_m": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "profile",
+            "policy",
+            "basis",
+            "prefix_start",
+            "end_fraction",
+            "boundary",
+            "mapped_prefix",
+            "stop_trigger",
+            "stop_lead",
+            "clearance_reserve",
+            "required_clearance",
+            "tolerance",
+            "noise_floor",
+            "sweep_radius_m",
+            "translation_budget_m"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "type",
+        "direction",
+        "magnitude",
+        "unit",
+        "speed",
+        "speed_unit",
+        "duration_s",
+        "selected_row",
+        "mapped_pose",
+        "residual_translation_m",
+        "residual_yaw_rad",
+        "segment"
+      ],
+      "additionalProperties": false
+    },
+    "proposal": {
+      "type": "object",
+      "properties": {
+        "identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "model_identity": {
+          "type": "object",
+          "properties": {
+            "checkpoint": {
+              "type": "string",
+              "minLength": 1
+            },
+            "revision": {
+              "type": "string",
+              "minLength": 1
+            },
+            "processor_revision": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "checkpoint",
+            "revision",
+            "processor_revision"
+          ],
+          "additionalProperties": false
+        },
+        "native_output": {
+          "type": "string",
+          "minLength": 1
+        },
+        "waypoints": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "minItems": 10,
+          "maxItems": 10
+        },
+        "native_stop": {
+          "type": "boolean"
+        },
+        "point_fraction": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "number",
+                "minimum": 0
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "synthetic": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "identity",
+        "model_identity",
+        "native_output",
+        "waypoints",
+        "native_stop",
+        "point_fraction",
+        "synthetic"
+      ],
+      "additionalProperties": false
+    },
+    "target": {
+      "type": "object",
+      "properties": {
+        "instance_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reviewed_image_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "roi_xyxy": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": 0
+          },
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "confirmed_by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "confirmed_monotonic_s": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "instance_id",
+        "reviewed_image_sha256",
+        "roi_xyxy",
+        "confirmed_by",
+        "confirmed_monotonic_s"
+      ],
+      "additionalProperties": false
+    },
+    "authorization": {
+      "type": "object",
+      "properties": {
+        "authorization_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "session_nonce": {
+          "type": "string",
+          "minLength": 1
+        },
+        "created_monotonic_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "expires_monotonic_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "capability_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "reviewed_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "target": {
+          "$ref": "#/$defs/target"
+        },
+        "envelope": {
+          "$ref": "#/$defs/action"
+        },
+        "consumed": {
+          "type": "boolean"
+        },
+        "turn_inspection": {
+          "type": "object",
+          "properties": {
+            "scope": {
+              "const": "operator_inspected_static_disc"
+            },
+            "session_nonce": {
+              "type": "string",
+              "minLength": 1
+            },
+            "preview_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "direction": {
+              "enum": [
+                "left",
+                "right"
+              ]
+            },
+            "radius_m": {
+              "type": "number",
+              "minimum": 0
+            },
+            "operator": {
+              "type": "string",
+              "minLength": 1
+            },
+            "pose": {
+              "$ref": "#/$defs/pose"
+            },
+            "inspected_s": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "scope",
+            "session_nonce",
+            "preview_sha256",
+            "direction",
+            "radius_m",
+            "operator",
+            "pose",
+            "inspected_s"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "authorization_id",
+        "session_nonce",
+        "created_monotonic_s",
+        "expires_monotonic_s",
+        "capability_sha256",
+        "reviewed_identity",
+        "target",
+        "envelope",
+        "consumed"
+      ],
+      "additionalProperties": false
+    },
+    "execution_result": {
+      "type": "object",
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "authorization_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "synthetic": {
+          "type": "boolean"
+        },
+        "status": {
+          "enum": [
+            "completed",
+            "held",
+            "cancelled",
+            "failed",
+            "ended"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "started_monotonic_s": {
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ended_monotonic_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "command_send_statuses": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "command_robot_acknowledged": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "measured_progress": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "stop_send_statuses": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "stop_command_acknowledged": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "observed_stationary": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ownership_released": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "release_rpc_code": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "post_release_stationary": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "motion_measurement": {
+          "type": "object",
+          "properties": {
+            "requested": {
+              "type": "number",
+              "minimum": 0
+            },
+            "unit": {
+              "enum": [
+                "m",
+                "rad"
+              ]
+            },
+            "stop_trigger": {
+              "type": "number",
+              "minimum": 0
+            },
+            "at_first_zero": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "settled": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "peak_observed": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "signed_error": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "tolerance": {
+              "type": "number",
+              "minimum": 0
+            },
+            "outcome": {
+              "enum": [
+                "measurement_unavailable",
+                "no_measurable_progress",
+                "wrong_direction",
+                "target_within_tolerance",
+                "overshoot",
+                "partial_progress"
+              ]
+            },
+            "termination": {
+              "type": "string",
+              "minLength": 1
+            },
+            "interrupted_or_blocked": {
+              "type": "boolean"
+            },
+            "stop_verified": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "requested",
+            "unit",
+            "stop_trigger",
+            "at_first_zero",
+            "settled",
+            "peak_observed",
+            "signed_error",
+            "tolerance",
+            "outcome",
+            "termination",
+            "interrupted_or_blocked",
+            "stop_verified"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "request_id",
+        "authorization_id",
+        "synthetic",
+        "status",
+        "reason",
+        "started_monotonic_s",
+        "ended_monotonic_s",
+        "command_send_statuses",
+        "command_robot_acknowledged",
+        "measured_progress",
+        "stop_send_statuses",
+        "stop_command_acknowledged",
+        "observed_stationary",
+        "ownership_released",
+        "release_rpc_code",
+        "post_release_stationary",
+        "events"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "completed",
+                  "ended"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "motion_measurement"
+            ],
+            "properties": {
+              "motion_measurement": {
+                "properties": {
+                  "stop_verified": {
+                    "const": true
+                  }
+                }
+              },
+              "observed_stationary": {
+                "const": true
+              },
+              "ownership_released": {
+                "const": true
+              },
+              "post_release_stationary": {
+                "const": true
+              },
+              "release_rpc_code": {
+                "const": 0
+              },
+              "stop_send_statuses": {
+                "type": "array",
+                "minItems": 3,
+                "items": {
+                  "const": 0
+                }
+              },
+              "started_monotonic_s": {
+                "type": "number",
+                "minimum": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "completed"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "motion_measurement": {
+                "properties": {
+                  "outcome": {
+                    "const": "target_within_tolerance"
+                  },
+                  "interrupted_or_blocked": {
+                    "const": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "post_observation": {
+      "type": "object",
+      "properties": {
+        "identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "after_request_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "identity",
+        "after_request_id"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

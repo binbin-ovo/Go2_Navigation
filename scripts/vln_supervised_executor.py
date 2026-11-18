@@ -3,7 +3,7 @@ import argparse
 import json
 import os
 from pathlib import Path
-from queue import Empty, Queue
+from queue import Empty, Full, Queue
 import signal
 import subprocess
 import sys
@@ -34,10 +34,10 @@ def main(argv=None):
 
     def emit(item):
         line = json.dumps(finite_json(item), allow_nan=False) + "\n"
-        with (a.output / "executor_events.jsonl").open("a") as f:
-            f.write(line)
         try:
             with output_lock:
+                with (a.output / "executor_events.jsonl").open("a") as f:
+                    f.write(line)
                 protocol.write(line)
                 protocol.flush()
         except (BrokenPipeError, OSError):
@@ -83,8 +83,26 @@ def main(argv=None):
             monitor = sdk_routes.StateMonitor().start()
             guards = provider.create_guards(monitor=monitor, capability=capability, monotonic=time.monotonic,
                                             observation_root=a.output.parent)
+            # Telemetry must never block resends, zero, or cleanup on a UI pipe.
+            feedback_queue = Queue(maxsize=4)
+
+            def offer_feedback(value):
+                try:
+                    feedback_queue.put_nowait(value)
+                except Full:
+                    pass
+
+            def deliver_feedback():
+                while not closing.is_set():
+                    try:
+                        item = feedback_queue.get(timeout=.1)
+                    except Empty:
+                        continue
+                    emit({"type": "feedback", "nonce": a.nonce, **item})
+
+            threading.Thread(target=deliver_feedback, daemon=True, name="navigation-feedback").start()
             motion = HardwareMotion(safety, sdk_routes.AvoidRoute(), monitor, guards, capability,
-                                    heartbeat=lambda: heartbeat[0])
+                                    heartbeat=lambda: heartbeat[0], feedback=offer_feedback)
         else:
             guards, motion = FakeGuards(), None
         executor = Executor(capability, a.nonce, guards=guards, live=live, motion=motion, cancelled=cancelled)

@@ -1,7 +1,54 @@
+# Go2 supervised navigation handoff
+
+## Current integration for Claude, 2026-11-18
+
+Use `feature/vln-effective-motion`, based directly on the published hardware
+readiness `24f12ca80605325e88c976e1af5849077a918a55`. The canonical controller
+is `feature/go2-high-level-control-audit` at `6d555d31c6eaa4ee194920925ab96238bf15b128`.
+Start with the [trial guide and replay table](SUPERVISED_NAVIGATION.md), the
+[v2 contract](SUPERVISED_NAVIGATION_CONTRACT.md) and
+[Claude’s original hardware results](GO2_HARDWARE_READINESS.md).
+
+**Next physical session.** From the Mac shell that previously received camera RTP,
+use a static centred box about 2.45 m ahead and review one fresh model-directed
+forward segment. The file-only preflight already passed with the existing
+evidence. The following command is for the operator with exclusive control.
+
+```bash
+cd /Users/yushan/Desktop/Go2_Navigation/data/outputs/vln-effective-profile-worktree
+GO2_SUPERVISED_LIVE=1 bash scripts/launch_effective_trial.sh --live-exclusive sensor_only
+```
+
+Expect the viewer to name `go2-effective-v1` with 1.0 m/s forward and 2.0 rad/s
+turn. Inspect the actual native path and selected segment, mark the target ROI,
+confirm the instance and authorize once. For the archived box path the destination
+is 0.60 m, trigger 0.50 m, base clearance requirement 0.85 m, deadline 3 s.
+Check the difference between settled measured distance and the destination,
+together with the stop/release evidence. A fresh answer can change or refuse the
+action. The capture timing bound belongs to Claude's recorded robot boot.
+
+The viewer writes under a fresh `data/outputs/effective_trials/trial-*/session`.
+Read `navigation/cycle_record.json` for the actual refreshed proposal, selected
+primitive, trigger sample, settled result, stationary/release fields and new
+observation. Read `events.jsonl` and `executor/executor_events.jsonl` for
+refusals and feedback, including trials that end before writing a cycle record.
+The optional inspected turn scope binds a specific 0.65 m rear/side/cable
+inspection and permits yaw only. A stopped turn yields one advisory replan.
+Current provider coverage supports forward travel. Full model origin and Go2
+camera-to-body registration remain unknown.
+
+**Evidence carried forward.** Claude already performed the first model-directed
+step and the three faster controller trials. Offline replay of 12 prediction
+records preserves the old measured result, exposes four useful off-centre
+heading candidates, and retains the nearby STOP and absent-sofa refusal.
+The private trace is `data/outputs/effective_motion_release/trace.json` in
+the integration worktree. Effective model-directed hardware performance remains
+unmeasured. Offline verification passed 213 integration, guard and advisory
+regressions. The independent control suite passed 42 with one optional SDK skip.
+
 ## Go2 hardware readiness (Claude, 2026-11-18) — branch `feature/go2-hardware-readiness`
 
-Report: [GO2_HARDWARE_READINESS](GO2_HARDWARE_READINESS.md) (section 8 = live results). Main unchanged;
-not pushed. Recordings/logs are local and git-ignored (`data/outputs/hw_readiness/`, `data/outputs/
+Report: [GO2_HARDWARE_READINESS](GO2_HARDWARE_READINESS.md) (section 8 = live results). Published at `24f12ca80605325e88c976e1af5849077a918a55`. Recordings/logs are local and git-ignored (`data/outputs/hw_readiness/`, `data/outputs/
 vln_interactive/live_14`, `data/outputs/supervised/claude_one_step_0{1,2}` in the readiness worktree;
 canonical control logs under `~/Desktop/Go2_Navigation-go2-control/data/outputs/go2_control/`).
 
@@ -16,7 +63,7 @@ canonical control logs under `~/Desktop/Go2_Navigation-go2-control/data/outputs/
   the box 20/24 same-view, 0/6 outside, 0/5 moved box.
 - **Executor fixes** (tested): nominal `error_code` is 100 on this robot; the pre-claim stillness dwell
   now continues the idle stillness run (was restarting after the model answer → 3.02 s frame → HOLD).
-- **Model behaviour**: STOP at ~1.1 m; any off-centre target gives turn+travel → planner HOLD (correct);
+- **Model behaviour**: STOP at ~1.1 m; the recorded off-centre cases gave turn+travel and the historical v1 planner held;
   answers 1.94–2.04 s after the frame once warm. The viewer/app must be launched from Claude's shell, not
   the Terminal panel: the panel-launched camera child received 0 RTP packets (likely macOS local-network
   permission).
@@ -41,9 +88,9 @@ canonical control logs under `~/Desktop/Go2_Navigation-go2-control/data/outputs/
 - **Faster caps (user request)**: control checkout `6d555d3` raises the utility to forward 1.0 m/s
   (distance target required above 0.30) and turn 2.0 rad/s. Controller-only: 1.0 m/s → peak 0.91 m/s,
   0.71 m odom for a 0.6 m stop, still 0.15 s; 30° at 2.0 rad/s → right −34.4° (6.0 cm), left +40.8°
-  (1.0 cm); operator: all visible and clean. Supervised path still pins `742cfe4` (refuses to arm) until deliberately re-pinned.
-- **Next**: repeat 15° turns per direction for spread; locate the turning centre vs base_link/model
-  origin; rear swept-disc coverage; then consider an operator-cleared turn scope (report section 4).
+  (1.0 cm); operator: all visible and clean. The effective integration now pins the updated controller.
+- **Continuing work.** Use the integrated trial at the top of this handoff. Rear
+  swept-disc coverage and the model origin are still open for general motion.
 - **Mac**: ~/Desktop is iCloud-offloaded (disk 96 % full); hardware imports are local, recordings and
   the model env are being restored. A launch stalling at 0 % CPU means an offloaded file.
 
@@ -85,26 +132,9 @@ Final executor + UI/schema follow-up: **25 passed in 10.25 s**
 (0 failures/skips), including epoch changes and archive consistency.
 Hardware/heavyweight tests were not selected.
 
-**Claude's next steps (physical trial remains blocked):**
-
-- Prepare real versioned capability evidence; never change the fixture's synthetic
-  marker to pretend its invented limits/identity mapping were measured.
-- Validate mapping/signs/offsets for the selected primitive, independent intervention
-  while API owns control, obstacle handling, measured limits/overshoot, stop/release,
-  target correspondence and a current-epoch capture-age upper bound.
-- Supply the pinned read-only `create_guards` provider using verified state/pose,
-  clearance and progress sources. Its exact interface is in the guide. No live
-  provider or real capability evidence is included or claimed verified here.
-- Use ONE canonical control checkout at
-  `742cfe4fb1b71f9d19d9d2d62be56f03b6b03707` and SDK
-  `814556d15970dd2ecf1c9984e845ca02ab07e206`. Every commanding process for the trial
-  must use its `data/outputs/go2_control/.command.lock`. The old utility's unlocked
-  `stop` subcommand is not a concurrent emergency channel. Coordinate a new pin if
-  audited source changes; do not reset someone else's checkout or bypass the check.
-- Coordinate Mac resources, run the mock commands, review the recorded gates and
-  only then consider the separately gated live command. No model or physical
-  heavy job was requested/run by Codex here. Another actual move requires a new
-  session, new target review and another authorization.
+**Subsequent hardware handoff.** Claude fulfilled the first-step evidence
+collection and executed the first model-directed step. Refer to the current
+handoff above for the effective trial, controller pin and command.
 
 **Meaning of results:** `_CallNoReply` local send code zero is not an ACK; command
 and stop robot acknowledgements remain null. Stationary, release and post-release

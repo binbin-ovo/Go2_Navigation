@@ -1,4 +1,4 @@
-"""Read-only Go2 guard provider for the supervised executor (contract v1, `create_guards`).
+"""Read-only Go2 guard provider for the supervised executor (contracts v1/v2, `create_guards`).
 
 Subscribers and file reads only: no RPC, no Move, no ownership call, no avoidance setting.
 Loaded by `scripts/vln_supervised_executor.py` from an absolute path whose SHA-256 is pinned
@@ -12,13 +12,14 @@ What it supplies, and from where (all times are host-monotonic receipt times, se
   *current* base frame through the odom pose at its receipt. Forward clearance is
   min(nearest obstacle, end of contiguously observed floor) - FRONT_M - MARGIN_M inside a
   corridor of half-width HALF_WIDTH_M. Bins without returns end the observed region:
-  absent returns are never free space. Turns are not offered: the LiDAR cannot see the rear
-  corridor (0 returns, 2026-11-15 audit), so the swept area of an in-place turn is unverified.
+  absent returns are never free space. The rear is blind. V2 reports observed disc returns
+  as a veto for supervised inspections. Sensor turn clearance remains zero.
 - capture bound: only when the newest camera observation in the run uses the configured
   latency mapping CAMERA.latency_config_s, and the robot boot matches the boot on which
   the bound was measured (CAMERA.boot_offset_s). Otherwise None, which HOLDs.
 - progress: forward = audited fuse of LiDAR front-surface change and odom along the start
-  heading (sdk_routes.front_surface_x / fuse_progress, unchanged); turn = odom yaw change.
+  heading. Legacy turns use odom yaw. The effective profile uses relative IMU heading
+  with fresh same-epoch odometry and retains both measurements.
 """
 from __future__ import annotations
 
@@ -31,6 +32,8 @@ from collections import deque
 from pathlib import Path
 
 import numpy as np
+
+from go2_perception.vln.motion_profile import DISC_RADIUS_M, PROFILE
 
 # Robot footprint (Go2: ~0.70 m long, ~0.31 m wide, base_link near the trunk centre).
 FRONT_M = 0.40  # base_link to the front of the head, rounded up
@@ -316,6 +319,13 @@ class Guards:
                                    f"front {FRONT_M} m + margin {MARGIN_M} m; turns unverified (rear blind)"),
                         "directions": ["forward"] if clear > 0.0 else [],
                         "forward_clear_m": round(clear, 4), "turn_clear_rad": 0.0}
+            if self.capability.get("motion_profile") == PROFILE and "ground_coef" in detail:
+                radius = np.hypot(points[:, 0], points[:, 1])
+                part = points[(radius >= NEAR_LIMIT_M) & (radius <= DISC_RADIUS_M)]
+                height = height_above_ground(part, detail["ground_coef"])
+                geometry["observed_turn_disc"] = {
+                    "radius_m": DISC_RADIUS_M, "floor_returns": int(np.sum(np.abs(height) < .06)),
+                    "obstacle_returns": int(np.sum((height > OBSTACLE_MIN_DZ) & (height < OBSTACLE_MAX_DZ)))}
         bound, basis = capture_bound(self.camera.get(), offset)
         camera = self.camera.get()
         snap = {"pose": pose, "geometry": geometry, "capture_uncertainty_bound_s": bound,
@@ -332,16 +342,33 @@ class Guards:
 
     def progress(self, action):
         latest, epoch0, _ = self.odom.snapshot()
-        if latest is None:
-            return None
+        if latest is None or not 0 <= self.clock()-latest[0] <= .25:
+            return lambda: None
         _, _, x0, y0, yaw0 = latest
         if action["type"] == "turn":
             sign = 1 if action["direction"] == "left" else -1
 
+            effective = self.capability.get("motion_profile") == PROFILE
+
+            def imu_yaw():
+                age = self.monitor.state_age()
+                rpy = self.monitor.snapshot().get("rpy")
+                if age is None or not 0 <= age <= .25 or not rpy or len(rpy) != 3 or not math.isfinite(rpy[2]):
+                    return None
+                return rpy[2]
+
+            start_imu = imu_yaw() if effective else None
+
             def turn_progress():
                 now, epoch, _ = self.odom.snapshot()
-                if now is None or epoch != epoch0 or self.clock() - now[0] > 0.25:
+                if now is None or epoch != epoch0 or not 0 <= self.clock() - now[0] <= 0.25:
                     return None
+                if effective:
+                    current_imu = imu_yaw()
+                    if start_imu is None or current_imu is None:
+                        return None
+                    turn_progress.evidence = {"source": "relative_imu_yaw", "odom_rad": sign*wrap(now[4]-yaw0)}
+                    return sign * wrap(current_imu - start_imu)
                 return sign * wrap(now[4] - yaw0)
 
             return turn_progress
@@ -350,7 +377,7 @@ class Guards:
 
         def forward_progress():
             now, epoch, _ = self.odom.snapshot()
-            if now is None or epoch != epoch0 or self.clock() - now[0] > 0.25:
+            if now is None or epoch != epoch0 or not 0 <= self.clock() - now[0] <= 0.25:
                 return None
             odom = (now[2] - x0) * math.cos(yaw0) + (now[3] - y0) * math.sin(yaw0)
             lidar = None
@@ -359,7 +386,8 @@ class Guards:
                 if current is not None:
                     x = self.front_surface_x(current[0], ground_z_at_front(current[0]))
                     lidar = None if x is None else start_x - x
-            fused, _ = self.fuse_progress(lidar, odom)
+            fused, lidar_used = self.fuse_progress(lidar, odom)
+            forward_progress.evidence = {"source": "lidar_and_odom" if lidar_used else "odom", "lidar_m": lidar, "odom_m": odom}
             return fused
 
         return forward_progress

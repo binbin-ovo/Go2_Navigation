@@ -1,16 +1,16 @@
-## Supervised one-step software integration (2026-11-17)
+## Supervised Go2 navigation, 2026-11-18
 
-`feature/vln-supervised-navigation` adds an explicitly gated, isolated executor
-boundary to the existing viewer: reviewed bounded action → one authorization →
-fresh observation/proposal → one action → separately verified stop/release → new
-observation. The complete cycle has run with a fake model and executor. **Real
-hardware execution remains blocked on Claude's capability evidence and guard
-integration; no physical command or trained-model experiment ran here.**
+Claude completed the first physical model-directed forward step using LightNav
+and the supervised executor. Branch `feature/vln-effective-motion` integrates
+that work with the audited 1.0 m/s forward and 2.0 rad/s turn profile. It selects
+a contiguous prefix of the native path and stops on distance or heading feedback.
+Offline replay of the original box run changes the requested destination from
+0.143 m to 0.600 m. The new integrated profile awaits its first physical trial.
 
-Read the [shared contract](docs/SUPERVISED_NAVIGATION_CONTRACT.md),
-[guide and exact mock/live commands](docs/SUPERVISED_NAVIGATION.md) and
-[Claude handoff](docs/AGENT_HANDOFF.md). The ordinary read-only launcher, main,
-model settings and sensor environments remain unchanged. Historical results follow.
+The existing read-only viewer remains available. For the supervised branch,
+see the [operator guide and launch command](docs/SUPERVISED_NAVIGATION.md),
+[v2 contract](docs/SUPERVISED_NAVIGATION_CONTRACT.md) and
+[Claude handoff](docs/AGENT_HANDOFF.md).
 
 ## Read-only advisory latency (2026-11-16)
 

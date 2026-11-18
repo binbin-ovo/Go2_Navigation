@@ -17,7 +17,8 @@ import sys
 import threading
 import time
 
-from .supervised import (CONTROL_REVISION, Hold, age_check, capability_check, current_checks,
+from .motion_profile import measure_outcome, wrap
+from .supervised import (CONTROL_REVISION, Hold, age_check, capability_check, check_inspection, contract_version, current_checks,
                          revalidate, validate_record)
 
 # Sport-state error_code values seen while the robot stands and walks normally (Go2 Pro, 2026-11-15/18:
@@ -117,20 +118,21 @@ class Executor:
         # Every request ends the process's ability to accept another physical move.
         # Even a rejected request requires a fresh supervised session; no retry loop.
         self.faulted = True
-        validate_record("execution_result", result)
+        validate_record("execution_result", result, contract_version(self.cap))
         return result
 
     def _fake_motion(self, action, result):
         result["started_monotonic_s"] = self.clock()
         start, progress = self.clock(), 0.
-        while self.clock()-start < action["duration_s"] and progress < action["magnitude"]:
+        goal = action.get("segment", {}).get("stop_trigger", action["magnitude"])
+        while self.clock()-start < action["duration_s"] and progress < goal:
             if self.cancelled.is_set():
                 break
             current = self.guards.snapshot()
             now = self.clock()
-            current_checks(current, action, self.cap, now, capture=False)
+            current_checks(current, action, self.cap, now, capture=False, progress=progress)
             dt = min(self.cap["limits"]["resend_period_s"],
-                     (action["magnitude"]-progress)/action["speed"],
+                     (goal-progress)/action["speed"],
                      action["duration_s"]-(now-start))
             self.sleep(dt)
             step = action["speed"]*dt
@@ -145,6 +147,11 @@ class Executor:
                       reason="synthetic_cancel" if self.cancelled.is_set() else "synthetic_bounded_action",
                       measured_progress=progress, stop_send_statuses=[0, 0, 0], observed_stationary=True,
                       ownership_released=True, release_rpc_code=0, post_release_stationary=True)
+        if "segment" in action:
+            result["motion_measurement"] = measure_outcome(action, progress, progress, progress,
+                termination="synthetic_cancel" if self.cancelled.is_set() else "synthetic_feedback_trigger", stop_verified=True)
+            if not self.cancelled.is_set() and result["motion_measurement"]["outcome"] != "target_within_tolerance":
+                result["status"] = "ended"
         result["events"].append({"synthetic": True, "note": "No hardware connection or commands."})
         return result
 
@@ -197,10 +204,11 @@ def canonical_control_check(control, control_root):
 class HardwareMotion:
     """Wrap the unchanged audited loop; fresh guards/stop dwell/cancel are independent."""
     def __init__(self, safety, route, monitor, guards, cap, heartbeat, monotonic=time.monotonic,
-                 sleep=time.sleep, wall=time.time):
+                 sleep=time.sleep, wall=time.time, feedback=None):
         self.safety, self.route, self.monitor, self.guards = safety, route, monitor, guards
         self.cap, self.heartbeat, self.clock = cap, heartbeat, monotonic
         self.sleep, self.wall = sleep, wall
+        self.feedback = feedback
         self.idle_still_since = self.idle_sampled_at = None
 
     def sample_idle(self):
@@ -223,6 +231,31 @@ class HardwareMotion:
         lim = self.cap["limits"]
         reason = []
         lease_deadline = [None]
+        segment = action.get("segment")
+        at_zero = peak = None
+        last_value = last_stamp = None
+        zero_started = False
+        next_coast_sample = 0.
+        termination = "interrupted"
+        progress_fn = None
+
+        def read_progress(phase):
+            nonlocal peak, last_value, last_stamp
+            value = progress_fn() if progress_fn else None
+            stamp = self.clock()
+            last_value = value if value is not None and math.isfinite(value) else None
+            last_stamp = stamp
+            if last_value is not None:
+                peak = last_value if peak is None else max(peak, last_value)
+            if segment:
+                result["events"].append({"event": "motion_feedback", "phase": phase, "monotonic_s": stamp,
+                                         "value": last_value, "unit": action["unit"],
+                                         "basis": getattr(progress_fn, "evidence", None)})
+                if self.feedback is not None:
+                    self.feedback({"request_id": ticket["request_id"], "phase": phase, "value": last_value,
+                                   "unit": action["unit"], "monotonic_s": stamp})
+            return last_value
+
 
         # Continue an unbroken idle stillness run only if it was sampled moments ago.
         continuing = (self.idle_still_since if self.idle_sampled_at is not None
@@ -244,8 +277,21 @@ class HardwareMotion:
                     # Radio freshness is checked in addition to the audited state freshness.
                     age_check(outer.monitor.remote_t, outer.clock(), lim["state_age_s"], "remote_state")
                     snap = outer.guards.snapshot()
-                    current_checks(snap, action, outer.cap, outer.clock(), capture=False)
                     original = ticket["proposal"]["identity"]["pose"]
+                    # Geometry is in the current body frame. Subtract only fresh
+                    # odometry displacement in the original commanded direction.
+                    completed = 0.
+                    if segment and action["type"] == "forward":
+                        pose = snap["pose"]
+                        dx, dy = pose["x_m"]-original["x_m"], pose["y_m"]-original["y_m"]
+                        c, s = math.cos(original["yaw_rad"]), math.sin(original["yaw_rad"])
+                        completed = dx*c + dy*s
+                        if (abs(dy*c-dx*s) > lim["lateral_m"] or
+                                abs(wrap(pose["yaw_rad"]-original["yaw_rad"])) > lim["straight_yaw_rad"]):
+                            raise Hold("forward_path_drift_exceeds_reviewed_corridor")
+                    current_checks(snap, action, outer.cap, outer.clock(), capture=False, progress=completed)
+                    check_inspection(ticket["authorization"], action, outer.cap, outer.clock(), snap["pose"],
+                                     moving=bool(result["command_send_statuses"]))
                     if (snap["pose"]["frame"], snap["pose"]["robot_epoch"]) != (original["frame"], original["robot_epoch"]):
                         raise Hold("robot_epoch_or_pose_frame_changed_during_execution")
                     state = outer.monitor.snapshot()
@@ -259,6 +305,13 @@ class HardwareMotion:
                 return outer.monitor.operator_input()
 
             def is_still(self):
+                nonlocal next_coast_sample
+                if segment and zero_started and outer.clock() >= next_coast_sample:
+                    try:
+                        read_progress("settling")
+                    except Exception as error:
+                        result["events"].append({"settling_feedback_error": str(error)})
+                    next_coast_sample = outer.clock()+.05
                 age = self.state_age()
                 still = outer.monitor.is_still()
                 result["events"].append(finite_json({"event": "stationary_sample", "monotonic_s": outer.clock(),
@@ -311,23 +364,26 @@ class HardwareMotion:
                 return code
 
             def send_stop(self):
-                code = outer.route.send_stop()
+                nonlocal at_zero, zero_started
+                code = outer.route.send_stop()  # zero precedes telemetry and any UI update
                 result["stop_send_statuses"].append(code)
+                if not zero_started:
+                    zero_started = True
+                    if segment and last_stamp is not None and outer.clock()-last_stamp <= lim["state_age_s"]:
+                        at_zero = last_value
+                        result["events"].append({"event": "first_zero_feedback", "sample_s": last_stamp,
+                                                 "zero_send_s": outer.clock(), "value": at_zero})
                 return code
 
         mon, route = Monitor(), Route()
         vx = action["speed"] if action["type"] == "forward" else 0.
         vyaw = (action["speed"] if action["direction"] == "left" else -action["speed"]) if action["type"] == "turn" else 0.
-        request = self.safety.MoveRequest(vx, vyaw, action["duration_s"], lim["resend_period_s"], action["magnitude"])
-        progress_fn = self.guards.progress(action)  # independently measured, no nominal speed integration
-        last = [None]
+        trigger = segment["stop_trigger"] if segment else action["magnitude"]
+        request = self.safety.MoveRequest(vx, vyaw, action["duration_s"], lim["resend_period_s"], trigger)
 
         def progress():
-            value = progress_fn()
-            if value is None or not math.isfinite(value) or value < -.02:
-                return None
-            last[0] = value
-            return value
+            value = read_progress("driving")
+            return value if value is not None and value >= -.02 else None
 
         def record_event(event):
             result["events"].append(event)
@@ -340,11 +396,15 @@ class HardwareMotion:
                 if mon.operator_input() or self.clock() >= wait_end:
                     raise Hold("initial_stationary_dwell_unverified")
                 self.sleep(.02)
+            progress_fn = self.guards.progress(action)  # reference pose after stationary dwell
             out = self.safety.execute(request, route, mon, confirm=self.safety.confirmation_phrase(request),
                                       execute_flag=True, verified_stop=True, other_source=False,
                                       progress=progress, settle_timeout=lim["stationary_dwell_s"]+1.,
                                       clock=self.clock, sleep=self.sleep,
                                       log=record_event)
+            termination = ("feedback_trigger" if out.end_reason.startswith("target reached") else
+                           "blocked_stall" if out.end_reason.startswith("stalled") else
+                           "; ".join(reason) or out.end_reason)
             result.update(reason="; ".join(reason) or out.end_reason, observed_stationary=out.stop_confirmed,
                           status="cancelled" if cancelled.is_set() else "completed" if out.stop_confirmed else "failed")
         except BaseException as error:
@@ -363,7 +423,7 @@ class HardwareMotion:
                     route.release_api_control()
                 except Exception as release_error:
                     result["events"].append({"release_error": str(release_error)})
-        result["measured_progress"] = last[0]
+        result["measured_progress"] = last_value
         if result["started_monotonic_s"] is not None and (len(result["stop_send_statuses"]) < 3 or
                                                          any(code != 0 for code in result["stop_send_statuses"])):
             result["status"] = "failed"
@@ -390,6 +450,34 @@ class HardwareMotion:
             except Exception as error:
                 result["events"].append({"avoidance_after_error": str(error)})
                 result["status"] = "failed"
+        if segment and result["started_monotonic_s"] is not None:
+            verified = (result["observed_stationary"] is True and result["ownership_released"] is True and
+                        result["post_release_stationary"] is True and len(result["stop_send_statuses"]) >= 3 and
+                        all(code == 0 for code in result["stop_send_statuses"]))
+            settled_value = None
+            if verified:
+                try:
+                    settled_value = read_progress("settled")
+                    if action["type"] == "turn":
+                        final_pose = self.guards.snapshot()["pose"]
+                        start_pose = ticket["proposal"]["identity"]["pose"]
+                        age_check(final_pose["monotonic_s"], self.clock(), lim["state_age_s"], "settled_pose")
+                        if ((start_pose["frame"], start_pose["robot_epoch"]) != (final_pose["frame"], final_pose["robot_epoch"]) or
+                                math.hypot(final_pose["x_m"]-start_pose["x_m"], final_pose["y_m"]-start_pose["y_m"]) >
+                                segment["translation_budget_m"]):
+                            termination = "settled_turn_outside_translation_budget"
+                except Exception as error:
+                    result["events"].append({"settled_feedback_error": str(error)})
+                    termination = "settled_feedback_unavailable"
+            if result["status"] == "failed":
+                termination = result["reason"]
+            measurement = measure_outcome(action, at_zero, settled_value, peak, termination=termination, stop_verified=verified)
+            result.update(motion_measurement=measurement, measured_progress=settled_value)
+            if not verified:
+                result["status"] = "failed"
+            elif result["status"] == "completed" and (measurement["interrupted_or_blocked"] or
+                                                       measurement["outcome"] != "target_within_tolerance"):
+                result["status"] = "ended"
         return result
 
 

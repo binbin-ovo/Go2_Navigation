@@ -1,8 +1,8 @@
 # Audited pure control loop fixture
 
 `audited_safety.py` is a byte-for-byte copy of `src/go2_control/safety.py` at
-control branch commit `742cfe4fb1b71f9d19d9d2d62be56f03b6b03707`.
-SHA-256: `71f70f5706c3f8e93ede361d1a90ea74ad27d2d709a14b926d306ab002a36353`.
+control branch commit `6d555d31c6eaa4ee194920925ab96238bf15b128`.
+SHA-256: `7f0680b38fca0afc22d72056f94891accd08c8981dd5513bb7991f45599e90b7`.
 
 It imports no SDK, initializes no connection, and runs only against fake routes,
 monitors and clocks. This fixture lets portable tests exercise the real audited
