@@ -1,33 +1,26 @@
-## Current supervised motion integration, 2026-11-18
+## Current supervised motion diagnostics, November 19
 
-Branch `feature/vln-effective-motion` integrates Claude’s published
-`24f12ca80605325e88c976e1af5849077a918a55` hardware work with audited controller
-`6d555d31c6eaa4ee194920925ab96238bf15b128`. The first physical model-directed
-step already succeeded on the legacy profile. The current question is how closely
-the robot settles to a useful model-selected destination at the tested faster rate.
+Two counted effective-profile forward runs requested 0.600 m at 1.0 m/s.
+Settled odometry/LiDAR-fused estimates were 0.604/0.700 m and 0.616/0.791 m.
+Both runs verified stopping and release. External measurement of physical travel
+is pending. The earlier interrupted `trial-DQAArT` is retained for diagnosis and
+excluded from these results at the operator’s request. The current 0.159 s camera
+bound is specific to the measured November 19 boot and its mapped camera stream.
+[Trial records and measurement protocol](AGENT_HANDOFF.md#two-counted-forward-runs)
 
-- **Implemented.** An explicit 1.0 m/s and 2.0 rad/s supervised profile selects
-  one contiguous native prefix at preview and refresh. It retains all native
-  rows, mapping slack, stop trigger, clearance reserve, measured progress and
-  settled outcome. A yaw-only inspected trial can stop, acquire fresh observations
-  and replan once. The executor permits one dispatch.
-- **Physical evidence inherited.** Forward controller run settled at 0.714 m
-  odometry after its 0.60 m trigger. Right and left 30° runs settled at −34.4°
-  and +40.8°. Each condition was measured once.
-- **Offline evidence.** Both centred box proposals request 0.60 m under v2,
-  compared with 0.143 m in the physical v1 cycle. Four of five off-centre cases
-  yield a heading candidate. Nearby native STOP and reviewed target absence
-  both retain no motion. These records have no v2 physical outcomes.
-- **Verification.** 213 passed, zero failed/skipped in the selected core suite.
-  The canonical controller suite passed 42 and skipped one SDK-only helper.
-  No model inference, robot connection or hardware test ran for this integration.
-- **Remaining limits.** The effective stop leads and admission floors are pilot
-  settings. The robot's rear and cable lack sensor coverage, the model origin is
-  unknown, and camera capture-age evidence is boot-specific. The next trial is
-  one centred-box approach with measured settled error and verified release.
+The diagnostics patch records the failing guard, the original sensor inputs and
+selection behind each progress sample, and the refresh trial’s raw scans and
+poses through settling. The recorder reports overload and incomplete drain.
+Unsupported native headings between 0.10 rad and 20° remain on HOLD.
+The effective profile uses a 0.10 m forward stopping lead and a 2.0 rad/s turn
+rate. Independent distance and small-turn response are open measurement questions.
+[Record format](SUPERVISED_NAVIGATION_CONTRACT.md#motion-diagnostic-records)
 
-[Next launch and recorded replay](SUPERVISED_NAVIGATION.md) ·
-[Versioned contract](SUPERVISED_NAVIGATION_CONTRACT.md) · [Agent handoff](AGENT_HANDOFF.md)
+Offline validation uses the core environment, recorded stationary scans, synthetic
+bridge streams and the pinned pure controller loop with fake I/O. See the operator
+guide for the test command and recorded results. On-robot performance of the new
+instrumentation awaits an independently measured trial.
+[Verification](SUPERVISED_NAVIGATION.md#reproduce-the-offline-analysis)
 
 ## Historical supervised one-step software integration (2026-11-17)
 

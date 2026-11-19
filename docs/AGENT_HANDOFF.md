@@ -1,92 +1,92 @@
 # Go2 supervised navigation handoff
 
-## Current integration for Claude, 2026-11-18
+## Current handoff for Claude, November 19
 
-Use `feature/vln-effective-motion`, based directly on the published hardware
-readiness `24f12ca80605325e88c976e1af5849077a918a55`. The canonical controller
-is `feature/go2-high-level-control-audit` at `6d555d31c6eaa4ee194920925ab96238bf15b128`.
-Start with the [trial guide and replay table](SUPERVISED_NAVIGATION.md), the
-[v2 contract](SUPERVISED_NAVIGATION_CONTRACT.md) and
-[Claude’s original hardware results](GO2_HARDWARE_READINESS.md).
+Development branch `codex/motion-diagnostics` starts at navigation publication
+`a1d7ad580b5ec23c3c5c1a40481b07e49718fb3c`. The local root is
+`$GO2_WORKSPACE` (default `~/Robotics/Go2`). The canonical controller is
+`code/control@6d555d3` and the SDK is `sdk/unitree_sdk2_python@814556d`.
+The diagnostic worktree is `code/worktrees/codex-motion-diagnostics`.
+Use the existing core environment for offline review. The [workspace layout](MAC_CONNECTION.md#local-workspace-since-2026-11-18)
+and [operator guide](SUPERVISED_NAVIGATION.md) identify the live checkout and environments.
 
-**Next physical session.** From the Mac shell that previously received camera RTP,
-use a static centred box about 2.45 m ahead and review one fresh model-directed
-forward segment. The file-only preflight already passed with the existing
-evidence. The following command is for the operator with exclusive control.
+### Two counted forward runs
+
+Both requested 0.600 m at 1.0 m/s with a 0.500 m feedback trigger. Both archived a
+verified stop, release code 0 and stillness after release. The values below are sensor
+estimates in metres. Neither run has an independent physical travel measurement.
+
+| Private trial | Feedback at first zero | Settled odometry | Settled LiDAR | Settled fused | Fused minus odometry | Archived feedback outcome |
+|---|---:|---:|---:|---:|---:|---|
+| `trial-C3jMfl` | 0.522 | 0.604 | 0.700 | 0.700 | +0.096 | Within ±0.10 m, by 0.00018 m |
+| `trial-abZbVx` | 0.522 | 0.616 | 0.791 | 0.791 | +0.175 | Overshoot by 0.191 m relative to request |
+
+The recorded lateral displacement/yaw were +2.5 cm/+3.6° and +4.2 cm/+4.3°,
+respectively. The accepted LiDAR value determined both settled fused values.
+These two runs cannot establish which sensor was closer to the true endpoint.
+
+**Diagnostic archive only.** The operator excluded the first run, `trial-DQAArT`,
+because the robot had been moved after standing. Its selected extent was 0.566 m.
+An in-motion geometry guard interrupted it at 0.146 m feedback. Settled odometry
+was 0.213 m and fused progress was 0.275 m. The last passing guards showed
+1.5–1.8 m clearance. The failing snapshot and post-dispatch raw scans were missing
+from that recording. The cause remains unresolved. Keep the original under
+`$GO2_WORKSPACE/runs/effective_trials`, outside performance totals.
+
+**Headings.** Two observation-only sessions, `trial-6OyRDD` and `trial-2ktkjj`,
+held rightward native prefixes around 0.345 and 0.306 rad (19.8° and 17.5°).
+Supported policy is HOLD for a turn-directed prefix above the 0.10 rad straight
+limit and below 20°. Show the actual direction and available angle. The operator
+may review a fresh stationary observation. A longer *contiguous*, same-direction
+native prefix can qualify under existing turn, geometry and inspection gates.
+The 2.0 rad/s profile has no independent small-turn validation.
+
+**Camera timing.** The 0.159 s bound applies to the robot boot measured at
+00:06 on November 19 and the recorded camera latency mapping. Evidence is
+`$GO2_WORKSPACE/evidence/hw_readiness/capture_latency_20261119_000619.json`.
+A different or unknown boot requires its own evidence.
+
+### What to collect on the next authorized forward trial
+
+1. Keep the current profile and a fixed target surface. After the standing pose is
+   settled, mark the floor projection of a repeatable rigid body reference and
+   the initial forward axis. Measure the same reference when stationary after
+   release. Record longitudinal and lateral displacement, heading change, instrument
+   resolution and estimated measurement uncertainty. A tape start/end pair measures
+   total travel only.
+2. If available, use a fixed, scaled external video with a common timestamped
+   cue to locate the first zero as well as the final pose. Record the alignment
+   uncertainty. This separates motion before zero from coast. Record which
+   surface supplied the front return, whether the box moved, and the floor/slope.
+3. Save trial ID, request ID, boot/camera evidence ID and the private session.
+   Join the guard and feedback events to the raw chunks by source stamps and
+   host-monotonic receipt times. Check dropped chunks, bridge sequence gaps and
+   writer drain status before interpreting gaps. Compare both sensor estimates
+   with the external measurement before revisiting the 0.10 m stopping lead.
+
+To inspect the first rejected guard and final raw/fused values locally, set
+`session` to the private trial’s `session` directory and run:
 
 ```bash
-cd ~/Robotics/Go2/code/navigation
-GO2_SUPERVISED_LIVE=1 bash scripts/launch_effective_trial.sh --live-exclusive sensor_only
+jq -c 'select(.type=="result") | .result.events[]
+  | select(.event=="guard_rejected" or (.event=="motion_feedback" and .phase=="settled"))' \
+  "$session/executor/executor_events.jsonl"
 ```
 
-All runtime files now live in the local workspace `~/Robotics/Go2` (layout and
-environment recreation in [MAC_CONNECTION](MAC_CONNECTION.md#local-workspace-since-2026-11-18)).
-The old Desktop launch commands are retired: the iCloud-managed Desktop offloaded
-files the executor needed.
+The [diagnostic fields and recorder limits](SUPERVISED_NAVIGATION_CONTRACT.md#motion-diagnostic-records)
+give the exact private file paths. Changes to the guard provider change its
+hash. The ordinary launcher generates a fresh capability against the integrated
+provider on the next authorized run. The [offline commands](SUPERVISED_NAVIGATION.md#reproduce-the-offline-analysis)
+exercise the patch without using the hardware or model environments.
 
-Expect the viewer to name `go2-effective-v1` with 1.0 m/s forward and 2.0 rad/s
-turn. Inspect the actual native path and selected segment, mark the target ROI,
-confirm the instance and authorize once. For the archived box path the destination
-is 0.60 m, trigger 0.50 m, base clearance requirement 0.85 m, deadline 3 s.
-Check the difference between settled measured distance and the destination,
-together with the stop/release evidence. A fresh answer can change or refuse the
-action. The capture timing bound belongs to a recorded robot boot: 0.172 s for the boot
-seen 2026-11-18 22:24 (`evidence/hw_readiness/capture_latency_20261118_222418.json`);
-the earlier 0.148 s record belongs to the previous boot. After a robot reboot the
-provider holds until `hardware/capture_latency.py` is re-run for the new boot.
+### Historical camera boots and readiness work, November 18
 
-The viewer writes under a fresh `~/Robotics/Go2/runs/effective_trials/trial-*/session`.
-Read `navigation/cycle_record.json` for the actual refreshed proposal, selected
-primitive, trigger sample, settled result, stationary/release fields and new
-observation. Read `events.jsonl` and `executor/executor_events.jsonl` for
-refusals and feedback, including trials that end before writing a cycle record.
-The optional inspected turn scope binds a specific 0.65 m rear/side/cable
-inspection and permits yaw only. A stopped turn yields one advisory replan.
-Current provider coverage supports forward travel. Full model origin and Go2
-camera-to-body registration remain unknown.
-
-**2026-11-18 evening attempt (held before motion).** After the camera bound was
-re-measured for the new boot, trial `trial-HZbrPb` previewed forward 0.600 m at
-1.0 m/s (trigger 0.500 m, clearance 0.850 m, 3 s). The authorized dispatch blocked
-for ~10 min in `revalidate` reading an iCloud-offloaded schema file, then refused
-before claim (`initial_stationary_dwell_unverified`); the robot never moved. An
-earlier launch (`trial-qzUkyd`) lost its executor during model load without a
-logged cause. The runtime was then migrated to `~/Robotics/Go2`, re-verified
-(imports, one offline inference reproducing recorded tokens, capability, tests,
-read-only state/LiDAR/camera), and the forward trial is ready to repeat unchanged.
-Operator note: the viewer checklist must be ticked on the checkbox itself.
-
-**2026-11-19 forward trials from `~/Robotics/Go2` (new boot, camera bound 0.159 s).**
-`trial-DQAArT`: forward 0.566 m selected (prefix bent after 0.60 m); stopped at 0.68 s by the
-in-motion check `required_geometry_unavailable_or_insufficient` with 0.146 m progress (still
-accelerating, ~0.33 m/s); settled 0.275 m, `partial_progress`. Logged guards showed 1.5-1.8 m
-clear; the failing snapshot is not logged and LiDAR recording stops at dispatch, so the cause is
-unconfirmed (suspected transient floor-fit drop under pitch). `trial-C3jMfl`: forward 0.600 m,
-18 commands at 1.0 m/s, zero at feedback trigger 0.522 m (1.0 s), peak 0.700 m, settled 0.700 m
-fused progress, `target_within_tolerance` (+0.0998 m of ±0.10 m); odometry 0.604 m forward,
-+2.5 cm left, +3.6 deg; stop observed 2.77 s, release code 0, post-release still, avoidance on.
-Operator note: before `trial-DQAArT` the Go2 had been moved after standing up and was not
-readjusted; the operator asked that this first run not be counted. From the stopped pose the
-model aimed 14-17.5 deg right (first-row yaw -0.25 to -0.31 rad) at an off-centre box, so
-`trial-6OyRDD`/`trial-2ktkjj` held: forward needs |yaw| <= 0.10 rad and turns need >= 0.349 rad
-(`below_effective_resolution` 0.345 and 0.306 rad). Headings of ~6-20 deg are currently neither.
-After centring the box (target column 0.510), `trial-abZbVx`: forward 0.600 m, zero at 0.522 m
-(1.12 s), fused progress settled 0.791 m (`overshoot`, +0.19 m); odometry 0.616 m forward,
-+4.2 cm left, +4.3 deg; stop 1.92 s after zero, release code 0, avoidance on. In both completed
-runs odometry (~0.60-0.62 m) and the fused LiDAR progress (0.70-0.79 m, larger while closing on
-the box) disagree by 0.1-0.18 m. No tape mark was taken for any 2026-11-19 run, so actual
-travel is not independently measured; take one before tuning the lead.
-Next: tape-verify travel; log the failing guard snapshot and keep LiDAR recording through
-motion (instrumentation only); decide how to cover 6-20 deg headings before the turn trial.
-
-**Evidence carried forward.** Claude already performed the first model-directed
-step and the three faster controller trials. Offline replay of 12 prediction
-records preserves the old measured result, exposes four useful off-centre
-heading candidates, and retains the nearby STOP and absent-sofa refusal.
-The private trace is `data/outputs/effective_motion_release/trace.json` in
-the integration worktree. Effective model-directed hardware performance remains
-unmeasured. Offline verification passed 213 integration, guard and advisory
-regressions. The independent control suite passed 42 with one optional SDK skip.
+The evening 0.172 s bound belongs to `capture_latency_20261118_222418.json`.
+The earlier 0.148 s bound belongs to `capture_latency_20261118_103131.json`.
+`trial-HZbrPb` was held before claim while an iCloud-offloaded schema delayed
+revalidation. `trial-qzUkyd` lost its executor during model loading. The project
+then moved its runtime to the local Robotics workspace. The earlier one-step
+result and controller-only measurements are described below.
 
 ## Go2 hardware readiness (Claude, 2026-11-18) — branch `feature/go2-hardware-readiness`
 

@@ -116,6 +116,25 @@ class NavigationUI:
         self.intent = None
         self.refresh_started = None
         self.pending_refresh = None
+        self.motion_recording = None
+
+    def _dispatch(self, ticket, now):
+        # The refresh trial already owns the recorder. Keep its trial ID until the
+        # executor reports cleanup, even though the RGB/model trial ends here.
+        if self.app.lidar_recorder is not None:
+            self.motion_recording = {"request_id": ticket["request_id"], "trial_id": self.app.trial.id}
+            self.app.store.event("motion_lidar_window", now, phase="opened", **self.motion_recording)
+        self.executor.submit(ticket)
+        self.app.end_trial("one_refresh_dispatched", now, review=False, keep_lidar=True)
+
+    def finish_motion_recording(self, now, reason, result=None):
+        window = self.motion_recording
+        if window is None:
+            return
+        self.app.finish_lidar_trial()
+        self.motion_recording = None
+        self.app.store.event("motion_lidar_window", now, phase="closed", reason=reason, **window,
+                             executor_ended_monotonic_s=None if result is None else result["ended_monotonic_s"])
 
     def enqueue(self, payload, now):
         if payload.get("action") not in ("ask", "confirm", "inspect_turn", "authorize", "cancel", "stop", "quit"):
@@ -250,10 +269,11 @@ class NavigationUI:
                             current = self.executor.latest_guards
                             if current is None:
                                 raise Hold("executor_guards_unavailable")
+                            if self.app.trial is None or self.app.trial.id != pred["trial_id"]:
+                                raise Hold("refresh_trial_no_longer_active")
                             ticket = self.cycle.refreshed(proposal, comparison, now=self.app.monotonic(), wall_s=time.time(),
                                                           current=current["snapshot"])
-                            self.executor.submit(ticket)
-                            self.app.end_trial("one_refresh_dispatched", now, review=False)
+                            self._dispatch(ticket, now)
                     else:
                         self.preview_prediction = pred
                         self.preview_proposal, self.review_path = self.proposal(pred)
@@ -275,7 +295,17 @@ class NavigationUI:
             self.app.store.event("navigation_executor", now, message=message)
             if message["type"] == "result":
                 try:
-                    self.cycle.completed(message["result"])
+                    result = message["result"]
+                    self.cycle.completed(result)
+                    if self.motion_recording is not None:
+                        settled = all(result[k] is True for k in (
+                            "observed_stationary", "ownership_released", "post_release_stationary"))
+                        if result["started_monotonic_s"] is None or settled:
+                            self.finish_motion_recording(now, "executor_result", result)
+                        else:
+                            self.app.store.event("motion_lidar_window", now, phase="cleanup_unverified",
+                                                 executor_ended_monotonic_s=result["ended_monotonic_s"],
+                                                 reason=result["reason"], **self.motion_recording)
                 except Hold as error:
                     self.cycle.locked = True
                     self.cycle.hold(error)
@@ -449,6 +479,9 @@ class SupervisedApp(InteractiveApp):
             self.cycle.locked = True
             self.cycle.hold("executor_cleanup_unverified_independent_intervention_required")
         self.navigation.process(self.monotonic())
+        if self.navigation.motion_recording is not None:
+            why = "session_closed_without_valid_result" if self.cycle.result is None else "session_closed_with_unverified_cleanup"
+            self.navigation.finish_motion_recording(self.monotonic(), why, self.cycle.result)
         (self.store.root / "navigation_summary.json").write_text(json.dumps(self.cycle.public(self.monotonic()), indent=2)+"\n")
         super().close(now)
 

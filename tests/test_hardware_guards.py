@@ -2,6 +2,7 @@
 import importlib.util
 import json
 import math
+import os
 from pathlib import Path
 
 import numpy as np
@@ -161,7 +162,8 @@ def test_camera_epoch_reads_newest_observation(tmp_path):
     assert cam.get()["clock_epoch"] == "e2"
 
 
-RECORDED = Path.home() / "Desktop/Go2_Navigation-vln-interactive/data/outputs/vln_interactive/live_10/lidar"
+WORKSPACE = Path(os.environ.get("GO2_WORKSPACE", Path.home() / "Robotics/Go2"))
+RECORDED = WORKSPACE / "recordings/desktop_worktrees/vln-interactive/data/outputs/vln_interactive/live_10/lidar"
 
 
 @pytest.mark.skipif(not RECORDED.exists(), reason="private recording not present")

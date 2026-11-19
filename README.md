@@ -1,11 +1,11 @@
-## Supervised Go2 navigation, 2026-11-18
+## Supervised Go2 navigation, November 19
 
 Claude completed the first physical model-directed forward step using LightNav
 and the supervised executor. Branch `feature/vln-effective-motion` integrates
 that work with the audited 1.0 m/s forward and 2.0 rad/s turn profile. It selects
 a contiguous prefix of the native path and stops on distance or heading feedback.
 Offline replay of the original box run changes the requested destination from
-0.143 m to 0.600 m. The new integrated profile awaits its first physical trial.
+0.143 m to 0.600 m. Two counted effective-profile forward runs requested 0.600 m. Their settled odometry/fused estimates were 0.604/0.700 m and 0.616/0.791 m. Both verified a stop and release. Independent travel measurements are pending.
 
 The existing read-only viewer remains available. For the supervised branch,
 see the [operator guide and launch command](docs/SUPERVISED_NAVIGATION.md),

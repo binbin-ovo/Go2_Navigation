@@ -8,6 +8,7 @@ import sys
 import urllib.error
 import urllib.request
 
+import numpy as np
 import pytest
 import jsonschema
 
@@ -109,6 +110,25 @@ def test_complete_browser_api_mock_cycle(tmp_path):
     assert summary["robot_commands_sent"] == 0 and summary["supervised_navigation"]["state"] == "COMPLETE"
     events = [json.loads(line) for line in (output / "events.jsonl").read_text().splitlines()]
     dispatch = next(e["ticket"] for e in events if e["event"] == "navigation_dispatch")
+    windows = [e for e in events if e["event"] == "motion_lidar_window"]
+    assert [e["phase"] for e in windows] == ["opened", "closed"]
+    assert all(e["request_id"] == dispatch["request_id"] and
+               e["trial_id"] == dispatch["proposal"]["identity"]["trial_id"] for e in windows)
+    assert windows[1]["reason"] == "executor_result"
+    res = result["result"]
+    assert windows[1]["executor_ended_monotonic_s"] == res["ended_monotonic_s"]
+    index = [json.loads(line) for line in (output / "lidar/index.jsonl").read_text().splitlines()]
+    scans, odom = [], []
+    for row in index:
+        if row["trial_id"] == windows[0]["trial_id"]:
+            assert not row["dropped_not_recorded"]
+            with np.load(output / "lidar" / row["file"]) as chunk:
+                scans.extend(chunk["scan_host_recv_monotonic_s"])
+                odom.extend(chunk["odom_host_recv_monotonic_s"])
+    for receipts in (scans, odom):
+        assert min(receipts) < res["started_monotonic_s"]
+        assert any(res["started_monotonic_s"] <= t <= res["ended_monotonic_s"] for t in receipts)
+    assert summary["lidar_recording"]["drain_complete"]
     auth = dispatch["authorization"]
     assert auth["created_monotonic_s"]-auth["reviewed_identity"]["observed_monotonic_s"] > 3
     assert dispatch["proposal"]["identity"]["observed_monotonic_s"] > auth["created_monotonic_s"]

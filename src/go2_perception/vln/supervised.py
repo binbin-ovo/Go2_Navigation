@@ -93,7 +93,8 @@ def validate_record(kind, value, version=1):
 
 def age_check(stamp, now, limit, label):
     if stamp is None or not math.isfinite(stamp) or not 0 <= now - stamp <= limit:
-        raise Hold(f"stale_or_future_{label}")
+        raise Hold(f"stale_or_future_{label}", predicate="age_outside_window", field=label,
+                   sample_monotonic_s=stamp, checked_monotonic_s=now, maximum_age_s=limit)
 
 
 def capability_check(cap, *, live, wall_s):
@@ -194,8 +195,10 @@ def pose_check(reference, current, limits):
 
 
 def check_clearance(geo, pose, action, cap, *, progress=0., age=0.):
-    if not geo["available"] or (geo["frame"], geo["robot_epoch"]) != (pose["frame"], pose["robot_epoch"]):
-        raise Hold("required_geometry_unavailable_or_insufficient")
+    if not geo["available"]:
+        raise Hold("required_geometry_unavailable_or_insufficient", predicate="geometry_unavailable")
+    if (geo["frame"], geo["robot_epoch"]) != (pose["frame"], pose["robot_epoch"]):
+        raise Hold("required_geometry_unavailable_or_insufficient", predicate="geometry_frame_or_epoch_mismatch")
     segment = action.get("segment", {})
     if action["type"] == "turn" and cap.get("turn_scope") == INSPECTED:
         # The ordinary forward guard must still be usable. Observed returns can
@@ -204,11 +207,14 @@ def check_clearance(geo, pose, action, cap, *, progress=0., age=0.):
         if ("forward" not in geo["directions"] or geo["forward_clear_m"] < segment["translation_budget_m"] or
                 disc.get("radius_m", 0) < DISC_RADIUS_M or disc.get("floor_returns", 0) < 2 or
                 disc.get("obstacle_returns") != 0):
-            raise Hold("observed_turn_disc_unavailable_or_obstructed")
+            raise Hold("observed_turn_disc_unavailable_or_obstructed", field="observed_turn_disc",
+                       required_radius_m=DISC_RADIUS_M, min_floor_returns=2, max_obstacle_returns=0,
+                       forward_clearance_required_m=segment["translation_budget_m"])
         if set(geo["directions"]) & {"left", "right"} and (
                 action["direction"] not in geo["directions"] or
                 geo["turn_clear_rad"] < segment["required_clearance"]+action["speed"]*age):
-            raise Hold("measured_turn_sector_restricts_inspected_area")
+            raise Hold("measured_turn_sector_restricts_inspected_area", direction=action["direction"],
+                       available_rad=geo["turn_clear_rad"], required_rad=segment["required_clearance"]+action["speed"]*age)
         return
     remain = max(0., action["magnitude"]-max(0., progress))
     required = remain + segment.get("clearance_reserve", 0.)
@@ -216,7 +222,10 @@ def check_clearance(geo, pose, action, cap, *, progress=0., age=0.):
         required += age*action["speed"]
     key = "forward_clear_m" if action["type"] == "forward" else "turn_clear_rad"
     if action["direction"] not in geo["directions"] or required > geo[key]+1e-9:
-        raise Hold("required_geometry_unavailable_or_insufficient")
+        predicate = "direction_unavailable" if action["direction"] not in geo["directions"] else "insufficient_clearance"
+        raise Hold("required_geometry_unavailable_or_insufficient", predicate=predicate, field=key,
+                   available=geo[key], required=required, remaining=remain,
+                   reserve=segment.get("clearance_reserve", 0.), geometry_age_s=age)
 
 
 def check_inspection(auth, action, cap, now, pose, *, moving=False):

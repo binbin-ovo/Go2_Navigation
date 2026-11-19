@@ -250,7 +250,7 @@ class HardwareMotion:
             if segment:
                 result["events"].append({"event": "motion_feedback", "phase": phase, "monotonic_s": stamp,
                                          "value": last_value, "unit": action["unit"],
-                                         "basis": getattr(progress_fn, "evidence", None)})
+                                         "basis": finite_json(getattr(progress_fn, "evidence", None))})
                 if self.feedback is not None:
                     self.feedback({"request_id": ticket["request_id"], "phase": phase, "value": last_value,
                                    "unit": action["unit"], "monotonic_s": stamp})
@@ -271,12 +271,17 @@ class HardwareMotion:
                 return age if age is not None and 0 <= age <= lim["state_age_s"] else None
 
             def operator_input(self):
+                snap = state = checked_at = completed = None
+                stage = "intervention"
                 try:
                     if cancelled.is_set() or outer.clock()-outer.heartbeat() > .5:
                         raise Hold("cancel_or_parent_heartbeat_lost")
                     # Radio freshness is checked in addition to the audited state freshness.
                     age_check(outer.monitor.remote_t, outer.clock(), lim["state_age_s"], "remote_state")
+                    stage = "snapshot"
                     snap = outer.guards.snapshot()
+                    checked_at = outer.clock()
+                    stage = "path_drift"
                     original = ticket["proposal"]["identity"]["pose"]
                     # Geometry is in the current body frame. Subtract only fresh
                     # odometry displacement in the original commanded direction.
@@ -289,17 +294,32 @@ class HardwareMotion:
                         if (abs(dy*c-dx*s) > lim["lateral_m"] or
                                 abs(wrap(pose["yaw_rad"]-original["yaw_rad"])) > lim["straight_yaw_rad"]):
                             raise Hold("forward_path_drift_exceeds_reviewed_corridor")
-                    current_checks(snap, action, outer.cap, outer.clock(), capture=False, progress=completed)
+                    stage = "current_geometry_and_pose"
+                    checked_at = outer.clock()
+                    current_checks(snap, action, outer.cap, checked_at, capture=False, progress=completed)
+                    stage = "inspection"
                     check_inspection(ticket["authorization"], action, outer.cap, outer.clock(), snap["pose"],
                                      moving=bool(result["command_send_statuses"]))
+                    stage = "robot_epoch"
                     if (snap["pose"]["frame"], snap["pose"]["robot_epoch"]) != (original["frame"], original["robot_epoch"]):
                         raise Hold("robot_epoch_or_pose_frame_changed_during_execution")
+                    stage = "robot_state"
                     state = outer.monitor.snapshot()
                     result["events"].append(finite_json({"event": "current_guards", "monotonic_s": outer.clock(),
                                                         "guards": snap, "robot_state": state}))
                     if state.get("error_code") not in NOMINAL_ROBOT_ERROR_CODES:
                         raise Hold("robot_error_state")
                 except Exception as error:
+                    # Capture the object actually checked. The next cache read can
+                    # already describe a different scan. No new sensor call or file I/O.
+                    result["events"].append(finite_json({
+                        "event": "guard_rejected", "request_id": ticket["request_id"],
+                        "monotonic_s": outer.clock(), "checked_monotonic_s": checked_at,
+                        "stage": stage, "nonzero_sends": len(result["command_send_statuses"]),
+                        "direction": action["direction"], "clearance_progress_m": completed,
+                        "reason": str(error), "exception_type": type(error).__name__,
+                        "details": getattr(error, "details", {}), "guards": snap, "robot_state": state,
+                    }))
                     reason.append(str(error))
                     return True
                 return outer.monitor.operator_input()

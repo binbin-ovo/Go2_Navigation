@@ -152,12 +152,13 @@ class OdomTrack:
         self.clock = monotonic
         self.lock = threading.Lock()
         self.latest = None  # (t_host, stamp_robot, x, y, yaw)
+        self.raw_pose = None  # optional original (x, y, z, qx, qy, qz, qw)
         self.history = deque(maxlen=history)
         self.offset0 = None
         self.generation = 0
         self.last_stamp = None
 
-    def update(self, stamp_robot, x, y, yaw, t_host=None):
+    def update(self, stamp_robot, x, y, yaw, t_host=None, *, raw_pose=None):
         t_host = self.clock() if t_host is None else t_host
         with self.lock:
             offset = t_host - stamp_robot
@@ -168,23 +169,30 @@ class OdomTrack:
                     self.history.clear()
                 self.offset0 = offset
             self.last_stamp = stamp_robot
+            self.raw_pose = raw_pose
             self.latest = (t_host, stamp_robot, x, y, yaw)
             self.history.append(self.latest)
 
     def epoch(self):
         return None if self.offset0 is None else f"go2_odom_boot:{self.offset0:.0f}:g{self.generation}"
 
-    def pose_at(self, t_host, max_gap=0.05):
+    def pose_with_epoch_at(self, t_host, max_gap=0.05):
         with self.lock:
-            items = list(self.history)
-        if not items:
-            return None
-        best = min(items, key=lambda item: abs(item[0] - t_host))
-        return best if abs(best[0] - t_host) <= max_gap else None
+            best = min(self.history, key=lambda item: abs(item[0] - t_host), default=None)
+            return (best if best and abs(best[0] - t_host) <= max_gap else None), self.epoch()
 
-    def snapshot(self):
+    def pose_at(self, t_host, max_gap=0.05):
+        return self.pose_with_epoch_at(t_host, max_gap)[0]
+
+    def snapshot(self, *, evidence=None):
         with self.lock:
-            return self.latest, self.epoch(), self.offset0
+            epoch = self.epoch()
+            if evidence is not None and self.latest is not None:
+                received, stamp, x, y, yaw = self.latest
+                evidence.update(frame=POSE_FRAME, robot_epoch=epoch, stamp_robot_s=stamp,
+                                received_monotonic_s=received, x_m=x, y_m=y, yaw_rad=yaw,
+                                position_xyz_q_xyzw=self.raw_pose)
+            return self.latest, epoch, self.offset0
 
 
 class ScanWindow:
@@ -193,21 +201,20 @@ class ScanWindow:
     def __init__(self, odom, monotonic=time.monotonic):
         self.odom, self.clock = odom, monotonic
         self.lock = threading.Lock()
-        self.scans = deque()  # (t_host, pose(x,y,yaw), epoch, xyz)
+        self.scans = deque()  # (t_host, matched odom sample, epoch, xyz, robot header stamp)
 
-    def add(self, xyz, t_host=None):
+    def add(self, xyz, t_host=None, *, stamp_robot_s=None):
         t_host = self.clock() if t_host is None else t_host
-        match = self.odom.pose_at(t_host)
-        epoch = self.odom.epoch()
+        match, epoch = self.odom.pose_with_epoch_at(t_host)
         if match is None or epoch is None:
             return False
         with self.lock:
-            self.scans.append((t_host, match[2:5], epoch, np.asarray(xyz, dtype=float)))
+            self.scans.append((t_host, match, epoch, np.asarray(xyz, dtype=float), stamp_robot_s))
             while self.scans and t_host - self.scans[0][0] > WINDOW_S:
                 self.scans.popleft()
         return True
 
-    def current(self):
+    def current(self, *, evidence=None):
         """(points in the current base frame, newest scan time, epoch) or None."""
         latest, epoch, _ = self.odom.snapshot()
         with self.lock:
@@ -216,9 +223,18 @@ class ScanWindow:
             return None
         now_pose = latest[2:5]
         same = [s for s in scans if s[2] == epoch]
-        if not same or self.clock() - same[-1][0] > WINDOW_S:
+        if not same:
             return None
-        points = np.concatenate([to_current_base(xyz, pose, now_pose) for _, pose, _, xyz in same])
+        if evidence is not None:
+            evidence.update(robot_epoch=epoch, scan_stamps_robot_s=[s[4] for s in same],
+                            scan_receipts_monotonic_s=[s[0] for s in same],
+                            scan_pose_stamps_robot_s=[s[1][1] for s in same],
+                            scan_pose_receipts_monotonic_s=[s[1][0] for s in same],
+                            scan_poses_xy_yaw=[s[1][2:5] for s in same], current_pose_xy_yaw=now_pose,
+                            pose_stamp_robot_s=latest[1], pose_received_monotonic_s=latest[0])
+        if self.clock() - same[-1][0] > WINDOW_S:
+            return None
+        points = np.concatenate([to_current_base(xyz, sample[2:5], now_pose) for _, sample, _, xyz, _ in same])
         return points, same[-1][0], epoch
 
 
@@ -299,19 +315,21 @@ class Guards:
                     self.cached, self.detail = None, {"error": f"{type(error).__name__}: {error}"}
 
     def compute(self):
-        latest, epoch, offset = self.odom.snapshot()
+        odom_sample = {}
+        latest, epoch, offset = self.odom.snapshot(evidence=odom_sample)
         if latest is None:
             with self.lock:
-                self.cached = None
+                self.cached, self.detail = None, {"reason": "odometry_unavailable"}
             return
         t_pose, _, x, y, yaw = latest
         pose = {"frame": POSE_FRAME, "robot_epoch": epoch, "monotonic_s": t_pose, "x_m": x, "y_m": y, "yaw_rad": yaw}
-        window = self.scans.current()
-        if window is None:
+        scan_sources = {}
+        window = self.scans.current(evidence=scan_sources)
+        if window is None or window[2] != epoch:
             geometry = {"available": False, "monotonic_s": t_pose, "frame": POSE_FRAME, "robot_epoch": epoch,
                         "source": "cloud_base window unavailable", "directions": [],
                         "forward_clear_m": 0.0, "turn_clear_rad": 0.0}
-            detail = {"reason": "no_current_scans"}
+            detail = {"reason": "no_current_scans" if window is None else "scan_pose_epoch_mismatch"}
         else:
             points, t_scan, _ = window
             clear, detail = forward_clearance(points)
@@ -327,24 +345,32 @@ class Guards:
                 geometry["observed_turn_disc"] = {
                     "radius_m": DISC_RADIUS_M, "floor_returns": int(np.sum(np.abs(height) < .06)),
                     "obstacle_returns": int(np.sum((height > OBSTACLE_MIN_DZ) & (height < OBSTACLE_MAX_DZ)))}
-        bound, basis = capture_bound(self.camera.get(), offset)
         camera = self.camera.get()
+        bound, basis = capture_bound(camera, offset)
         snap = {"pose": pose, "geometry": geometry, "capture_uncertainty_bound_s": bound,
                 "capture_clock_epoch": None if camera is None else camera["clock_epoch"],
-                "capture_bound_basis": basis, "geometry_detail": detail}
+                "capture_bound_basis": basis, "geometry_detail": detail, "scan_sources": scan_sources or None,
+                "odometry": odom_sample}
         with self.lock:
-            self.cached = snap
+            self.cached, self.detail = snap, None
 
     def snapshot(self):
         with self.lock:
             if self.cached is None:
-                raise RuntimeError("guards_unavailable")
+                cause = (self.detail or {}).get("error") or (self.detail or {}).get("reason")
+                raise RuntimeError("guards_unavailable" if cause is None else f"guards_unavailable: {cause}")
             return json.loads(json.dumps(self.cached))
 
     def progress(self, action):
-        latest, epoch0, _ = self.odom.snapshot()
+        reference_odom = {}
+        latest, epoch0, _ = self.odom.snapshot(evidence=reference_odom)
         if latest is None or not 0 <= self.clock()-latest[0] <= .25:
-            return lambda: None
+            def unavailable():
+                return None
+            unavailable.evidence = {"fusion_decision": "reference_odometry_unavailable",
+                                    "reference_odometry": reference_odom or None,
+                                    "odom_m": None, "lidar_m": None, "fused_m": None}
+            return unavailable
         _, _, x0, y0, yaw0 = latest
         if action["type"] == "turn":
             sign = 1 if action["direction"] == "left" else -1
@@ -361,34 +387,77 @@ class Guards:
             start_imu = imu_yaw() if effective else None
 
             def turn_progress():
-                now, epoch, _ = self.odom.snapshot()
+                odom_sample = {}
+                now, epoch, _ = self.odom.snapshot(evidence=odom_sample)
+                turn_progress.evidence = {"reference_odometry": reference_odom, "odometry": odom_sample or None,
+                                          "source": None, "odom_rad": None}
                 if now is None or epoch != epoch0 or not 0 <= self.clock() - now[0] <= 0.25:
                     return None
                 if effective:
                     current_imu = imu_yaw()
                     if start_imu is None or current_imu is None:
                         return None
-                    turn_progress.evidence = {"source": "relative_imu_yaw", "odom_rad": sign*wrap(now[4]-yaw0)}
+                    turn_progress.evidence.update(source="relative_imu_yaw", odom_rad=sign*wrap(now[4]-yaw0),
+                                                  reference_imu_yaw_rad=start_imu, imu_yaw_rad=current_imu)
                     return sign * wrap(current_imu - start_imu)
                 return sign * wrap(now[4] - yaw0)
 
             return turn_progress
-        window = self.scans.current()
-        start_x = None if window is None else self.front_surface_x(window[0], ground_z_at_front(window[0]))
+        reference_scans = {}
+        window = self.scans.current(evidence=reference_scans)
+        start_x = reference_ground_z = None
+        if window is not None and window[2] == epoch0:
+            reference_ground_z = ground_z_at_front(window[0])
+            start_x = self.front_surface_x(window[0], reference_ground_z)
 
         def forward_progress():
-            now, epoch, _ = self.odom.snapshot()
-            if now is None or epoch != epoch0 or not 0 <= self.clock() - now[0] <= 0.25:
+            odom_sample = {}
+            now, epoch, _ = self.odom.snapshot(evidence=odom_sample)
+            # A new object per call keeps saved samples immutable, even when a
+            # subsequent read is stale or unavailable.
+            evidence = {"reference_odometry": reference_odom, "odometry": odom_sample or None,
+                        "reference_scans": reference_scans or None, "scans": None,
+                        "reference_surface_x_m": start_x, "surface_x_m": None,
+                        "reference_ground_z_m": reference_ground_z, "ground_z_m": None,
+                        "lidar_minus_odom_m": None,
+                        "odom_m": None, "lidar_m": None, "fused_m": None,
+                        "lidar_accepted": None, "selected_input": None, "source": None}
+            forward_progress.evidence = evidence
+            if now is None or epoch != epoch0 or not 0 <= self.clock() - now[0] <= .25:
+                evidence["fusion_decision"] = ("odometry_epoch_changed" if epoch != epoch0 else
+                                               "odometry_missing_or_stale")
                 return None
             odom = (now[2] - x0) * math.cos(yaw0) + (now[3] - y0) * math.sin(yaw0)
+            evidence["odom_m"] = odom
             lidar = None
+            lidar_state = "reference_surface_unavailable" if window is not None else "reference_window_unavailable"
+            if window is not None and window[2] != epoch0:
+                evidence["fusion_decision"] = "scan_epoch_changed"
+                return None
             if start_x is not None:
-                current = self.scans.current()
+                scan_sources = {}
+                current = self.scans.current(evidence=scan_sources)
+                lidar_state = "scan_window_unavailable"
+                evidence["scans"] = scan_sources or None
                 if current is not None:
-                    x = self.front_surface_x(current[0], ground_z_at_front(current[0]))
+                    if current[2] != epoch0:
+                        evidence["fusion_decision"] = "scan_epoch_changed"
+                        return None
+                    evidence["ground_z_m"] = ground_z_at_front(current[0])
+                    x = self.front_surface_x(current[0], evidence["ground_z_m"])
+                    evidence["surface_x_m"] = x
                     lidar = None if x is None else start_x - x
+                    lidar_state = "current_surface_unavailable" if x is None else "available"
             fused, lidar_used = self.fuse_progress(lidar, odom)
-            forward_progress.evidence = {"source": "lidar_and_odom" if lidar_used else "odom", "lidar_m": lidar, "odom_m": odom}
+            # The canonical routine returns max(lidar, odom) when it accepts the
+            # pair. Acceptance alone does not identify which estimate it returned.
+            decision = ("accepted_max" if lidar_used else
+                        "disagreement_rejected" if lidar is not None else lidar_state)
+            selected = ("equal" if lidar_used and lidar == odom else
+                        "lidar" if lidar_used and fused == lidar else "odom")
+            evidence.update(source="lidar_and_odom" if lidar_used else "odom", lidar_m=lidar, fused_m=fused,
+                            lidar_minus_odom_m=None if lidar is None else lidar-odom,
+                            lidar_accepted=lidar_used, fusion_decision=decision, selected_input=selected)
             return fused
 
         return forward_progress
@@ -409,10 +478,12 @@ def create_guards(*, monitor, capability, monotonic, observation_root):
     def on_odom(m):
         p, q = m.pose.pose.position, m.pose.pose.orientation
         stamp = m.header.stamp.sec + m.header.stamp.nanosec * 1e-9
-        guards.odom.update(stamp, float(p.x), float(p.y), yaw_from_quaternion(q.x, q.y, q.z, q.w))
+        guards.odom.update(stamp, float(p.x), float(p.y), yaw_from_quaternion(q.x, q.y, q.z, q.w),
+                           raw_pose=tuple(map(float, (p.x, p.y, p.z, q.x, q.y, q.z, q.w))))
 
     def on_cloud(m):
-        guards.scans.add(frame_from_msg(m, "rt/utlidar/cloud_base", time.time()).xyz)
+        frame = frame_from_msg(m, "rt/utlidar/cloud_base", time.time())
+        guards.scans.add(frame.xyz, stamp_robot_s=frame.stamp)
 
     odom_sub = ChannelSubscriber("rt/utlidar/robot_odom", Odometry_)
     odom_sub.Init(on_odom, 10)

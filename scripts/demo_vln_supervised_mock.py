@@ -26,7 +26,7 @@ def main(argv=None):
     env = {**os.environ, "PYTHONPATH": str(ROOT / "src"), "GO2_HARDWARE": "0", "GO2_SUPERVISED_LIVE": "0",
            "MUJOCO_RENDER_TEST": "0", "PYTHONDONTWRITEBYTECODE": "1"}
     process = subprocess.Popen([sys.executable, "-u", str(ROOT / "scripts/run_vln_supervised.py"),
-                                "--output", str(a.output), "--port", "0", "--max-host-seconds", "30",
+                                "--lidar", "synthetic", "--output", str(a.output), "--port", "0", "--max-host-seconds", "30",
                                 "--min-free-disk-gb", "0", "--min-available-memory-gb", "0"],
                                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                text=True, bufsize=1, env=env)

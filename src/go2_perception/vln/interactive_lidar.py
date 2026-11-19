@@ -23,7 +23,7 @@ import json
 import math
 import os
 from pathlib import Path
-from queue import Full, Queue
+from queue import Empty, Full, Queue
 import subprocess
 import threading
 import time
@@ -265,13 +265,16 @@ class LidarState:
 
 
 class LidarRecorder:
-    """Bounded chunk writer: <=1 s of scans + odom per NPZ, index rows with source intervals.
+    """Record on a separate writer. Bound scan bytes, messages, queue and pending gap metadata."""
 
-    One writer thread and a small queue. A full queue drops that chunk *explicitly*
-    (a gap row is written to the index); nothing is silently lost.
-    """
+    MAX_GAP_ROWS = 64
 
-    def __init__(self, root, *, queue_size=4, chunk_s=1.0, quota=None):
+    def __init__(self, root, *, queue_size=4, chunk_s=1.0, quota=None,
+                 max_chunk_bytes=4 * 1024 * 1024, max_messages=512):
+        if min(queue_size, chunk_s, max_chunk_bytes, max_messages) <= 0:
+            raise ValueError("recorder bounds must be positive")
+        self.max_chunk_bytes, self.max_messages = max_chunk_bytes, max_messages
+        self.closing = False
         self.root = Path(root)
         self.root.mkdir(parents=True, exist_ok=True)
         self.queue = Queue(maxsize=queue_size)
@@ -281,13 +284,22 @@ class LidarRecorder:
         self.chunk = None
         self.index = self.root / "index.jsonl"
         self.counts = {"chunks_written": 0, "chunks_dropped": 0, "bytes": 0, "errors": 0}
-        self.n = len(self.index.read_text().splitlines()) if self.index.exists() else 0
+        self.n = 0
+        if self.index.is_file():
+            with self.index.open() as stream:
+                for line in stream:
+                    row = json.loads(line)
+                    self.n = max(self.n, row.get("last_chunk", row["chunk"]))
+        self.gap_summary = None
+        self.index_error = None
         self.gaps = []
         self.thread = threading.Thread(target=self._run, daemon=True)
         self.thread.start()
 
     def start(self, trial_id):
         with self.lock:
+            if self.closing:
+                raise RuntimeError("LiDAR recorder is closing")
             self._flush_locked()
             self.trial_id = trial_id
 
@@ -297,18 +309,30 @@ class LidarRecorder:
             self.trial_id = None
 
     def _new_chunk(self, epoch, now):
-        return {"started": now, "epoch": epoch, "trial_id": self.trial_id, "scans": [], "odom": []}
+        return {"started": now, "epoch": epoch, "trial_id": self.trial_id,
+                "scans": [], "odom": [], "point_bytes": 0}
 
     def offer(self, kind, header, xyz, epoch, now):
+        size = xyz.nbytes if kind == "scan" else 0
         with self.lock:
-            if self.trial_id is None:
+            if self.trial_id is None or self.closing:
                 return
-            if self.chunk is not None and (self.chunk["epoch"] != epoch or now - self.chunk["started"] >= self.chunk_s):
+            c = self.chunk
+            if c is not None and (c["epoch"] != epoch or now - c["started"] >= self.chunk_s or
+                                  c["point_bytes"] + size > self.max_chunk_bytes or
+                                  len(c["scans"]) + len(c["odom"]) >= self.max_messages):
                 self._flush_locked()
+            if size > self.max_chunk_bytes:
+                self.n += 1
+                row = self._new_chunk(epoch, now)
+                row.update(number=self.n, scans=[(header, xyz)])
+                self._drop_locked(row, "single_scan_exceeds_byte_limit")
+                return
             if self.chunk is None:
                 self.chunk = self._new_chunk(epoch, now)
             if kind == "scan":
                 self.chunk["scans"].append((header, xyz))
+                self.chunk["point_bytes"] += size
             else:
                 self.chunk["odom"].append(header)
 
@@ -321,19 +345,47 @@ class LidarRecorder:
         try:
             self.queue.put_nowait(chunk)
         except Full:
-            self.counts["chunks_dropped"] += 1
-            self.gaps.append(self._describe(chunk, dropped=True))
+            self._drop_locked(chunk, "writer_queue_full")
+
+    def _drop_locked(self, chunk, reason):
+        self.counts["chunks_dropped"] += 1
+        row = self._describe(chunk, dropped=True, reason=reason)
+        if len(self.gaps) < self.MAX_GAP_ROWS:
+            self.gaps.append(row)
+            return
+        # During an extended disk stall, retain totals and a conservative host
+        # interval. Individual source IDs may span epochs/trials and cannot be inferred.
+        if self.gap_summary is None:
+            self.gap_summary = dict(row, reason="coalesced_recorder_drops", n_chunks=1, last_chunk=row["chunk"],
+                                    scan_seq=None, odom_seq=None)
+            return
+        group = self.gap_summary
+        group["n_chunks"] += 1
+        group["last_chunk"] = row["chunk"]
+        for key in ("n_scans", "n_odom", "n_points"):
+            group[key] += row[key]
+        for key in ("trial_id", "robot_epoch"):
+            if group[key] != row[key]:
+                group[key] = None
+        for key in ("host_receipt_interval_wall_s", "host_receipt_interval_monotonic_s", "source_interval_robot_s"):
+            if key == "source_interval_robot_s" and group["robot_epoch"] is None:
+                group[key] = None
+            else:
+                group[key] = [min(group[key][0], row[key][0]), max(group[key][1], row[key][1])]
 
     @staticmethod
     def _describe(chunk, dropped=False, **extra):
         scans, odom = chunk["scans"], chunk["odom"]
         stamps = [h["stamp"] for h, _ in scans] + [h["stamp"] for h in odom]
-        hosts = [h["host_recv_wall_s"] for h, _ in scans] + [h["host_recv_wall_s"] for h in odom]
+        headers = [h for h, _ in scans] + odom
+        hosts = [h["host_recv_wall_s"] for h in headers]
+        mono = [h["host_recv_wall_s"] - h["wall_minus_monotonic_s"] for h in headers]
         return {
             "chunk": chunk["number"], "trial_id": chunk["trial_id"], "robot_epoch": chunk["epoch"],
             "dropped_not_recorded": dropped,
             "source_interval_robot_s": [min(stamps), max(stamps)] if stamps else None,
             "host_receipt_interval_wall_s": [min(hosts), max(hosts)] if hosts else None,
+            "host_receipt_interval_monotonic_s": [min(mono), max(mono)] if mono else None,
             "scan_seq": [scans[0][0]["seq"], scans[-1][0]["seq"]] if scans else None,
             "odom_seq": [odom[0]["seq"], odom[-1]["seq"]] if odom else None,
             "n_scans": len(scans), "n_odom": len(odom),
@@ -342,9 +394,15 @@ class LidarRecorder:
 
     def _run(self):
         while True:
-            chunk = self.queue.get()
-            if chunk is None:
-                return
+            try:
+                chunk = self.queue.get(timeout=0.1)
+            except Empty:
+                with self.lock:
+                    done = self.closing and self.queue.empty()
+                self._write_index()
+                if done:
+                    return
+                continue
             try:
                 if self.quota is not None and not self.quota():
                     raise OSError("recording quota reached")
@@ -366,6 +424,9 @@ class LidarRecorder:
                     "odom_q_xyzw": np.array([h["q_xyzw"] for h in odom], float).reshape(-1, 4),
                     "odom_seq": np.array([h["seq"] for h in odom], np.int64),
                 }
+                for kind in ("scan", "odom"):
+                    arrays[kind + "_host_recv_monotonic_s"] = (
+                        arrays[kind + "_host_recv_wall"] - arrays[kind + "_wall_minus_monotonic"])
                 buffer = io.BytesIO()
                 np.savez_compressed(buffer, **arrays)
                 data = buffer.getvalue()
@@ -378,26 +439,40 @@ class LidarRecorder:
                 self.counts["chunks_written"] += 1
                 self.counts["bytes"] += len(data)
             except Exception as error:
+                with self.lock:
+                    self.counts["errors"] += 1
+                    self.counts["chunks_dropped"] += 1
+                row = self._describe(chunk, dropped=True, reason="write_failed", error=repr(error))
+            self._write_index(row)
+
+    def _write_index(self, row=None):
+        with self.lock:
+            rows, self.gaps = self.gaps, []
+            if self.gap_summary is not None:
+                rows.append(self.gap_summary)
+                self.gap_summary = None
+        if row is not None:
+            rows.insert(0, row)
+        if rows:
+            try:
+                with self.index.open("a") as stream:
+                    for item in rows:
+                        stream.write(json.dumps(item, allow_nan=False) + "\n")
+            except OSError as error:
                 self.counts["errors"] += 1
-                row = self._describe(chunk, dropped=True, error=repr(error))
-            with self.lock:
-                rows, self.gaps = [row, *self.gaps], []
-            with self.index.open("a") as stream:
-                for r in rows:
-                    stream.write(json.dumps(r, allow_nan=False) + "\n")
+                self.index_error = repr(error)
 
     def close(self, timeout=5.0):
-        self.stop()
-        self.queue.put(None)
+        with self.lock:
+            self._flush_locked()
+            self.trial_id = None
+            self.closing = True
         self.thread.join(timeout)
-        if self.gaps:
-            with self.index.open("a") as stream:
-                for r in self.gaps:
-                    stream.write(json.dumps(r, allow_nan=False) + "\n")
-            self.gaps = []
 
     def status(self):
         return {**self.counts, "queued": self.queue.qsize(), "queue_max": self.queue.maxsize,
+                "chunk_point_bytes_max": self.max_chunk_bytes, "chunk_messages_max": self.max_messages,
+                "drain_complete": self.closing and not self.thread.is_alive(), "index_error": self.index_error,
                 "recording_trial": self.trial_id}
 
 

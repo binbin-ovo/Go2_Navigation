@@ -8,7 +8,9 @@ trigger on top of the published hardware-readiness branch
 `24f12ca80605325e88c976e1af5849077a918a55`. The updated canonical control
 checkout is `6d555d31c6eaa4ee194920925ab96238bf15b128`. The profile was
 verified offline against original LightNav archives and the pinned pure control loop.
-A physical outcome for the effective integrated profile remains unmeasured.
+Two counted hardware runs have used this profile. Their settled odometry/fused
+estimates were 0.604/0.700 m and 0.616/0.791 m. Physical travel has yet to be
+measured independently. [November 19 trial table](AGENT_HANDOFF.md#two-counted-forward-runs)
 [Contract and units](SUPERVISED_NAVIGATION_CONTRACT.md) · [Hardware trials, sections 8–10](GO2_HARDWARE_READINESS.md)
 
 **One proposed trial.** From Claude's working Mac shell with its camera network
@@ -21,29 +23,29 @@ plus the current scan-age margin. The new model answer determines the actual
 request. A smaller, blocked or absent request stays as observed.
 
 ```bash
-cd /Users/yushan/Desktop/Go2_Navigation/data/outputs/vln-effective-profile-worktree
+export GO2_WORKSPACE="$HOME/Robotics/Go2"
+cd "$GO2_WORKSPACE/code/navigation"
 GO2_SUPERVISED_LIVE=1 bash scripts/launch_effective_trial.sh --live-exclusive sensor_only
 ```
 
 The launcher checks the existing controller and evidence files, generates a fresh
 capability, and uses the original hardware/model environments, cached weights,
 interface `en9`, host `192.168.123.222`, configured camera timing and port 8766.
-It prints a unique private trial directory under `data/outputs/effective_trials`.
+It prints a unique private trial directory under `$GO2_WORKSPACE/runs/effective_trials`.
 The viewer still requires explicit review and fresh authorization. The native
 avoidance check, shared command lock, independent intervention, nominal error code
 100 and continuous pre-claim stationary dwell remain in effect. Physical pytest
 opt-ins stay disabled. For a file-only preflight, invoke the same script with
 `--prepare-only sensor_only` and `GO2_SUPERVISED_LIVE=0`.
 
-**The one measurement to collect** is progress at first zero and after verified
-settling for the adjusted trigger. Inspect the recorded feedback basis, peak,
-signed error, zero sends, fresh stationary dwell, release and post-release state.
-The proposed forward tolerance is ±0.10 m. Keep partial progress, stalls and
-overshoot as outcomes. The boot-specific 0.148 s capture bound must still match
-the active clocks. A changed boot holds arming until its timing bound is established.
-At this verification the Mac had about 14 GiB free and the launcher requires 10 GiB.
+For the next authorized forward trial, measure the start and fully settled
+position of a fixed body reference against the floor. Record instrument
+resolution, longitudinal displacement, lateral offset and heading change. A
+time-aligned, scaled side/overhead video can add independent evidence at first
+zero. Record both sensors and any change of front surface. The 0.159 s camera
+age bound belongs only to the measured November 19 boot. [Handoff and evidence](AGENT_HANDOFF.md)
 
-### Evidence behind the trial settings
+### Historical controller evidence behind the trial settings
 
 | Recorded condition | Measurement near first zero | Peak / settled response | First still after zero |
 |---|---|---|---:|
@@ -58,12 +60,12 @@ independent tape measurement. The leads (0.10 m, 4° right, 10° left), reserves
 and tolerance are declared pilot settings. Different floors, battery state,
 clearance or startup response may yield different endpoints.
 
-### Original predictions through the new conversion
+### Historical predictions through the new conversion
 
 Twelve saved prediction records were read, including the two decisions from the
 same executed cycle. The replay checks the archived model job, native decoder
 output, snapshot source, image SHA-256, target point, captured epochs and
-published controller event hashes. Only the original legacy execution has a
+published controller event hashes. In this historical replay set, only the original legacy execution has a
 measured model-directed outcome. Each counterfactual retains a null measured
 movement field in the private trace.
 
@@ -97,33 +99,45 @@ From the integration worktree, the following commands create new private files.
 The original camera, model and controller recordings are inputs.
 
 ```bash
-base="$HOME/Desktop/Go2_Navigation"
-ready="$HOME/Desktop/Go2_Navigation-hw-readiness"
-control="$HOME/Desktop/Go2_Navigation-go2-control"
-interactive="$HOME/Desktop/Go2_Navigation-vln-interactive"
-core="$base/data/outputs/phase6c/core-env/bin/python"
+export GO2_WORKSPACE="$HOME/Robotics/Go2"
+cd "$GO2_WORKSPACE/code/worktrees/codex-motion-diagnostics"
+archives="$GO2_WORKSPACE/recordings/desktop_worktrees"
+ready="$archives/hw-readiness"
+interactive="$archives/vln-interactive"
+control="$GO2_WORKSPACE/code/control"
+core="$GO2_WORKSPACE/envs/core/bin/python"
 export GO2_HARDWARE=0 GO2_SUPERVISED_LIVE=0 MUJOCO_RENDER_TEST=0
-export PYTHONDONTWRITEBYTECODE=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=src:scripts:hardware
-mkdir -p data/outputs/effective_replays
-out=$(mktemp -d "$PWD/data/outputs/effective_replays/trace-XXXXXX")
+export PYTHONDONTWRITEBYTECODE=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1
+export PYTHONPATH="$PWD/src:$PWD/scripts:$PWD/hardware"
+out=$(mktemp -d "${TMPDIR:-/tmp}/go2-motion-replay.XXXXXX")
 "$core" hardware/make_capability.py --profile go2-effective-v1 --turn-scope sensor_only \
-  --heading-file "$ready/data/outputs/hw_readiness/camera_heading.json" --output "$out/capability.json"
+  --heading-file "$GO2_WORKSPACE/evidence/hw_readiness/camera_heading.json" --output "$out/capability.json"
 "$core" scripts/replay_effective_motion.py --capability "$out/capability.json" \
   --readiness "$ready/data/outputs" --interactive "$interactive/data/outputs" \
   --control "$control/data/outputs/go2_control" --output "$out/trace.json"
 "$core" -m pytest -q -rs -p no:cacheprovider -m 'not hardware and not model_integration' \
-  tests/test_effective_motion.py tests/test_supervised_{contract,navigation,executor,integration}.py \
+  tests/test_motion_diagnostics.py tests/test_effective_motion.py tests/test_supervised_{contract,navigation,executor,integration}.py \
   tests/test_hardware_guards.py tests/test_vln_{interactive,shadow,live_shadow}.py
-PYTHONPATH="$control/src" "$core" -m pytest -q -rs -p no:cacheprovider "$control/tests/test_go2_control.py"
+PYTHONPATH="$PYTHONPATH:$control/src" "$core" -m pytest -q -rs -p no:cacheprovider \
+  -m 'not hardware and not model_integration' "$control/tests/test_go2_control.py"
 ```
 
-Retained private replay in this worktree: `data/outputs/effective_motion_release/trace.json`.
-The capability-only launcher, assembled viewer JavaScript, synthetic localhost
-HTTP cycle and pure audited control loop were exercised offline. The regression
-selection passed **213 tests** (zero failures/skips, 57.91 s). The separate
-canonical controller suite passed **42**, with one SDK-dependent helper test
-skipped in the core environment. High-rate behavior under actual load remains
-a physical trial question.
+The original private replay remains at
+`$GO2_WORKSPACE/recordings/desktop_worktrees/vln-effective-profile-worktree/data/outputs/effective_motion_release/trace.json`.
+On November 19 the file-only preflight passed and all 12 saved proposals replayed
+from the migrated archives. The centred preview and refresh both selected 0.600 m
+with a 0.500 m trigger. One rightward 14.96° prefix held. The count includes
+the historical STOP and reviewed absent-target refusal.
+
+**Diagnostics verification.** All 235 selected core tests passed in 61.96 s,
+including both signs of the heading gap, exact transient guard rejection, raw
+scan/odometry recording across dispatch and settling, and a blocked writer.
+The end-to-end viewer test ran its synthetic bridge and executor over localhost.
+The separate controller suite passed 42 and skipped one SDK-dependent helper
+in the core environment. Replaying the three saved November 19 HOLD answers through the
+converter yielded 19.75° right twice (prefix reversal) and 17.51° right once
+(end of chunk). Real-time command cadence and the new evidence fields on moving hardware await
+the next authorized trial.
 
 ## Shared components and existing defaults
 

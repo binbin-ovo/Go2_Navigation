@@ -47,6 +47,12 @@ Smaller terminal requests stay in the archive. The pilot admission floors of
 0.30 m and 20° prevent low-amplitude retries or inflation. These are engineering
 thresholds. The fast hardware reference conditions were 0.60 m and 30°.
 
+A turn-directed native prefix in (0.10 rad, 20°) produces a
+`below_effective_resolution: heading_gap` HOLD with its original direction, angle
+and limiting boundary. Keep the full native chunk. The operator may review a
+fresh stationary observation. Only a same-direction contiguous native extension
+can support a larger angle under the existing clearance and inspection policy.
+
 ### Command and stop contract
 
 | Primitive | Command | Max destination | Send zero at measured destination minus | Clearance beyond destination | Settled scoring tolerance | Measurement noise band |
@@ -76,6 +82,40 @@ destination using `target_within_tolerance`, `partial_progress`,
 `measurement_unavailable`. `termination`, `interrupted_or_blocked`, and
 `stop_verified` are independent. A stalled or off-tolerance run with verified
 cleanup has status `ended`. A sent zero has no robot ACK on the native no-reply route.
+
+### Motion diagnostic records
+
+All paths below are relative to the private trial’s `session/` directory. The
+executor and bridge subscribe independently. Their callback receipt times can
+differ for the same robot header stamp.
+
+| File | Evidence |
+|---|---|
+| `executor/executor_events.jsonl` | The terminal `type=result` contains `result.events`. A `guard_rejected` event freezes the guard object checked at the failing iteration, its request ID, stage, check time, nonzero send count, projected clearance progress, exception reason and numerical details. The cached odometry includes raw orientation when received. `guards.geometry_detail` contains the provider’s floor/corridor evidence when available. A provider exception before a snapshot leaves a null guard. |
+| Same result, `motion_feedback` | Each driving, settling or settled sample has a host-monotonic time, value and unit. Forward `basis` retains reference/current odometry (XYZ and quaternion xyzw when provided, yaw, frame, robot/receipt stamps), contributing scan/window stamps and the planar poses used for compensation, start/current ground z and front surface x, signed `odom_m`, `lidar_m`, `fused_m`, `lidar_accepted`, `fusion_decision` and `selected_input`. The first-zero event identifies the feedback sample available at that send. |
+| `events.jsonl` | `motion_lidar_window` links the executor request to the refresh model trial. Recording spans dispatch through the matching terminal result, including first zero, stationary dwell, release and the post-release observation period. If cleanup is unverified or the executor disappears, the raw recorder stays active until session shutdown. Its closing reason identifies missing or unverified evidence. |
+| `lidar/index.jsonl`, `lidar/chunk_*.npz` | Per-trial/epoch chunk, source and host intervals, counts, hash and dropped-data flags. Raw `points_xyz_base_link` split at `scan_offsets`, scan/odom sequence numbers and robot stamps, raw odometry position and quaternion, wall receipts and offsets survive. `scan_host_recv_monotonic_s` and `odom_host_recv_monotonic_s` are bridge wall receipt minus its sampled wall-minus-monotonic offset, in seconds. |
+| `summary.json` | `lidar_recording` reports chunks written/dropped, writer errors, queue/size limits and `drain_complete`. Check bridge gap counts and source stamp coverage as well. |
+
+Forward odometry is displacement projected onto the initial heading in odom.
+LiDAR progress is reference minus current front-surface range in the body frame.
+The pinned controller accepts two available estimates within 0.15 m + 30% of
+absolute odometry and returns their maximum. A rejected disagreement selects
+odometry. A missing surface is distinguished from disagreement. Missing/stale
+odometry or a changed epoch can yield an unavailable sample. A null value stays
+unknown. Guard window robot stamps identify scans usable for an offline re-fit.
+
+The recorder uses a separate writer with four queued chunks, one filling chunk
+and one being written. Each holds at most one second of arrivals, 4 MiB of raw
+point payload and 512 scan/odom messages. The cap excludes compression buffers
+and bounded per-message metadata. The bridge reader offers chunks without waiting
+for disk or a free queue slot. Oversize scans, writer backpressure and write failures
+produce gap records. During a writer stall the recorder retains 64 detailed gap rows
+plus one summary with exact dropped counts and an enclosing host interval. Mixed
+epochs/trials lose their individual attribution in that summary. Compare intervals
+only within matching streams/boots. An interrupted process or an index write error
+can leave the archive incomplete. Guard and feedback events are persisted with the
+executor result after cleanup.
 
 ### Turn scope and post-turn replan
 

@@ -174,6 +174,13 @@ def prefix_action(rows, point, cap, forward_clear_m=None):
             if best
             else "unsupported_path_prefix"
         )
+        if best and not forward and lim["straight_yaw_rad"] < candidate < MIN_TURN:
+            raise Hold(
+                f"below_effective_resolution: heading_gap ({direction} {math.degrees(candidate):.2f} deg). "
+                "Hold for a new operator-reviewed observation.",
+                prefix_limit=boundary, available_magnitude=candidate, unit=unit,
+                native_direction=direction, straight_limit_rad=lim["straight_yaw_rad"], minimum=MIN_TURN,
+            )
         raise Hold(
             f"{reason}: {candidate:.3f} {unit}, minimum {minimum:.3f} {unit}",
             prefix_limit=boundary,

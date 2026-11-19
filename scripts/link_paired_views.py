@@ -88,7 +88,7 @@ def odometry(run, t0, t1):
     order = np.argsort(t)
     keep = (t[order] >= t0) & (t[order] <= t1)
     return {"t": t[order][keep], "yaw_deg": np.degrees(np.unwrap(yaw(q[order][keep]))), "epochs": sorted(epochs),
-            "dropped_chunks": len(gaps)}
+            "dropped_chunks": sum(row.get("n_chunks", 1) for row in gaps)}
 
 
 def main(argv=None):

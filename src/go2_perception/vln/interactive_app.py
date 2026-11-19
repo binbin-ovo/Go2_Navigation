@@ -461,18 +461,22 @@ class InteractiveApp:
         self.store.event("safety_question_confirmed", now, **self.safety_confirmation)
         self.start_trial(spec, now)
 
-    def end_trial(self, reason, now, *, review=True):
+    def finish_lidar_trial(self):
+        if self.lidar_recorder is not None:
+            if self.config.get("record_lidar_continuously"):
+                self.lidar_recorder.start("between_trials")  # odometry across manual viewpoint changes
+            else:
+                self.lidar_recorder.stop()
+
+    def end_trial(self, reason, now, *, review=True, keep_lidar=False):
         trial = self.trial
         if trial is None:
             self.say("No active trial.")
             return None
         # Advisory cancel only: invalidates the in-flight request; nothing goes to the robot.
         self.session.cancel(now)
-        if self.lidar_recorder is not None:
-            if self.config.get("record_lidar_continuously"):
-                self.lidar_recorder.start("between_trials")  # odometry across manual viewpoint changes
-            else:
-                self.lidar_recorder.stop()
+        if not keep_lidar:
+            self.finish_lidar_trial()
         trial.end(reason, now, predictions=list(trial.prediction_ids), marks=trial.marks,
                   notes=trial.notes, inflight_at_end=self.session.inflight is not None,
                   history_error=self.session.history_error,
