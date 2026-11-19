@@ -3,7 +3,7 @@
 from copy import deepcopy
 import math
 
-from .episode_policy import area_check, select_action
+from go2_perception.navigation import area_check, select_action
 from .motion_profile import LIMITS, PROFILE, TURN_DRIFT_M, Hold, wrap
 from .supervised import FRESHNESS_S, MODEL_REVISION, age_check, current_checks, validate_record
 

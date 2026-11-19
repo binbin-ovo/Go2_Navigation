@@ -3,35 +3,25 @@
 from copy import deepcopy
 import json
 from queue import Empty, Full
-import re
 import threading
-from types import SimpleNamespace
+
 
 from .episode_grounding import ground, object_reference, reference_matches_target, valid_roi
 from .episode_mock import EpisodeMockWorker
 from .episode_page import episode_page
 from .five_move import SCHEMA
 from .interactive_app import InteractiveApp
-from .interactive_trials import expand_target
+from go2_perception.navigation import target_spec
 from .shadow import write_json
 from .supervised import Hold, digest
-from .supervised_app import NavigationUI
+from .bound_proposal import BoundProposalUI
 
 
-def target_spec(text):
-    if not isinstance(text, str) or not text.strip() or text.strip().rstrip(".!").casefold() in ("go to", "go to the", "the"):
-        raise ValueError("Enter an object description")
-    noun = re.sub(r"^go\s+to\s+(?:the\s+)?", "", text.strip(), flags=re.I)
-    noun = re.sub(r"(?:\s+and\s+stop)?[.!]?$", "", noun, flags=re.I)
-    noun = re.sub(r"^the\s+", "", noun.strip(), flags=re.I)
-    return {**expand_target(noun), "entered_target_text": text}
-
-
-class EpisodeUI(NavigationUI):
+class EpisodeUI(BoundProposalUI):
     """Share archived image and proposal validation with the one-action application."""
 
     def __init__(self, app, cap, executor, live, nonce, settings, fixture):
-        super().__init__(app, SimpleNamespace(cap=cap, live=live), executor)
+        super().__init__(app, cap, live, executor)
         self.nonce, self.settings, self.fixture = nonce, settings, fixture
         self.episode = dict(
             schema=SCHEMA,
@@ -93,11 +83,11 @@ class EpisodeUI(NavigationUI):
             not latest
             or not guard
             or now - queued > 1.0
-            or not 0 <= now - guard["pose"]["monotonic_s"] <= self.cycle.cap["limits"]["state_age_s"]
+            or not 0 <= now - guard["pose"]["monotonic_s"] <= self.cap["limits"]["state_age_s"]
         ):
             raise Hold("current_camera_guard_and_fresh_authorization_required")
         epoch = latest[1]["clock_epoch"]
-        if self.cycle.live and (
+        if self.live and (
             guard.get("capture_clock_epoch") != epoch or not guard.get("capture_bound_basis")
         ):
             raise Hold("camera_epoch_or_bound_unverified")
@@ -121,7 +111,7 @@ class EpisodeUI(NavigationUI):
             operator=operator,
             clock_epoch=epoch,
             origin=guard["pose"],
-            capability_sha256=digest(self.cycle.cap),
+            capability_sha256=digest(self.cap),
             issued=now,
             deadline=now + self.settings["seconds"],
             area_inspected=True,
@@ -216,7 +206,7 @@ class EpisodeUI(NavigationUI):
             pred, path, context["history"][-1]["rectification"], self.grant["target"], self.ref, self.rejected
         )
         if (
-            not self.cycle.live
+            not self.live
             and self.grant["target"] == self.fixture["target"]
             and pred["mock"]
             and evidence["status"] == "needs_identification"
@@ -256,7 +246,7 @@ class EpisodeUI(NavigationUI):
                 if self.app.scene and self.episode["attempts"]:
                     self.app.scene.settled(self.episode["attempts"][-1]["direction"], result)
                 self.cleanup_uncertain = (
-                    self.cycle.live
+                    self.live
                     and result["started_monotonic_s"] is not None
                     and not all(
                         result.get(k) is True
@@ -267,7 +257,7 @@ class EpisodeUI(NavigationUI):
                 self.last_error = event["reason"]
                 self.waiting = False
         if self.executor.process.poll() is not None and self.episode["state"] != "TERMINAL":
-            self.cleanup_uncertain = self.cycle.live
+            self.cleanup_uncertain = self.live
             self.episode = dict(
                 self.episode,
                 state="TERMINAL",
@@ -351,7 +341,7 @@ class EpisodeApp(InteractiveApp):
         guard = (n.executor.latest_guards or {}).get("snapshot", {})
         bound = guard.get("capture_uncertainty_bound_s")
         stamp = meta["exposure_monotonic_s"]
-        if not n.cycle.live and s.replay_anchor:
+        if not n.live and s.replay_anchor:
             source, host, speed = s.replay_anchor
             stamp = host + (meta["observation_s"] - source) / speed
         return stamp is not None and bound is not None and stamp - bound > n.episode["after_monotonic_s"]
@@ -369,7 +359,7 @@ class EpisodeApp(InteractiveApp):
                 },
                 ui_error=n.last_error,
             ),
-            robot_commands_sent=n.command_sends if n.cycle.live else 0,
+            robot_commands_sent=n.command_sends if n.live else 0,
         )
 
     def end_trial(self, reason, now, *, review=True, keep_lidar=False):
@@ -384,7 +374,7 @@ class EpisodeApp(InteractiveApp):
 
     def step(self, now):
         n = self.navigation
-        if n.cycle.live and not n.grant and n.episode["state"] == "IDLE":
+        if n.live and not n.grant and n.episode["state"] == "IDLE":
             try:
                 delivery = self.camera.get_nowait()
             except Empty:
@@ -431,11 +421,11 @@ class EpisodeApp(InteractiveApp):
         return {
             "episode": n.episode,
             "robot_commands_sent": None
-            if n.cycle.live and n.cleanup_uncertain
+            if n.live and n.cleanup_uncertain
             else n.command_sends
-            if n.cycle.live
+            if n.live
             else 0,
-            "physical_execution_authorized": bool(n.cycle.live and n.grant),
+            "physical_execution_authorized": bool(n.live and n.grant),
         }
 
     def close(self, now):
@@ -444,7 +434,7 @@ class EpisodeApp(InteractiveApp):
         closed = n.executor.close()
         n.reconcile(self.monotonic())
         if not closed or n.episode["state"] != "TERMINAL":
-            n.cleanup_uncertain = n.cycle.live
+            n.cleanup_uncertain = n.live
             n.episode = dict(
                 n.episode,
                 state="TERMINAL",

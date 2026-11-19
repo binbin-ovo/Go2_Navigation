@@ -245,7 +245,7 @@ def test_archive_failure_remains_visible_when_last_request_ends(tmp_path):
 
 def test_latency_paths_import_no_robot_or_network_client():
     root = Path(__file__).resolve().parents[1]
-    files = [root / "scripts/profile_vln_latency.py", root / "src/go2_perception/vln/shadow_cache.py",
+    files = [root / "legacy/profile_vln_latency.py", root / "src/go2_perception/vln/shadow_cache.py",
              root / "src/go2_perception/vln/shadow_evidence.py"]
     forbidden = {"go2_control", "unitree_sdk2py", "cyclonedds", "socket", "rclpy"}
     for path in files:

@@ -570,7 +570,8 @@ def test_cli_trial_mark_end_review_and_reopen(tmp_path):
 
 def test_interactive_paths_have_no_control_route():
     paths = [*sorted((ROOT / "src/go2_perception/vln").glob("interactive_*.py")),
-             ROOT / "scripts/run_vln_interactive.py", ROOT / "scripts/go2_lidar_bridge.py",
+             ROOT / "src/go2_perception/vln/session_runner.py", ROOT / "src/go2_perception/vln/sensor_buffers.py",
+             ROOT / "src/go2_perception/sensors.py", ROOT / "scripts/run_vln_interactive.py", ROOT / "scripts/go2_lidar_bridge.py",
              ROOT / "scripts/synthetic_lidar_bridge.py", ROOT / "src/go2_perception/adapters/go2/receivers.py"]
     forbidden_imports = ("go2_control", "go2_hl_control", "rclpy", "unitree_sdk2py.go2", "cyclonedds")
     forbidden_names = {"UseRemoteCommandFromApi", "SportClient", "ObstaclesAvoidClient", "SwitchSet",

@@ -4,7 +4,7 @@ from pathlib import Path
 
 from .bounded_context import validate_context
 from .supervised import digest
-from .prediction_archive import file_hash, load, prediction, require
+from .prediction_archive import file_hash, iter_records, load, prediction, require
 
 
 def saved_input(session, prediction_id):
@@ -86,19 +86,11 @@ def saved_input(session, prediction_id):
 
 def episode_decisions(session):
     """Join each recorded observation, review, selected action and send result by ID."""
-    import json
-
-    def rows(path):
-        with path.open() as stream:
-            for line in stream:
-                if line.strip():
-                    yield json.loads(line)
-
     session = Path(session)
     summary = load(session / "episode_summary.json")
     episode = summary["episode_id"]
     decisions, actions = {}, {}
-    for event in rows(session / "executor/executor_events.jsonl"):
+    for event in iter_records(session / "executor/executor_events.jsonl"):
         if event.get("nonce") != episode:
             continue
         kind = event.get("type")
@@ -147,7 +139,7 @@ def episode_decisions(session):
                     "post_release_stationary",
                 )
             }
-    for event in rows(session / "events.jsonl"):
+    for event in iter_records(session / "events.jsonl"):
         if event.get("event") != "episode_instance_review":
             continue
         row = decisions.get(event["prediction_id"])

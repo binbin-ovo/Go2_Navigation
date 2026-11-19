@@ -137,14 +137,14 @@ def integrate(pose, packet, start_s, end_s):
     )
 
 
-def simulate(fixture, scenario, record, *, wall_clock=False, planner=None):
+def simulate(fixture, scenario, record, *, wall_clock=False, planner=None, should_stop=None):
     """With wall_clock, one background visual worker can block while the calling thread checks guards."""
     close = Event()
     if planner is not None and not wall_clock:
         raise ValueError("actual LightNav requires wall-clock simulation")
     with ThreadPoolExecutor(max_workers=1) if wall_clock and planner is None else nullcontext() as pool:
         try:
-            return _run(fixture, scenario, record, pool, close, planner)
+            return _run(fixture, scenario, record, pool, close, planner, should_stop)
         finally:
             close.set()
 
@@ -157,7 +157,7 @@ def _delayed_fixture(template, guard, image, sequence, delay, epoch, close):
     return result
 
 
-def _run(fixture, scenario, record, pool, close, planner):
+def _run(fixture, scenario, record, pool, close, planner, should_stop):
     if scenario not in SCENARIOS:
         raise ValueError("unknown scenario")
     cap = effective_mock_capability(deepcopy(fixture["capability"]))
@@ -260,7 +260,8 @@ def _run(fixture, scenario, record, pool, close, planner):
             if next_capture <= now:
                 next_capture = now + 0.25
         control_times.append(now)
-        cancel = scenario == "operator_cancel" and elapsed is not None and elapsed >= 0.09
+        cancel = (should_stop is not None and should_stop()) or (
+            scenario == "operator_cancel" and elapsed is not None and elapsed >= 0.09)
         packet = nav.tick(
             now, guard, delivery=delivery, cancel=cancel, worker_failed=worker_error is not None
         )

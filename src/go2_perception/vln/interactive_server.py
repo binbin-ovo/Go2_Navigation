@@ -20,7 +20,7 @@ from .interactive_page import PAGE
 ALLOWED_HOSTS = ("127.0.0.1", "localhost")
 
 
-def make_handler(app, token, monotonic=time.monotonic):
+def make_handler(app, token, monotonic=time.monotonic, application=None):
     class Handler(BaseHTTPRequestHandler):
         server_version = "Go2VLNReview/1"
 
@@ -51,7 +51,12 @@ def make_handler(app, token, monotonic=time.monotonic):
             now = monotonic()
             try:
                 if url.path == "/":
-                    return self._send(200, getattr(app, "page", PAGE).replace("__TOKEN__", token), "text/html; charset=utf-8")
+                    page = getattr(app, "page", PAGE)
+                    if application:
+                        page = application.page(page)
+                    return self._send(200, page.replace("__TOKEN__", token), "text/html; charset=utf-8")
+                if url.path == "/api/application" and application:
+                    return self._send(200, {"mode": application.name, "session": token})
                 if url.path == "/api/state":
                     return self._send(200, _finite(app.state(now)))
                 if hasattr(app, "continuous_sample"):
@@ -86,16 +91,26 @@ def make_handler(app, token, monotonic=time.monotonic):
             return self._send(404, {"error": "not found"})
 
         def do_POST(self):
-            if hasattr(app, "continuous_sample"):
+            if hasattr(app, "continuous_sample") and not (application and self.path == "/api/application"):
                 return self._send(405, {"error": "immutable trace review"})
             if not self._host_ok() or not secrets.compare_digest(self.headers.get("X-Review-Token", ""), token):
                 return self._send(403, {"error": "token and loopback host required"})
-            length = int(self.headers.get("Content-Length") or 0)
+            try:
+                length = int(self.headers.get("Content-Length") or 0)
+            except ValueError:
+                return self._send(400, {"error": "invalid content length"})
             if not 0 < length <= 4096:
                 return self._send(400, {"error": "small JSON body required"})
             try:
                 payload = json.loads(self.rfile.read(length))
                 now = monotonic()
+                if not isinstance(payload, dict):
+                    raise ValueError("JSON object required")
+                if self.path == "/api/application" and application:
+                    application.command(app, payload, now)
+                    return self._send(200, {"ok": True})
+                if application and application.changing.is_set():
+                    return self._send(409, {"error": "session closing"})
                 if self.path == "/api/viewing":
                     app.report_view(payload, now)
                     return self._send(200, {"ok": True})
@@ -129,9 +144,9 @@ def _finite(value):
 
 
 class DisplayServer:
-    def __init__(self, app, port=8765):
+    def __init__(self, app, port=8765, *, application=None):
         self.token = secrets.token_urlsafe(16)
-        self.httpd = ThreadingHTTPServer(("127.0.0.1", port), make_handler(app, self.token))
+        self.httpd = ThreadingHTTPServer(("127.0.0.1", port), make_handler(app, self.token, application=application))
         self.httpd.daemon_threads = True
         self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True, name="display-server")
 
@@ -143,6 +158,8 @@ class DisplayServer:
         self.thread.start()
 
     def close(self):
-        self.httpd.shutdown()
+        if self.thread.is_alive():
+            self.httpd.shutdown()
         self.httpd.server_close()
-        self.thread.join(timeout=2)
+        if self.thread.ident is not None:
+            self.thread.join(timeout=2)

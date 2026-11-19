@@ -3,7 +3,7 @@
 from copy import deepcopy
 import math
 
-from .episode_policy import area_check, bounded_number, select_action, supported_ground
+from go2_perception.navigation import area_check, bounded_number, select_action, supported_ground
 from .motion_profile import INSPECTED, PROFILE, Hold
 from .supervised import (
     FRESHNESS_S,

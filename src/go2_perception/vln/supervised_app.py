@@ -2,18 +2,19 @@
 from copy import deepcopy
 import hashlib
 import json
-from queue import Full, Queue
+from queue import Full
 import secrets
 import time
 
 import numpy as np
 
+from .bound_proposal import BoundProposalUI
 from .interactive_app import InteractiveApp
-from .interactive_page import PAGE
+from .interactive_page import viewer_page
 from .interactive_trials import expand_target
 from .shadow_sources import SyntheticSource
 from .shadow_worker import MockWorker
-from .supervised import Cycle, Hold, MODEL_REVISION, contract_version
+from .supervised import Cycle, Hold, contract_version
 from .supervised_target import correspondence
 
 
@@ -94,22 +95,19 @@ function panelNavigation(){const n=S.navigation||{},busy=['EXECUTING','STOPPING'
 
 
 def navigation_page():
-    page = PAGE.replace('<section id="test">', CONTROLS + '<section id="test">', 1)
-    page = page.replace('ADVISORY ONLY — NO ROBOT COMMANDS', 'SUPERVISED ONE-STEP SESSION — CHECK MODE')
-    page = page.replace('function drawPred(p,img){',
-                        'function drawPred(p,img){if(!S.prediction||p.prediction_id!==S.prediction.prediction_id)return;'
-                        'navPred=p.prediction_id;navROI=null;navImageReady=img&&p.source_image?p.source_image.file_sha256:null;')
-    page = page.replace('strip();panelTest();', 'strip();panelNavigation();')
-    return page.replace('poll();pollLidar();', JAVASCRIPT + '\npoll();pollLidar();')
+    return viewer_page(
+        controls=CONTROLS, script=JAVASCRIPT, banner="SUPERVISED ONE-STEP SESSION — CHECK MODE",
+        image_loaded="navPred=p.prediction_id;navROI=null;navImageReady=img&&p.source_image?p.source_image.file_sha256:null;",
+        update_controls="panelNavigation();",
+    )
 
 
-class NavigationUI:
+class NavigationUI(BoundProposalUI):
     def __init__(self, app, cycle, executor):
-        self.app, self.cycle, self.executor = app, cycle, executor
-        self.queue = Queue(maxsize=16)
+        super().__init__(app, cycle.cap, cycle.live, executor)
+        self.cycle = cycle
         self.expected_trial = None
         self.seen = set()
-        self.instruction_id = None
         self.preview_prediction = None
         self.preview_proposal = None
         self.review_path = None
@@ -156,53 +154,6 @@ class NavigationUI:
         # do not let a queued old frame become part of the fresh model request.
         while not self.app.tap.queue.empty():
             self.app.tap.queue.get_nowait()
-
-    def _identity(self, pred):
-        frame, image = pred["source_frame"], pred["source_image"]
-        observed = frame.get("exposure_monotonic_s")
-        if not self.cycle.live:
-            anchor = self.app.session.replay_anchor
-            if anchor is None:
-                raise Hold("synthetic_clock_mapping_unavailable")
-            observed = anchor[1] + (frame["observation_s"] - anchor[0])/anchor[2]
-        if observed is None:
-            raise Hold("capture_monotonic_mapping_unavailable")
-        guard = self.executor.guard_at(observed, self.cycle.cap["limits"]["state_age_s"])
-        if self.cycle.live and (guard.get("capture_clock_epoch") != frame["clock_epoch"] or
-                                not guard.get("capture_bound_basis")):
-            raise Hold("capture_age_bound_not_validated_for_this_camera_epoch")
-        return {"session_id": self.app.session.session_id, "trial_id": pred["trial_id"],
-                "instruction_id": self.instruction_id, "instruction": pred["instruction"],
-                "prediction_id": pred["prediction_id"], "observation_id": frame["frame_id"],
-                "clock_epoch": frame["clock_epoch"], "source_image_sha256": image["file_sha256"],
-                "observed_monotonic_s": observed, "received_monotonic_s": frame["received_monotonic_s"],
-                "uncertainty_bound_s": guard.get("capture_uncertainty_bound_s"),
-                "pose": guard["pose"], "geometry": guard["geometry"]}
-
-    def proposal(self, pred):
-        if not pred.get("source_image"):
-            raise Hold("archived_source_image_unavailable")
-        path = self.app.store.root / pred["source_image"]["path"]
-        if hashlib.sha256(path.read_bytes()).hexdigest() != pred["source_image"]["file_sha256"]:
-            raise Hold("source_image_changed")
-        if pred["waypoint_convention"] != "absolute_ego_SE2_x_forward_y_left_yaw_CCW_metres_radians":
-            raise Hold("unsupported_waypoint_convention")
-        if pred["rejection_reason_at_receipt"]:
-            raise Hold("model_result_rejected: " + pred["rejection_reason_at_receipt"])
-        if self.cycle.live:
-            identity_path = self.app.store.root / "session/worker/model.json"
-            identity = json.loads(identity_path.read_text())
-            # Keep source identity in archives; require the pinned checkpoint in its identity.
-            if identity.get("checkpoint") != MODEL_REVISION or identity.get("upstream_code") != "3015508b70fb6e30bbd66701e94c9b916dcb8df8" or not identity.get("processor"):
-                raise Hold("pinned_model_identity_not_verified")
-        revision = MODEL_REVISION if self.cycle.live else "synthetic"
-        proposal = {"identity": self._identity(pred), "native_output": pred["native_output"],
-                    "model_identity": {"checkpoint": "LightOriginsHQ/LightNav-0" if self.cycle.live else "synthetic-mock",
-                                       "revision": revision, "processor_revision": revision},
-                    "waypoints": pred["waypoints"], "native_stop": pred["native_stop"],
-                    "point_fraction": None if pred["target_fraction"] is None else list(pred["target_fraction"]),
-                    "synthetic": pred["mock"]}
-        return proposal, path
 
     def process(self, now):
         while not self.queue.empty():

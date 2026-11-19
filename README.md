@@ -1,13 +1,12 @@
-# Go2 Navigation
+# Go2 navigation
 
-Start with **[START_HERE.md](START_HERE.md)** to replay the real box example using local files. The [25-minute code walkthrough](docs/CODE_WALKTHROUGH.md) follows the operator's description from the camera and LightNav through target verification, action selection and recorded dispatch.
+Run the local website with `python app.py` in the shared core environment. It opens on observation with a synthetic camera, LiDAR and a mock predictor. The public files are `app.py` for startup, `sensors.py` for RGB/LiDAR/odometry, and `navigation.py` for target and movement decisions.
 
-| Question | Guide |
+**[Start here](START_HERE.md)** for the terminal commands and a 20-minute reading route. The same site supports recorded observation, a five-move mock episode and an experimental continuous chair simulation. The separate physical operator entry uses its existing authorization and audited executor.
+
+| Open | Purpose |
 |---|---|
-| Why did the robot appear to approach the wrong object? Did more detail help? | [Box grounding review and controlled prompt comparison](docs/TARGET_GROUNDING_REVIEW.md) |
-| Which checkout, interpreter and launch mode were used? | [Workspace and launch modes](docs/CODE_WALKTHROUGH.md#workspace-and-launch-modes) |
-| How do the physical and experimental navigation modes differ? | [One supervised action](docs/SUPERVISED_NAVIGATION.md) · [Bounded five-move episode](docs/FIVE_MOVE_NAVIGATION.md) · [Offline continuous experiment](docs/CONTINUOUS_NAVIGATION.md) |
-| Where are the research results, dependency setup and older perception pipelines? | [Project history, installation and layout](docs/PROJECT_HISTORY.md) · [Perception setup](docs/SETUP.md) · [Architecture](docs/ARCHITECTURE.md) |
-| Where should an engineer resume work? | [Project state](docs/PROJECT_STATE.md) · [Agent handoff](docs/AGENT_HANDOFF.md) |
-
-The physical box trial used the five-move baseline with a local boot-specific guard update. The viewer and diagnosis changes on this branch are available for offline review. The default start guide generates an immutable replay.
+| [Code walkthrough](docs/CODE_WALKTHROUGH.md) | Follow a target from the browser through the model, verifier, guards and executor. |
+| [Application verification](docs/APPLICATION_REFACTOR.md) | Before/after behavior, source counts, reproduction commands and hardware boundaries. |
+| [Source inventory](docs/CODE_INVENTORY.md) | Exact paths for current code, retained checks and historical experiments. |
+| [Agent handoff](docs/AGENT_HANDOFF.md) | Checkout ownership, physical evidence and remaining work. |

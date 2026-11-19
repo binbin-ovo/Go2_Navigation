@@ -1,6 +1,6 @@
 """Read and cross-check archived predictions without a model or hardware connection."""
 
-from hashlib import sha256
+from .episodes import file_sha256 as file_hash
 import json
 
 from .shadow_display import target_fraction
@@ -11,13 +11,15 @@ def load(path):
     return json.loads(path.read_bytes())
 
 
-def records(path):
+def iter_records(path):
     with path.open() as stream:
-        return [json.loads(line) for line in stream if line.strip()]
+        for line in stream:
+            if line.strip():
+                yield json.loads(line)
 
 
-def file_hash(path):
-    return sha256(path.read_bytes()).hexdigest()
+def records(path):
+    return list(iter_records(path))
 
 
 def require(condition, label):

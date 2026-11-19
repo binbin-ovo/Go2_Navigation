@@ -1,0 +1,85 @@
+{
+  "source_commit": "91e98390baea3ec535a538d1fa5f3edae7024ae4",
+  "fixture": "scripts/demo_vln_supervised_mock.py --five-move-episode",
+  "expected": {
+    "decisions": [
+      {
+        "instruction": "Go to the chair and stop.",
+        "current_bgr_sha256": "731c39d018a6859d7aca3a9dadd964424bc44d8f9cdb33ecb836420f96971d09",
+        "native_output": "<apos_1298><opos_0><act_l0_11><act_l1_29><act_l2_55>",
+        "native_stop": false,
+        "waypoints_sha256": "af31ac1e49b13bcc92bca122365d9fd0e769a04aa87bcc6362adc736eb6cc7cd",
+        "grounding": "absent",
+        "selection": [
+          "SEARCH",
+          "search_policy",
+          "left",
+          0.5235987755982988,
+          "rad"
+        ],
+        "cleanup": {
+          "status": "ended",
+          "observed_stationary": true,
+          "ownership_released": true,
+          "post_release_stationary": true
+        }
+      },
+      {
+        "instruction": "Go to the chair and stop.",
+        "current_bgr_sha256": "1a04dc5be5aab8babfd862378fa31403312ce061610ccf69be7c46d991279398",
+        "native_output": "<apos_1298><opos_637><act_l0_11><act_l1_29><act_l2_55>",
+        "native_stop": false,
+        "waypoints_sha256": "96258c66eb9497b59b1fed1a04f5156f30f0bd9f14f686b2737cbaac1452c704",
+        "grounding": "supported",
+        "selection": [
+          "APPROACH",
+          "approach_policy",
+          "left",
+          0.3490658503988659,
+          "rad"
+        ],
+        "cleanup": {
+          "status": "ended",
+          "observed_stationary": true,
+          "ownership_released": true,
+          "post_release_stationary": true
+        }
+      },
+      {
+        "instruction": "Go to the chair and stop.",
+        "current_bgr_sha256": "79b1e2be72b7ac85d32c1342cf88d209958ebd2cf6099c7023435dc4a4eb81f3",
+        "native_output": "<apos_1298><opos_645><act_l0_11><act_l1_29><act_l2_55>",
+        "native_stop": false,
+        "waypoints_sha256": "f03676dbb8b0c0c2530d96fd12e02609d4d6544da845c172471c6b90b521d856",
+        "grounding": "supported",
+        "selection": [
+          "APPROACH",
+          "approach_policy",
+          "forward",
+          0.3,
+          "m"
+        ],
+        "cleanup": {
+          "status": "completed",
+          "observed_stationary": true,
+          "ownership_released": true,
+          "post_release_stationary": true
+        }
+      },
+      {
+        "instruction": "Go to the chair and stop.",
+        "current_bgr_sha256": "6ba45ceaa3a04dd83467a14b45c4be9e69a290b7ecb229ffddd96b43caeb380f",
+        "native_output": "<apos_1298><opos_648><act_l0_11><act_l1_29><act_l2_55>",
+        "native_stop": true,
+        "waypoints_sha256": "8eb0c035c6cf5ae0fc72a4b28e3f6ae921a1d3395bde81d627ed4a8d05a2340b",
+        "grounding": "supported",
+        "selection": null,
+        "cleanup": null
+      }
+    ],
+    "moves": 3,
+    "outcome": "MODEL_STOPPED_ARRIVAL_UNVERIFIED",
+    "physical_commands": 0,
+    "physical_authorization": false
+  }
+}

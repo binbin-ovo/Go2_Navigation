@@ -1,4 +1,12 @@
-## Current review — object description, instance verification and dispatch
+# Current navigation application
+
+The application refactor on `codex/readable-navigation-app` is based on grounding review `91e9839`. The public launch command is `python app.py`. The core website supports observation, five-move mock navigation and continuous simulation. The separate operator procedure preserves the original live gates and command owner. Claude's operational checkout and the shared runtimes were left in place.
+
+Offline verification passed 558 core tests. Thirteen skipped there, including twelve native cases that passed separately in the model environment. The physical test remained disabled.
+
+The before/after synthetic episode matched on four current images, native results, verified grounding, three selected movements and cleanup. The closed Go2 trial matched on six recorded decisions. The virtual continuous control trace was byte-identical. These checks validate software behavior. Historical physical measurements and timing bounds retain their recorded boot and source. [Complete tests and source counts](APPLICATION_REFACTOR.md) · [Owner guide](../START_HERE.md) · [Engineering handoff](AGENT_HANDOFF.md)
+
+## Previous review — object description, instance verification and dispatch
 
 The active physical checkout ran the bounded five-move baseline with a boot-specific guard update. The latest closed wrong-box episode at `918f48c` identified zero targets and recorded two forward SEARCH movements. The fixed-checkpoint description comparison used three saved histories and 13 requests. Richer wording suppressed a hallway distractor and missed a visible edge target. The review branch adds an immutable replay, clearer viewer evidence and a source reading guide. Focused verification passed 217 tests. [Start here](../START_HERE.md) · [Evidence and results](TARGET_GROUNDING_REVIEW.md)
 

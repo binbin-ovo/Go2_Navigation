@@ -21,15 +21,15 @@ PAGE = (
 main{max-width:1200px}.controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap}input[type=range]{flex:1;min-width:140px}
 img{max-height:230px;object-fit:contain}h1{font-size:20px}.grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,455px),1fr))}
 #map{width:min(100%,392px);height:auto;margin:auto}#native svg{width:100%;height:245px}label{display:inline-flex;align-items:center;gap:6px}
-</style></head><body><main><h1>Continuous navigation review</h1>
+</style></head><body><main><!-- application modes --><h1>Continuous navigation review</h1>
 <section class="controls"><label>Run <select id="case"></select></label><label>Pass <select id="pass"></select></label>
 <label><input type="checkbox" id="follow">Follow latest</label><button id="prev">Previous event</button><button id="next">Next event</button>
 <label>Tick <input type="range" min="0" value="0" id="step"></label><output id="counter"></output></section>
-<p id="title"></p><div class="grid"><section><h2>Camera observation</h2><img class="cam" id="current" alt="Latest saved camera observation"><pre id="camstamp" class="meta"></pre></section>
+<p id="title"></p><p id="geometry"></p><div class="grid"><section><h2>Camera observation</h2><img class="cam" id="current" alt="Latest saved camera observation"><pre id="camstamp" class="meta"></pre></section>
 <section><h2>Incoming model proposal</h2><img class="cam" id="source" alt="Source image for latest delivered proposal"><pre class="meta" id="proposal"></pre></section>
 <section><h2>Native waypoints at capture</h2><div id="native"></div></section>
 <section><h2>Active segment and odometry</h2><canvas class="chart" id="map" width="480" height="300"></canvas>
-<p class="note">Gray shows the measured path. Orange shows the selected primitive. Blue shows the current heading. Axes are odometry metres.</p></section></div>
+<p class="note">Gray shows the measured path. Orange shows the selected primitive. Blue shows the current heading. The dashed green line shows observed forward clearance, capped at 1.6 m in this plot. Axes are odometry metres.</p></section></div>
 <section><h2>Controller</h2><pre class="meta" id="diag"></pre></section></main><script>
 const $=id=>document.getElementById(id), fmt=(x,n=3)=>x==null?'unknown':Number(x).toFixed(n);
 const entry=new URLSearchParams(location.search);let cases, events=[], request=0;
@@ -40,6 +40,9 @@ function map(d){const c=$('map'),g=c.getContext('2d');g.clearRect(0,0,c.width,c.
  function line(points,col,w){if(!points.length)return;g.strokeStyle=col;g.lineWidth=w;g.beginPath();points.forEach(([x,y],i)=>i?g.lineTo(X(x),Y(y)):g.moveTo(X(x),Y(y)));g.stroke()}
  function arrow(p,angle,l,col){line([[p.x_m,p.y_m],[p.x_m+l*Math.cos(angle),p.y_m+l*Math.sin(angle)]],col,3)}
  g.fillStyle='#666';g.fillText('+x →     +y ↑',10,17);line(d.path,'#888',2);
+ const geom=d.geometry;
+ if(d.pose&&geom?.available&&Number.isFinite(geom.forward_clear_m)){
+   g.setLineDash([4,4]);arrow(d.pose,d.pose.yaw_rad,Math.min(geom.forward_clear_m,1.6),'#398667');g.setLineDash([])}
  const a=d.packet.action,b=d.packet.source_pose;
  if(a&&b){if(a.type==='forward')arrow(b,b.yaw_rad,a.magnitude,'#cf720a');
  else{const sign=a.direction==='left'?1:-1;g.beginPath();g.strokeStyle='#cf720a';g.lineWidth=4;g.arc(X(b.x_m),Y(b.y_m),26,-b.yaw_rad,-(b.yaw_rad+sign*a.magnitude),sign>0);g.stroke();arrow(b,b.yaw_rad+sign*a.magnitude,.34,'#cf720a')}}
@@ -50,8 +53,11 @@ async function draw(){const seq=++request;const q=new URLSearchParams({case:$('c
  const p=d.packet,n=d.incoming;events=d.events;$('counter').textContent=(d.index+1)+' / '+d.count;$('step').max=d.count-1;$('step').value=d.index;
  $('title').textContent=d.case+' · '+d.pass+' · '+d.instruction;
  pic('current',d.camera);pic('source',d.model_image);$('camstamp').textContent=d.camera_id||'No saved view at this time';
- $('proposal').textContent=n? [n.id,'Source '+n.frame,(n.fixture_delay==null?'Worker '+fmt(n.latency):'Fixture delay '+fmt(n.fixture_delay))+' s · capture to result '+fmt(n.age)+' s',n.raw].join('\n'):'Awaiting first result';
+ $('proposal').textContent=n? [n.id,'Source '+n.frame,(n.fixture_delay==null?'Worker '+fmt(n.latency):'Fixture delay '+fmt(n.fixture_delay))+' s · capture to result '+fmt(n.age)+' s',n.raw,
+ 'Target point '+(n.point? n.point.map(x=>fmt(x)).join(', '):'absent or unavailable')+' · grounding '+(n.grounding||'unreviewed')].join('\n'):'Awaiting first result';
  $('native').innerHTML=d.native_svg;map(d);
+ const geom=d.geometry;
+ $('geometry').textContent=geom ? 'Geometry: '+geom.source+' · forward clearance '+fmt(geom.forward_clear_m)+' m · turn clearance '+fmt(geom.turn_clear_rad)+' rad' : 'Geometry unavailable at this tick';
  $('diag').textContent=[p.mode+' · '+(p.handover||'handover unrecorded')+' · '+p.reason+(d.stop_detail?' ('+d.stop_detail+')':''),'Active '+(p.prediction_id||'none')+' · outstanding '+(d.pending||'none'),
  'Velocity '+fmt(p.velocity[0])+' m/s · yaw '+fmt(p.velocity[1])+' rad/s',
  'Remaining '+fmt(p.remaining_path)+' '+(p.action?.unit||'')+' · to brake '+fmt(p.remaining_to_brake)+' · plan horizon '+fmt(p.plan_horizon_s)+' s',
@@ -162,12 +168,15 @@ class TraceIndex:
                 id=ident["prediction_id"],
                 frame=ident["observation_id"],
                 raw=p["native_output"],
+                point=p.get("point_fraction"),
+                grounding=(delivery.get("grounding") or {}).get("status"),
                 latency=delivery.get("inference_s"),
                 fixture_delay=delivery.get("fixture_delay_s"),
                 age=delivery["available_s"] - ident["observed_monotonic_s"],
             )
         )
         return dict(
+            geometry=(tick.get("guard") or {}).get("snapshot", {}).get("geometry"),
             stop_detail=missing_continuation(tick["packet"]["reason"], prior) if prior else None,
             index=index,
             count=len(self.steps[group]),

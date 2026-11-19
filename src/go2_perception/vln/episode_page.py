@@ -1,6 +1,6 @@
 """Add episode controls to the existing camera, native image, trajectory and LiDAR viewer."""
 
-from .interactive_page import PAGE
+from .interactive_page import viewer_page
 
 CONTROLS = """
 <style>#test{display:none!important}#episode button{margin:.2em}#estop{background:#97272f;color:white}
@@ -31,7 +31,7 @@ async function sendEpisode(action){const p={action,operator:$("eoperator").value
   target:$("eobject").value,area_inspected:$("earea").checked,exclusive_and_intervention_confirmed:$("esource").checked};
   if(["identify","reject","uncertain","goal"].includes(action)){if(!episodeImage)return;Object.assign(p,episodeImage,{roi:episodeROI})}
   const r=await fetch("/api/navigation",{method:"POST",headers:{"Content-Type":"application/json","X-Review-Token":TOKEN},body:JSON.stringify(p)});
-  if(!r.ok)$("estatus").textContent="Request rejected ("+r.status+")"}
+  if(!r.ok)$("estatus").textContent=(await r.json()).error || ("Request rejected ("+r.status+")")}
 for(const [id,act] of [["earm","authorize"],["estop","stop"],["eyes","identify"],["eno","reject"],["euncertain","uncertain"],["egoal","goal"]])
   $(id).onclick=()=>sendEpisode(act);
 function overlayEpisode(e){
@@ -84,21 +84,12 @@ function episodePanel(){
 
 
 def episode_page():
-    page = PAGE.replace('<section id="test">', CONTROLS + '<section id="test">', 1)
-    page = page.replace('<canvas id="pimg"', '<p id="groundStatus" role="status">Awaiting verification on this image</p><canvas id="pimg"', 1)
-    page = page.replace("ADVISORY ONLY — NO ROBOT COMMANDS", "SUPERVISED EPISODE · CHECK MODE")
-    page = page.replace(
-        "function drawPred(p,img){",
-        "function drawPred(p,img){if(!S.prediction||p.prediction_id!==S.prediction.prediction_id)return;"
-        "episodeROI=null;dragStart=null;episodeImage=img&&p.source_image?{prediction_id:p.prediction_id,image_sha256:p.source_image.file_sha256}:null;",
+    return viewer_page(
+        controls=CONTROLS, script=SCRIPT, banner="SUPERVISED EPISODE · CHECK MODE",
+        image_loaded=("episodeROI=null;dragStart=null;episodeImage=img&&p.source_image?"
+                      "{prediction_id:p.prediction_id,image_sha256:p.source_image.file_sha256}:null;"),
+        clear_image="episodeImage=episodeROI=dragStart=null;",
+        grounding='<p id="groundStatus" role="status">Awaiting verification on this image</p>',
+        update_controls="", after_panels="episodePanel();",
+        awaiting="Waiting for the first authorized episode observation.",
     )
-    page = page.replace("clearRect(0,0,cv.width,cv.height);shownPred=null;",
-                        "clearRect(0,0,cv.width,cv.height);episodeImage=episodeROI=dragStart=null;shownPred=null;")
-    page = page.replace("strip();panelTest();", "strip();").replace(
-        "if(Date.now()-lastReport", "episodePanel();if(Date.now()-lastReport"
-    )
-    page = page.replace(
-        "No model output yet. Use the Test box above.",
-        "Waiting for the first authorized episode observation.",
-    )
-    return page.replace("poll();pollLidar();", SCRIPT + "\npoll();pollLidar();")

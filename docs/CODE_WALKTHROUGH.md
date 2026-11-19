@@ -1,89 +1,92 @@
-# From a camera image to a Go2 decision
+# From the website to a movement
 
-One model answers a visual question and proposes a path. Separate Python code decides whether the named object has been identified, whether a movement would be useful, and whether the available sensors support it. The historical box episode used the bounded five-move controller. The continuous controller has only been exercised offline.
+The website starts in observation mode. Camera and LiDAR reception can proceed while the operator types. An instruction and a causal RGB history go to the model. Its answer is a target point or absence, ten local waypoints and a possible STOP. A supervisor decides what the evidence supports. An executor owns each dispatched movement.
+
+```mermaid
+flowchart TD
+  RGB[Camera bridge or recorded RGB] --> BUF[Bounded camera history]
+  RGB --> A[Panel A · latest camera]
+  L[LiDAR and odometry bridge] --> D[Panel D · scan and pose]
+  I[Operator instruction] --> M[LightNav worker or offline fixture]
+  BUF --> M
+  M --> P[Panels B and C · decision image, raw mark and native path]
+  P --> V[Current-image target verification]
+  V --> N[Navigation policy · HOLD, SEARCH, APPROACH or STOP]
+  L --> G[Fresh geometry and motion guards]
+  N --> E[Bounded executor]
+  G --> E
+  E --> R[Executed result, stationary check and release]
+  R --> BUF
+```
+
+The hardware diagram describes the supervised path. Observation mode ends at the proposal. The public five-move site substitutes the existing mock executor and sensor fixtures. Continuous mode runs its own expiring segments against a local kinematic proxy.
 
 ## From opening the website to physical movement
 
-This is the supervised **five-move LIVE** application used for the box trial. The launcher starts the backend on the Mac before the operator opens its local URL. The saved HTML replay lets you inspect the same stages using historical records.
-
-**While the page waits for a target, four things happen in parallel.**
-
-| What is running | What you see or what it does |
+| What happens | Where to read it |
 |---|---|
-| Go2 front camera | New images arrive on the Mac. **A · Live camera** shows the latest view. |
-| LiDAR and odometry | **D · LiDAR** updates the top-down scan. The controller receives obstacle clearance and an estimate of the robot's position and heading. |
-| LightNav worker | The pretrained model loads once and waits for an authorized instruction and camera history. Panels B and C have no target prediction yet. |
-| Website and movement controller | The form waits for the target and operator confirmation. The executor monitors robot state, including stillness and operator input. The robot stays still. |
+| Open the website | `app.main` starts a loopback session. Observe, five-move and continuous have separate entry functions. The server checks the host and per-session token. Switching mode closes existing sources, recorder and worker, then creates a new session and token on the same port. [Public launcher](../app.py) · [Mode transitions](../src/go2_perception/vln/web_modes.py) |
+| Receive camera, LiDAR and pose while waiting | `open_sensors` builds a pair of read-only sources. The live camera child receives RTP/H.264. The live LiDAR child subscribes to the incremental cloud and odometry. Camera display and LiDAR recording have bounded queues. The executor separately obtains its own guard snapshots. [Sensor API](../sensors.py) · [Camera bridge](../scripts/go2_camera_bridge.py) · [LiDAR bridge](../scripts/go2_lidar_bridge.py) |
+| Submit a target | `target_spec` preserves the original text and normalizes the requested object into “Go to the … and stop.” In a five-move episode `EpisodeUI.authorize` binds one area, budget, operator, clock epoch and target. A new decision needs a fresh image. [Target handling](../navigation.py) · [Episode UI](../src/go2_perception/vln/episode_app.py) |
+| Get a raw prediction | For a real LightNav job the measured intrinsics rectify the fisheye image. The bounded episode retains the first two and latest six distinct causal frames on the 4 Hz grid. The observation-only worker uses its existing full-history policy. The isolated model process produces the point and the path in one request. The archived image in panel B may be older than panel A. [History selection](../src/go2_perception/vln/bounded_context.py) · [Native inference](../scripts/lightnav_worker.py) |
+| Check which object was marked | `BoundProposalUI.proposal` verifies the model, frame hash, time, pose and coordinate convention. `ground` binds the current target point to an identified or rejected instance. The feature matcher checks reappearance of a named instance, with a region and image evidence. A new mark can require an operator decision. [Proposal binding](../src/go2_perception/vln/bound_proposal.py) · [Instance matching](../src/go2_perception/vln/episode_grounding.py) |
+| Select a movement | `select_action` first checks grounding. An unsupported target can cause a hold or a bounded SEARCH movement to obtain a new view. A supported target can permit APPROACH. Direction, distance or turn angle, clearance, inspected area, pose and remaining budget constrain the choice. Native STOP ends the model episode with arrival unverified. [Public decision policy](../navigation.py) |
+| Execute and observe again | `EpisodeExecutor.dispatch` binds a selected primitive to a particular decision. In the separate hardware operator application, `HardwareMotion` uses the canonical controller's high-level route. It checks motion, braking, stillness and release. A new five-move decision follows settling and fresh observation. An executor result records what occurred. [Five-move executor](../src/go2_perception/vln/five_move.py) · [Independent motion owner](../src/go2_perception/vln/supervised_executor.py) |
 
-**After you enter “box”, follow one decision.**
+### A real wrong-box example
 
-1. **Authorize.** Typing fills the form. Selecting **Authorize episode**, with the operator confirmations, starts one bounded episode. It records “Go to the box and stop.” and waits for a fresh camera image. [Form handling and request timing](../src/go2_perception/vln/episode_app.py)
-2. **Predict.** The Mac corrects lens distortion and selects up to eight camera frames from this episode. LightNav uses those images and the instruction to predict a target mark or absence, a short path of ten positions and headings, and a possible STOP. One inference produces these outputs. Panel B uses the exact decision image. Panel A keeps updating while inference runs. [Camera history](../src/go2_perception/vln/bounded_context.py) · [Model inference](../scripts/lightnav_worker.py)
-3. **Decide.** A new mark can put the robot on **HOLD** while the operator identifies or rejects it. A current match to the named reference permits **APPROACH**. An absent or uncertain target can lead to **SEARCH** for another view. Python selects at most one short turn or forward step. Freshness, LiDAR clearance, odometry, operator input and remaining budget can veto it. A model STOP can end the episode with arrival still unverified. [Target check](../src/go2_perception/vln/episode_grounding.py) · [Action selection](../src/go2_perception/vln/episode_policy.py)
-4. **Move, stop, observe again.** For an approved step, the executor uses the canonical controller to send body-speed commands. The Go2's onboard controller drives the legs. Camera, LiDAR and odometry continue updating. The executor monitors progress and clearance, sends zero velocity, verifies stillness and releases command control. A new model decision requires a fresh view taken after settling. The episode ends at a stop, intervention, blocking condition, or its movement/time limit. [Dispatch](../src/go2_perception/vln/five_move.py) · [Velocity and stopping feedback](../src/go2_perception/vln/supervised_executor.py)
+In the November 19 closed box session, P002 put the raw point on an object in the hallway. The intended box was partly visible at the right edge. The operator rejected P002 and the executor dispatched nothing for it. On a new image, P003 still lacked supported box identity and selected a 0.30 m forward SEARCH step. The episode recorded two SEARCH dispatches, no supported approach, and a deadline. Neither their feedback distances nor the controller's stop report independently measure the physical distance traveled. A richer description reaches LightNav intact, but color, material and category have no independent detector in the active target gate. [Trace and prompt comparisons](TARGET_GROUNDING_REVIEW.md)
 
-**Follow the first real movement.** On November 19, the site began serving at **12:02:58** New York time and the model was ready at **12:03:53**. The operator submitted the box episode at **12:08:17**. At **12:08:23**, prediction P002 marked the wrong object. The robot waited. At **12:08:33**, the operator rejected that mark. A fresh prediction, P003, still lacked a verified box. At **12:08:36**, its SEARCH action issued the first velocity command for a 0.30 m forward step. The first zero-speed command followed at **12:08:36.633**. The executor completed its stop and release checks at **12:08:41**. The recorded settled estimate was 0.340 m. In the [offline replay](../START_HERE.md), open P002 and P003 in that order to see the difference between a displayed proposal and a dispatched movement.
+## Choose inputs
 
-## A 25-minute reading route
-
-| Minutes | Read in this order | Follow one input through to its output |
-|---|---|---|
-| 0–4 | [EpisodeUI.authorize and target_spec](../src/go2_perception/vln/episode_app.py) | A person enters an object description. The episode strips the optional “Go to the … and stop” wrapper, keeps the descriptive words, and records the instruction before inference. “brown cardboard box on the floor” becomes “Go to the brown cardboard box on the floor and stop.” New archives also keep the original text field. |
-| 4–8 | [frame_observation](../src/go2_perception/vln/shadow_live.py), [PreparedFrameCache.prepare](../src/go2_perception/vln/shadow_cache.py), [select_context and sample_factory](../src/go2_perception/vln/bounded_context.py) | Timestamped distorted RGB plus measured camera intrinsics produce a rectified frame. The history policy samples a causal 4 Hz grid and keeps the first two and latest six distinct frames. For P002 these are indices 0, 1, 10–15. A frame arriving later cannot change that saved decision. |
-| 8–12 | [run_job](../scripts/lightnav_worker.py), [target_fraction](../src/go2_perception/vln/shadow_display.py), [prediction_source_image](../src/go2_perception/vln/interactive_app.py) | LightNav uses the instruction and RGB history. Its trained weights predict a target grid cell and trajectory codes. The native decoder yields ten positions and headings in one decision frame. The on-screen mark for OPOS 698 is at (238, 137.48) on the actual 448 × 256 image, with the origin at top left. OPOS 0 means the model reports absence. |
-| 12–16 | [ground, object_reference and locate](../src/go2_perception/vln/episode_grounding.py) | An image-bound human identification or a pre-named reference photo supplies features inside a rectangle. The grayscale ORB matcher tests whether enough of those features reappear around the new model point. A rejected instance and an identified instance have different roles. A reference named “box” cannot authorize “large brown box.” |
-| 16–21 | [supported_ground and select_action](../src/go2_perception/vln/episode_policy.py), [EpisodeExecutor.observe and dispatch](../src/go2_perception/vln/five_move.py) | Python checks the image, target, pose, freshness, clearance and budget. An unverified mark can pause for identification. SEARCH may turn or take a bounded step for another view. APPROACH needs a currently supported instance. P003 produced a 0.30 m SEARCH step. A native STOP ends the episode with arrival unverified. |
-| 21–25 | [Guards.snapshot and forward_clearance](../hardware/supervised_guards.py), [HardwareMotion](../src/go2_perception/vln/supervised_executor.py), [offline evidence reader](../src/go2_perception/vln/grounding_review.py) | LiDAR floor/obstacle returns and odometry constrain the next step and monitor progress while moving. Only the supervised executor can dispatch via its canonical command owner. For a replay, join the immutable observation, dispatch ticket and result by prediction and request ID. A send return, an odometry estimate, and an independent tape measurement answer different questions. |
-
-### Read the box episode
-
-Use the [offline replay command](../START_HERE.md). The HTML opens P002 and includes the original native PNG, all selected historical model frames, decoded coordinates and headings, the exact tokenized prompt as text, and per-prediction reviews and dispatch. The companion `trace.json` lists paths, hashes, timestamps and send returns. The files are written in a fresh `runs/target_grounding/trace-*` directory.
-
-| Saved decision | What it shows |
-|---|---|
-| P001 | LightNav reported absence. The executor recorded `stale_or_future_observation` and held. |
-| P002 | The stored request was “box”. OPOS 698 points into the hallway; the visible box is at the far right. The ten-point path ends about 1.507 m ahead in local model coordinates. The executor requested identification. The archived operator-role review rejected the marked instance. No movement was dispatched for P002. |
-| P003 | The same mark reappeared on a fresh image. Its features matched the previously rejected instance. The controller chose SEARCH. It requested 0.30 m forward and recorded 11 movement sends and a settled estimate of 0.340 m. |
-| P004 and P005 | P004 marked another hallway location and was rejected. P005 remained uncertain after that review. A second 0.30 m SEARCH step produced 12 movement sends and a 0.317 m settled estimate. |
-| P006 | The next mark still needed identification. The 60 s deadline ended the episode with two of five slots used and zero supported target approaches. |
-
-The two dispatch snapshots recorded zero turn clearance and forward clearance of 1.8 m and 2.0 m. Both moves reported stationary, released ownership and post-release stillness. The initial `run.json` describes startup. The final `summary.json` and executor results record 23 movement sends. Neither send counts nor settled estimates establish an independently measured travel distance. [Grounding evidence and limitations](TARGET_GROUNDING_REVIEW.md)
-
-### What the object description enforces
-
-The words *brown*, *cardboard*, *large*, *on the floor* and *near the refrigerator* go into the model prompt. The current pipeline has no independent category, color, material, physical-size or landmark-relation measurement for that point. LiDAR checks the traversable corridor. It does not establish that a particular marked pixel belongs to a box.
-
-The reference check asks whether the **same named instance** was re-identified on the current image. A human can drag a tight region around the proposed point and choose **This is the requested target**, **This is a different object**, or **Unsure · seek another view**. Identify and Reject need a region containing the point. Unsure uses the image alone. A pre-identified local photo uses `--target-reference FILE --reference-target "brown cardboard box" --reference-roi X0 Y0 X1 Y1` on the supervised application. Coordinates are fractions of that photo. Match the full description, or identify the instance again under its new name. A plain cardboard face may have too few distinctive features. A printed face can help re-identification. Match counts describe texture correspondences and confer no semantic confidence. [Reference matcher](../src/go2_perception/vln/episode_grounding.py)
-
-## Workspace and launch modes
-
-On November 19 the workspace root was `/Users/yushan/Robotics/Go2`. The three Git worktrees share the repository in `code/navigation/.git`.
-
-| Location | Contents at inspection |
-|---|---|
-| `code/navigation` | Claude's active `hardware/five-move-validation` at `918f48c7880d1ade20034a1ab37664fd3fa2188e`. Two local edits, `hardware/supervised_guards.py` and `tests/test_motion_diagnostics.py`, carry the boot-specific 0.140 s guard change. The recorded provider hash matches the active file. |
-| `code/control` | Clean canonical controller `feature/go2-high-level-control-audit` at `6d555d31c6eaa4ee194920925ab96238bf15b128`. Its command lock location is `data/outputs/go2_control/.command.lock` under this checkout. Controller logs here are private. |
-| `code/worktrees/codex-motion-diagnostics` | Review branch `feature/vln-target-grounding-review`, based on saved continuous publication `ebefe9d25c820765d66a363d3d30a17368b3b5d6`. Read the guide and run the offline tools here. |
-| `runs` and `recordings/desktop_worktrees` | Current closed sessions, comparisons and earlier preserved recordings. The demonstrated session is in `runs/five_move/trial-THKUcr/session`. |
-| `evidence`, `weights/lightnav`, `sdk`, `envs` | Per-boot timing/capability records, pinned LightNav weights and source, Unitree SDK `814556d`, and separate core 3.12.11, hardware 3.10.17 and model 3.11.13 interpreters. |
-
-Before this review the workspace root README led with a motion-capable launcher and the repository README opened with the experimental controller. The root now points to the version-controlled start guide. The repository README links the walkthrough and a [historical phase index](PROJECT_HISTORY.md). All three worktrees had a distinct purpose. The controller has unique ignored logs, the active checkout has unpublished edits and installed-package metadata, and the recording archive contains unique preserved data. No directory needed retirement.
-
-Use these environment settings for offline commands, including after opening a new terminal.
+Use the core interpreter in the development checkout. `app.py` pins local source before importing the shared environment's editable package. For older operator or developer scripts also set `PYTHONPATH`.
 
 ```bash
 export GO2_WORKSPACE=/Users/yushan/Robotics/Go2
 cd "$GO2_WORKSPACE/code/worktrees/codex-motion-diagnostics"
-export PYTHONPATH="$PWD/src:$PWD/scripts:$PWD/hardware" GO2_HARDWARE=0 GO2_SUPERVISED_LIVE=0
-py="$GO2_WORKSPACE/envs/core/bin/python"
+source "$GO2_WORKSPACE/envs/core/bin/activate"
+export GO2_HARDWARE=0 GO2_SUPERVISED_LIVE=0
+export PYTHONPATH="$PWD/src:$PWD/scripts:$PWD/hardware"
+python app.py --source replay --episode tests/fixtures/vln/episode_v1/episode.json --port 0
 ```
 
-| Mode | Entry point and effect |
-|---|---|
-| Offline immutable replay | The [start guide](../START_HERE.md) generates a private HTML/JSON report. It reads the originals and starts neither sensors nor inference. |
-| Interactive read-only advisory | `"$py" scripts/run_vln_interactive.py --review-run "$GO2_WORKSPACE/runs/five_move/trial-THKUcr/session" --port 0` opens a loopback viewer. Its legacy annotation workflow can append review events, refresh a contact sheet and save corrections. Use the immutable replay to preserve source bytes. The advisory application has no command client. |
-| Experimental continuous controller | `"$py" scripts/run_vln_continuous.py simulate --scenario visible_after_search` exercises a local simulated camera and motion proxy. Separate opt-in model inference is documented in the [continuous guide](CONTINUOUS_NAVIGATION.md). |
-| Single supervised action, **motion-capable** | From `$GO2_WORKSPACE/code/navigation`, `GO2_SUPERVISED_LIVE=1 bash scripts/launch_effective_trial.sh --live-exclusive sensor_only`. One review and fresh authorization can issue one guarded primitive. [One-action operator guide](SUPERVISED_NAVIGATION.md) |
-| Bounded five-move episode, **motion-capable** | From the same active checkout, `GO2_SUPERVISED_LIVE=1 bash scripts/launch_five_move_episode.sh --live-exclusive --move-budget 5 --episode-seconds 60 --area-radius-m 3 --alignment-deg 15` matches the archived settings. This instance used one grant and the physical executor. Use the [operator procedure](FIVE_MOVE_NAVIGATION.md) for any separately scheduled trial. |
+`--lidar-recording DIR` adds an independently paced `go2-recording-v1` LiDAR source to replay. Use matched recordings when interpreting the two displays. Without LiDAR, the geometry is unknown. `--model lightnav` selects the pinned worker in `envs/model` with local assets under `weights/lightnav`. Its input must meet the existing observation/calibration contract. `--source live` explicitly selects the read-only hardware reception children for observation. The public five-move mode always uses synthetic sources and its mock executor. The public continuous mode always uses the fixed chair fixture. Choosing a different target for real model inference belongs to observation or the authorized supervised application.
 
-The live invocations above were checked against the launcher source and the saved manifest. This review ran only offline commands. The archived arguments establish the five-move application and launch profile. Shell command history was not preserved with the trial.
+`Sensors.latest_frame()` returns an independent RGB array and metadata including frame ID, source/robot stamps where present, host receipt and available exposure estimate. `latest_cloud()` returns an independent XYZ array in metres with frame ID, scan stamp, midpoint, scan span, host monotonic receipt and robot epoch. Both return `None` before data arrives. `pose()` reports validity and a reason when unavailable. Check `status()` for host ages, source errors and drop counters. The LiDAR display downsamples the scan and can show odometry-compensated 0.5 s and 1.0 s windows. Camera optical coordinates and LiDAR/body coordinates remain separate. Full measured `T_base_camera` is unavailable.
+
+## Change a setting
+
+| Setting | Owner and consequence |
+|---|---|
+| Worker and model identity | `--model` and `--device` in [app.py](../app.py). [Pinned runtime configuration](../configs/pretrained_vln.yaml) and [native worker](../scripts/lightnav_worker.py) identify the checkpoint, preprocessing and decoder. Changing the model would require a new identity and compatibility review. |
+| Requested description and instance evidence | [navigation.target_spec](../navigation.py) and [episode_grounding.ground](../src/go2_perception/vln/episode_grounding.py). Identification is tied to the specific image and full requested description. |
+| Episode alignment and budget | `DEFAULT_ALIGNMENT_DEG` is 15 with the existing 3° hysteresis. The published supervised CLI accepts `--alignment-deg`, `--move-budget`, `--episode-seconds` and `--area-radius-m`. The executor separately enforces the supported ranges. [Policy defaults](../navigation.py) · [Supervised arguments](../src/go2_perception/vln/supervised_launch.py) |
+| Speeds, stop lead and clearances | [motion_profile.py](../src/go2_perception/vln/motion_profile.py) and the hash-pinned [guard provider](../hardware/supervised_guards.py). The effective forward rate is 1.0 m/s and the turn rate is 2.0 rad/s on separate primitives. Revalidating measured limits belongs to the hardware owner. |
+| Camera, LiDAR and odometry | [SensorSettings](../sensors.py) contains the named source and buffering defaults. [Measured camera intrinsics](../configs/go2_front_camera_calibration.yaml) and [sensor timing configuration](../configs/go2_vln_sensors.yaml) are separate from the executor's boot-specific guard evidence. |
+
+## Test one component
+
+Run these from the environment above. Each command below runs offline.
+
+```bash
+python -m pytest -q tests/test_application.py -k sensor
+python -m pytest -q tests/test_five_move_navigation.py
+python -m pytest -q tests/test_application.py -k website
+python -m pytest -q tests/test_application.py -k matches_publication
+python -m pytest -q tests/test_go2_replay.py tests/test_target_grounding_review.py
+python -m pytest -q -rs
+```
+
+For the local real-image account, this generates a fresh private HTML/JSON report and validates source identity through operator review and executor dispatch.
+
+```bash
+python scripts/review_target_grounding.py \
+  --session "$GO2_WORKSPACE/runs/five_move/trial-THKUcr/session" \
+  --prediction T20261119-120816-01-3a48-P002
+```
+
+## Workspace and launch modes
+
+`code/worktrees/codex-motion-diagnostics` hosts this application. `code/navigation` is Claude's physical-test checkout on `hardware/five-move-validation`. `code/control` is the separate audited controller at `6d555d3`, with its single `data/outputs/go2_control/.command.lock`. The SDK checkout is `814556d`. `envs/core`, `envs/model` and `envs/hw` serve separate interpreters. Shared weights, input recordings, run logs and calibration evidence live outside the development checkout. `python app.py supervised --help` describes the separate five-move operator procedure. `--prepare-only` reads pinned local evidence and exits. `--live-exclusive` requires the existing process opt-in and a separate fresh browser episode authorization. The [five-move](FIVE_MOVE_NAVIGATION.md) and [one-action](SUPERVISED_NAVIGATION.md) operator procedures describe the separately authorized hardware applications. The [continuous guide](CONTINUOUS_NAVIGATION.md) records fixture and model timing limitations.
+
+For historical phase commands use the pinned research tree listed in the [source inventory](CODE_INVENTORY.md). The [verification record](APPLICATION_REFACTOR.md) documents what was actually compared.

@@ -1,8 +1,16 @@
-# Go2 supervised navigation handoff
+# Go2 navigation handoff
 
-## Current handoff — grounding diagnosis and offline review
+## Current application handoff
 
-Begin with [START_HERE](../START_HERE.md), the [25-minute source guide](CODE_WALKTHROUGH.md) and the [box evidence report](TARGET_GROUNDING_REVIEW.md). Review branch `feature/vln-target-grounding-review` builds on continuous publication `ebefe9d25c820765d66a363d3d30a17368b3b5d6`. Claude's checkout remains on `hardware/five-move-validation` at `918f48c` with its private boot-specific guard and corresponding test edits. The controller is `6d555d3`. The midday box episode used a measured 0.140 s boot-specific bound. The 0.159 s value in the earlier handoff describes a different boot.
+Open the workspace's `START_HERE.md`. The development checkout is `code/worktrees/codex-motion-diagnostics` on `codex/readable-navigation-app`, based on `91e98390baea3ec535a538d1fa5f3edae7024ae4`. From this checkout, activate `envs/core` and run `python app.py`. Camera and LiDAR, the browser, learned inference and command cadence keep their independent scheduling boundaries. The website starts in observation. Its five-move executor is synthetic and its continuous chair simulation is offline. The hardware operator procedure remains a separate explicit invocation.
+
+Offline verification passed 558 core tests. Thirteen skipped there, including twelve native cases that passed separately in the model environment. The physical test remained disabled.
+
+The public modules, settings and before/after behavior checks are documented in the [owner guide](../START_HERE.md), [20-minute walkthrough](CODE_WALKTHROUGH.md) and [verification record](APPLICATION_REFACTOR.md). Keep `code/navigation` on Claude's hardware branch and `code/control` at its canonical revision. For a future physical review, compare Claude's guard and regression changes for the current robot boot before any integration. The refactor has only been exercised offline. The [source inventory](CODE_INVENTORY.md) identifies old scripts that moved and the archive commit required for earlier experiments.
+
+## Previous handoff — grounding diagnosis and offline review
+
+Begin with [START_HERE](../START_HERE.md), the [original source guide](https://github.com/binbin-ovo/Go2_Navigation/blob/91e98390baea3ec535a538d1fa5f3edae7024ae4/docs/CODE_WALKTHROUGH.md) and the [box evidence report](TARGET_GROUNDING_REVIEW.md). Review branch `feature/vln-target-grounding-review` builds on continuous publication `ebefe9d25c820765d66a363d3d30a17368b3b5d6`. Claude's checkout remains on `hardware/five-move-validation` at `918f48c` with its private boot-specific guard and corresponding test edits. The controller is `6d555d3`. The midday box episode used a measured 0.140 s boot-specific bound. The 0.159 s value in the earlier handoff describes a different boot.
 
 The closed `trial-THKUcr` run contains two operator-role rejections, two dispatched SEARCH steps, zero supported approaches, and an episode deadline. P002 was the wrong hallway mark on the exact model frame. On three saved histories, four descriptions and one repeat produced 13 decoded offline outputs. Extra detail suppressed a distractor but missed the edge box. The source-verified trace, side-by-side panels and exact replay commands are in the evidence report. New archives retain the originally entered text. The distinction between raw model marks, matched references, search and approach now appears in the viewer.
 

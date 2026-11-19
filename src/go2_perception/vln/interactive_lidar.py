@@ -600,6 +600,16 @@ class LidarSource:
             "recording": None if self.recorder is None else self.recorder.status(),
         }
 
+    def latest_cloud(self):
+        with self.lock:
+            scan = self.state.latest
+            if scan is None:
+                return None
+            xyz = scan["xyz"]
+            meta = {key: scan[key] for key in ("frame_id", "seq", "stamp", "t_mid", "time_span_s", "host_mono")}
+            meta["robot_epoch"] = self.state.epoch_label()
+        return xyz.copy(), meta
+
     def view(self, name):
         with self.lock:
             return self.views.get(name)

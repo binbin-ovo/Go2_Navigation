@@ -29,10 +29,11 @@ import cv2
 import numpy as np
 from PIL import Image, ImageDraw
 
+from .prediction_archive import records
 from .shadow_display import panel_text
 
-TARGET_TEMPLATE_ID = "target_go_to_and_stop_v1"
-TARGET_TEMPLATE = "Go to the {target} and stop."
+from go2_perception.navigation import as_instruction, expand_target, TARGET_TEMPLATE, TARGET_TEMPLATE_ID
+
 REVIEW_SCHEMA = "go2-vln-human-review-v1"
 CHOICES = {
     "target_presence": ("present", "absent", "uncertain"),
@@ -44,23 +45,6 @@ CHOICES = {
 
 def utc_now():
     return datetime.now(timezone.utc).isoformat(timespec="milliseconds")
-
-
-def expand_target(text):
-    """Documented template expansion; the operator's words stay a request, not a label."""
-    target = " ".join(str(text).split())
-    if not target or len(target) > 200:
-        raise ValueError("Target text must be 1..200 characters")
-    return {"kind": "target", "template_id": TARGET_TEMPLATE_ID, "template": TARGET_TEMPLATE,
-            "operator_text": target, "instruction": TARGET_TEMPLATE.format(target=target)}
-
-
-def as_instruction(text):
-    instruction = " ".join(str(text).split())
-    if not instruction or len(instruction) > 4096:
-        raise ValueError("Instruction must be 1..4096 characters")
-    return {"kind": "instruction", "template_id": None, "template": None,
-            "operator_text": instruction, "instruction": instruction}
 
 
 def pixel_sha256(image):
@@ -80,7 +64,7 @@ def read_jsonl(path):
     path = Path(path)
     if not path.exists():
         return []
-    return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+    return records(path)
 
 
 def write_new_json(path, data):

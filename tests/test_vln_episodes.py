@@ -46,7 +46,7 @@ def test_fixture_is_deterministic(tmp_path):
     generator = runpy.run_path(
         str(
             Path(__file__).resolve().parents[1]
-            / "scripts/generate_vln_episode_fixture.py"
+            / "legacy/generate_vln_episode_fixture.py"
         )
     )
     generator["generate"](tmp_path / "fresh")

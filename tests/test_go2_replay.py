@@ -48,7 +48,7 @@ def test_recorded_real_cloud_replays_through_cli(tmp_path, window_s):
     subprocess.run(
         [
             sys.executable,
-            "scripts/go2_replay.py",
+            "legacy/go2_replay.py",
             "--recording",
             str(recording),
             "--output",

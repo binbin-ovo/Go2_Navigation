@@ -1,0 +1,40 @@
+<section aria-label="Application mode" class="modebar">
+<style>.modebar{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;margin-bottom:.8rem}
+.modebar label{font-weight:600}.modebar select{font:inherit;padding:.3rem}.modebar button{padding:.4rem .7rem}
+.modebar [data-stop]{color:#aa2330}.modebar output{flex-basis:100%}.modebar output:empty{display:none}</style>
+<label>Mode <select id="appmode">__OPTIONS__</select></label>
+<button type="button" id="appswitch">Open mode</button><button type="button" data-stop id="appstop">Stop current operation</button>
+<span class="note">__SOURCE__</span>
+<output role="status" id="appmessage"></output></section>
+<script>
+(() => {
+  const el = id => document.getElementById(id);
+  const token = "__TOKEN__";
+  async function send(action) {
+    const message = el("appmessage");
+    try {
+      const response = await fetch("/api/application", { method:"POST",
+        headers:{"Content-Type":"application/json","X-Review-Token":token},
+        body:JSON.stringify({action,mode:el("appmode").value}) });
+      const result = await response.json();
+      if (!response.ok) throw Error(result.error);
+      if (action === "stop") {
+        message.textContent = "Stop requested. The current operation reports its outcome below.";
+        return;
+      }
+      el("appswitch").disabled = true;
+      message.textContent = "Closing this session and opening the selected mode…";
+      for (let i=0; i<360; i++) {
+        await new Promise(resolve => setTimeout(resolve, 350));
+        try {
+          const status = await (await fetch("/api/application", {cache:"no-store"})).json();
+          if (status.session !== token) { location.reload(); return; }
+        } catch (_) { /* the previous listener closes before the next opens */ }
+      }
+      throw Error("New session is unavailable. See the application terminal for the startup error.");
+    } catch (error) { message.textContent = error.message; el("appswitch").disabled=false; }
+  }
+  el("appswitch").onclick=()=>send("switch");
+  el("appstop").onclick=()=>send("stop");
+})();
+</script>

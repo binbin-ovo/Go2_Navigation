@@ -90,7 +90,7 @@ def test_model_and_simulator_have_no_robot_transport_imports():
 
     for relative in (
         "scripts/lightnav_worker.py",
-        "scripts/run_vln_simulation.py",
+        "legacy/run_vln_simulation.py",
         "src/go2_perception/vln/simulation.py",
     ):
         tree = ast.parse((ROOT / relative).read_text())
