@@ -56,6 +56,18 @@ logged cause. The runtime was then migrated to `~/Robotics/Go2`, re-verified
 read-only state/LiDAR/camera), and the forward trial is ready to repeat unchanged.
 Operator note: the viewer checklist must be ticked on the checkbox itself.
 
+**2026-11-19 forward trials from `~/Robotics/Go2` (new boot, camera bound 0.159 s).**
+`trial-DQAArT`: forward 0.566 m selected (prefix bent after 0.60 m); stopped at 0.68 s by the
+in-motion check `required_geometry_unavailable_or_insufficient` with 0.146 m progress (still
+accelerating, ~0.33 m/s); settled 0.275 m, `partial_progress`. Logged guards showed 1.5-1.8 m
+clear; the failing snapshot is not logged and LiDAR recording stops at dispatch, so the cause is
+unconfirmed (suspected transient floor-fit drop under pitch). `trial-C3jMfl`: forward 0.600 m,
+18 commands at 1.0 m/s, zero at feedback trigger 0.522 m (1.0 s), peak 0.700 m, settled 0.700 m
+fused progress, `target_within_tolerance` (+0.0998 m of ±0.10 m); odometry 0.604 m forward,
++2.5 cm left, +3.6 deg; stop observed 2.77 s, release code 0, post-release still, avoidance on.
+Next: log the failing guard snapshot and keep LiDAR recording through motion (instrumentation
+only); then the inspected-disc turn trial at 2.0 rad/s in a new session.
+
 **Evidence carried forward.** Claude already performed the first model-directed
 step and the three faster controller trials. Offline replay of 12 prediction
 records preserves the old measured result, exposes four useful off-centre
