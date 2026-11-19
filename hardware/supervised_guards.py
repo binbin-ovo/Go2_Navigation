@@ -54,15 +54,15 @@ POSE_FRAME = "go2_robot_odom"
 # Filled from the measured evidence; None keeps the capture bound unavailable (HOLD).
 CAMERA = {
     "latency_config_s": 0.048,  # what the camera bridge subtracts from receipt (configs/go2_vln_sensors.yaml)
-    # Re-measured for the robot boot seen at 22:24 on 2026-11-18 (the 10:31 measurement, bound 0.148 s at
-    # boot_offset -1766947283.136, belongs to the earlier boot and is not reused). Screen-flash test
-    # (hardware/capture_latency.py): 39/39 switches, switch-to-receipt median 0.144 s, max 0.200 s
+    # Re-measured for the robot boot seen at 00:06 on 2026-11-19 (earlier records: 0.148 s at boot_offset
+    # -1766947283.136 and 0.172 s at -1766903986.310 belong to earlier boots and are not reused). Screen-flash
+    # test (hardware/capture_latency.py): 39/39 switches, switch-to-receipt median 0.146 s, max 0.187 s
     # (includes display lag and up to one 0.07 s frame interval); bound = max - 0.048 configured + 0.020 margin.
-    "bound_s": 0.172,  # validated extra age on top of the configured latency
-    "boot_offset_s": -1766903986.310,  # host_monotonic - robot_odom_stamp on the measured boot
+    "bound_s": 0.159,  # validated extra age on top of the configured latency
+    "boot_offset_s": -1766897811.159,  # host_monotonic - robot_odom_stamp on the measured boot
     "boot_tolerance_s": 5.0,
-    "basis": ("evidence/hw_readiness/capture_latency_20261118_222418.json sha256 "
-              "77bbbc5a50eac0cbea5f29fad8cd69a66c6968658ccc40206c5b3d717e6841f8"),  # private, git-ignored
+    "basis": ("evidence/hw_readiness/capture_latency_20261119_000619.json sha256 "
+              "6178fb7e9e40494f48ccb9238f76024d22f7ac01eb04356d4ea168fff6e546c9"),  # private, git-ignored
 }
 
 
