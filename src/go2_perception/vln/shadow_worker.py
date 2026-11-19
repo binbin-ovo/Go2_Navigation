@@ -71,7 +71,7 @@ class ProcessWorker:
     """
 
     def __init__(self, *, python, assets, config, device, output, profile_stages=False,
-                 preparation_mode="baseline", tensor_evidence="record"):
+                 preparation_mode="baseline", tensor_evidence="record", episode_context=False):
         if preparation_mode not in ("baseline", "cached"):
             raise ValueError("Unknown input preparation mode")
         if tensor_evidence not in ("record", "skip") or (
@@ -99,6 +99,7 @@ class ProcessWorker:
             [
                 str(python),
                 str(root / "scripts/vln_shadow_worker.py"),
+                *(["--episode-context"] if episode_context else []),
                 "--assets",
                 str(Path(assets).resolve()),
                 "--config",
@@ -140,6 +141,8 @@ class ProcessWorker:
             "job": request.job,
             "destination": str((request.folder / "native").resolve()),
         }
+        if "bounded_context" in request.context:
+            message["bounded_context"] = request.context["bounded_context"]
         try:
             self.process.stdin.write(json.dumps(message, allow_nan=False) + "\n")
             self.process.stdin.flush()

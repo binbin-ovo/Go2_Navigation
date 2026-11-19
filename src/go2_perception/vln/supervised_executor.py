@@ -121,7 +121,7 @@ class Executor:
         validate_record("execution_result", result, contract_version(self.cap))
         return result
 
-    def _fake_motion(self, action, result):
+    def _fake_motion(self, action, result, *, area_guard=None):
         result["started_monotonic_s"] = self.clock()
         start, progress = self.clock(), 0.
         goal = action.get("segment", {}).get("stop_trigger", action["magnitude"])
@@ -131,6 +131,8 @@ class Executor:
             current = self.guards.snapshot()
             now = self.clock()
             current_checks(current, action, self.cap, now, capture=False, progress=progress)
+            if area_guard is not None:
+                area_guard(current, progress)
             dt = min(self.cap["limits"]["resend_period_s"],
                      (goal-progress)/action["speed"],
                      action["duration_s"]-(now-start))
@@ -226,7 +228,7 @@ class HardwareMotion:
             self.idle_still_since = None
         self.idle_sampled_at = now
 
-    def __call__(self, ticket, action, result, cancelled):
+    def __call__(self, ticket, action, result, cancelled, *, preflight=None, area_guard=None):
         outer = self
         lim = self.cap["limits"]
         reason = []
@@ -263,6 +265,13 @@ class HardwareMotion:
         result["events"].append({"event": "idle_stillness_at_dispatch", "monotonic_s": self.clock(),
                                  "still_since_monotonic_s": continuing, "last_idle_sample_s": self.idle_sampled_at})
 
+        def check_before_claim_or_first_send(current):
+            if preflight is not None:
+                preflight(current)
+            else:
+                revalidate(ticket["authorization"], ticket["proposal"], outer.cap, now=outer.clock(),
+                           wall_s=outer.wall(), nonce=ticket["nonce"], live=True, current=current)
+
         class Monitor:
             stationary_since = continuing
 
@@ -298,8 +307,12 @@ class HardwareMotion:
                     checked_at = outer.clock()
                     current_checks(snap, action, outer.cap, checked_at, capture=False, progress=completed)
                     stage = "inspection"
-                    check_inspection(ticket["authorization"], action, outer.cap, outer.clock(), snap["pose"],
-                                     moving=bool(result["command_send_statuses"]))
+                    if area_guard is not None:
+                        stage = "episode_area"
+                        area_guard(snap, completed)
+                    else:
+                        check_inspection(ticket["authorization"], action, outer.cap, outer.clock(), snap["pose"],
+                                         moving=bool(result["command_send_statuses"]))
                     stage = "robot_epoch"
                     if (snap["pose"]["frame"], snap["pose"]["robot_epoch"]) != (original["frame"], original["robot_epoch"]):
                         raise Hold("robot_epoch_or_pose_frame_changed_during_execution")
@@ -350,8 +363,7 @@ class HardwareMotion:
             def claim_api_control(self):
                 # Last no-motion checks after the RPC avoidance query and immediately before claim.
                 current = outer.guards.snapshot()
-                revalidate(ticket["authorization"], ticket["proposal"], outer.cap, now=outer.clock(),
-                           wall_s=outer.wall(), nonce=ticket["nonce"], live=True, current=current)
+                check_before_claim_or_first_send(current)
                 if mon.operator_input():
                     raise Hold("intervention_before_claim")
                 if mon.is_still() is not True:
@@ -374,8 +386,7 @@ class HardwareMotion:
                     raise Hold("independent_command_deadline_expired")
                 if not result["command_send_statuses"]:
                     current = outer.guards.snapshot()
-                    revalidate(ticket["authorization"], ticket["proposal"], outer.cap, now=outer.clock(),
-                               wall_s=outer.wall(), nonce=ticket["nonce"], live=True, current=current)
+                    check_before_claim_or_first_send(current)
                 mon.stationary_since = None  # pre-motion dwell cannot count as post-motion dwell
                 code = outer.route.send_velocity(vx, vyaw)
                 result["command_send_statuses"].append(code)

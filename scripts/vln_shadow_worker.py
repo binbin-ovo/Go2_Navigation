@@ -20,6 +20,7 @@ def main():
     ap.add_argument("--preparation-mode", choices=["baseline", "cached"], default="baseline")
     ap.add_argument("--tensor-evidence", choices=["record", "skip"], default="record",
                     help="skip (cached mode only): do not archive model-input tensors")
+    ap.add_argument("--episode-context", action="store_true")
     args = ap.parse_args()
     wire = sys.stdout
 
@@ -94,7 +95,8 @@ def main():
                     p: importlib.metadata.version(p)
                     for p in ("torch", "transformers", "numpy")
                 },
-                "reset_policy": "reconstruct_complete_causal_instruction_history_per_request",
+                "reset_policy": ("reset_and_reconstruct_bounded_causal_history" if args.episode_context else
+                                 "reconstruct_complete_causal_instruction_history_per_request"),
                 "action_feedback": False,
                 "physical_execution_authorized": False,
                 "preparation_mode": args.preparation_mode,
@@ -124,7 +126,14 @@ def serve(agent, args, send, writer, run_job, validate_jobs):
         if writer is not None:
             writer.check()
         message = json.loads(line)
-        if set(message) != {"identity", "job", "destination"}:
+        keys = {"identity", "job", "destination"}
+        custom = {}
+        if getattr(args, "episode_context", False):
+            from go2_perception.vln.bounded_context import sample_factory, validate_context
+            keys.add("bounded_context")
+            validate_context(message["bounded_context"], message["job"])
+            custom["sample_factory"] = sample_factory(message["bounded_context"])
+        if set(message) != keys:
             raise ValueError("Unsupported advisory worker envelope")
         job = message["job"]
         validate_jobs({"schema": "lightnav-local-jobs-v1", "jobs": [job]})
@@ -132,7 +141,7 @@ def serve(agent, args, send, writer, run_job, validate_jobs):
         # Existing Phase 6C reset/reconstruct path: complete causal stream, native
         # SlowFast (including anchors), no KV/action feedback from other requests.
         result = run_job(agent, job, Path(message["destination"]), args.device,
-                         profile_stages=args.profile_stages, evidence_writer=writer)
+                         profile_stages=args.profile_stages, evidence_writer=writer, **custom)
         end = time.monotonic()
         send(
             {

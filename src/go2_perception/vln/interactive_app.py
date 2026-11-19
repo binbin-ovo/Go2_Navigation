@@ -305,7 +305,37 @@ class ResourceMonitor(threading.Thread):
         self.join(timeout=3)
 
 
+def prediction_source_image(request, result, root):
+    """Map the archived native index to its actual position in the submitted job."""
+    indices = result.get("native_selected_frame_indices")
+    if not isinstance(indices, list) or not indices or type(indices[-1]) is not int:
+        return None
+    native = indices[-1]
+    mock = bool(result.get("mock"))
+    bounded = request.context.get("bounded_context")
+    if bounded and not mock:
+        if sorted(set(indices)) != bounded["source_indices"] or native != bounded["source_indices"][-1]:
+            return None
+        job_index = bounded["source_indices"].index(native)
+    else:
+        job_index = native
+    frames = request.job["frames"]
+    if not 0 <= job_index < len(frames):
+        return None
+    path = Path(frames[job_index]["path"]) if mock else request.folder / "native" / f"input_{native:04d}.png"
+    if not path.is_file():
+        return None
+    record = {"path":str(path.resolve().relative_to(root.resolve())), "file_sha256":file_sha256(path),
+              "job_frame_index":job_index, "kind":"mock_prepared_rectified_frame" if mock else
+              "native_model_space_input (rectified, official processor output)"}
+    if bounded:
+        record["causal_grid_index"] = bounded["source_indices"][job_index]
+    return record
+
+
 class InteractiveApp:
+    next_messages = NEXT
+
     def __init__(self, *, store, session, camera, tap, mode, lidar=None, lidar_recorder=None,
                  monitor=None, config, run_info, say=print, monotonic=time.monotonic):
         self.store, self.session, self.camera, self.tap = store, session, camera, tap
@@ -398,9 +428,10 @@ class InteractiveApp:
         context = {
             "source_mode": self.session.mode,
             "temporal_context": {
-                "policy": "existing full-history: reconstruct the complete causal instruction "
-                          "history per request (latest-anchored 4 Hz grid + native SlowFast)",
-                "bounded_context_policy_enabled": False,
+                "policy": ("anchor2_recent6_actual_time_v1" if self.session.bounded_context else
+                           "existing full-history: reconstruct the complete causal instruction "
+                           "history per request (latest-anchored 4 Hz grid + native SlowFast)"),
+                "bounded_context_policy_enabled": self.session.bounded_context,
                 "preparation_mode": self.session.preparation_mode,
                 "limits": asdict(self.session.limits),
                 "warmup_s": self.config["warmup_s"],
@@ -431,7 +462,7 @@ class InteractiveApp:
         self.say(f"Trial {trial.id} started. Instruction: {spec['instruction']!r}"
                  + (f" (template {spec['template_id']})" if spec["template_id"] else ""))
         if not single_answer:
-            self.say(NEXT["started"].format(limit=self.session.limits.history_s))
+            self.say(self.next_messages["started"].format(limit=self.session.limits.history_s))
         return trial
 
     def request_trial(self, spec, now):
@@ -468,6 +499,9 @@ class InteractiveApp:
             else:
                 self.lidar_recorder.stop()
 
+    def trial_end_fields(self):
+        return {}
+
     def end_trial(self, reason, now, *, review=True, keep_lidar=False):
         trial = self.trial
         if trial is None:
@@ -480,7 +514,7 @@ class InteractiveApp:
         trial.end(reason, now, predictions=list(trial.prediction_ids), marks=trial.marks,
                   notes=trial.notes, inflight_at_end=self.session.inflight is not None,
                   history_error=self.session.history_error,
-                  frames_received=len(self.trial_frames))
+                  frames_received=len(self.trial_frames), **self.trial_end_fields())
         self.trial = None
         single, self.single_answer = self.single_answer, False
         self.store.event("trial_ended", now, trial_id=trial.id, reason=reason)
@@ -759,16 +793,7 @@ class InteractiveApp:
         response = record["response"]
         result = response.get("result", {}) if isinstance(response.get("result"), dict) else {}
         job = request.job
-        image = None
-        indices = result.get("native_selected_frame_indices")
-        if isinstance(indices, list) and indices and type(indices[-1]) is int and 0 <= indices[-1] < len(job["frames"]):
-            i = indices[-1]
-            path = Path(job["frames"][i]["path"]) if result.get("mock") else request.folder / "native" / f"input_{i:04d}.png"
-            if path.is_file():
-                image = {"path": str(path.resolve().relative_to(self.store.root.resolve())),
-                         "file_sha256": file_sha256(path), "job_frame_index": i,
-                         "kind": "mock_prepared_rectified_frame" if result.get("mock")
-                         else "native_model_space_input (rectified, official processor output)"}
+        image = prediction_source_image(request, result, self.store.root)
         source = request.context["current_source"]
         pointing = result.get("pointing") if isinstance(result.get("pointing"), dict) else {}
         semantics = record.get("semantics") or {}
@@ -791,7 +816,7 @@ class InteractiveApp:
             "waypoint_time_base": None,
             "native_stop": result.get("decoder_stop"), "explicit_stop_code": result.get("explicit_stop_code"),
             "model_completion_claim": semantics.get("model_completion_claim"),
-            "completion_verified": False, "execution_status": "NOT EXECUTED — advisory only; no command path",
+            "completion_verified": False, "execution_status": getattr(self, "prediction_execution_note", "NOT EXECUTED — advisory only; no command path"),
             "source_image": image,
             "source_frame": {"frame_id": source["frame_id"], "observation_s": source["observation_s"],
                              "available_s": source["available_s"], "clock": source["stamp"]["clock"],
@@ -824,7 +849,7 @@ class InteractiveApp:
                 self.say(f"Answer {pred['prediction_id'].rsplit('-', 1)[-1]} after "
                          f"{(pred['inference_duration_s'] or 0):.1f} s ({pred['label_at_receipt']}): {what}.")
                 if not self.single_answer:
-                    self.say(NEXT["answer"])
+                    self.say(self.next_messages["answer"])
         self.store.event("prediction_received", now, prediction_id=pred["prediction_id"],
                          trial_id=trial_id, label=pred["label_at_receipt"],
                          reason=record["rejection_reason"])
@@ -885,6 +910,9 @@ class InteractiveApp:
             self.public = public
         self.last_public = now
 
+    def allow_model_request(self, now):
+        return True
+
     def step(self, now):
         """One bounded iteration. Never blocks on the model."""
         s = self.session
@@ -941,7 +969,7 @@ class InteractiveApp:
             warm = (self.trial_first_available is not None and s.latest is not None
                     and s.latest["available_s"] - self.trial_first_available >= self.config["warmup_s"])
             before = s.counts["submitted"]
-            s.tick(now, allow_submit=warm)
+            s.tick(now, allow_submit=warm and self.allow_model_request(now))
             self.trial_submitted += s.counts["submitted"] - before
             if self.single_answer:
                 pass  # the guided test ends on Save/Cancel (or its own timeout), never mid-decision
@@ -971,7 +999,7 @@ class InteractiveApp:
                                    ("checkpoint", "upstream_code", "patch_sha256", "runtime", "load_s",
                                     "load_memory", "preparation_mode", "tensor_evidence", "backend", "note")}
             self.store.event("model_ready", now, identity=self.model_identity)
-            self.say("Model ready.\n" + NEXT["ready"])
+            self.say("Model ready.\n" + self.next_messages["ready"])
         self._publish(self.monotonic())
 
     def close(self, now):

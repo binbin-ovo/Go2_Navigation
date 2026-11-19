@@ -24,6 +24,7 @@ def main(argv=None):
     p.add_argument("--control-root", type=Path)
     p.add_argument("--unitree-sdk", type=Path)
     p.add_argument("--iface")
+    p.add_argument("--five-move-episode", action="store_true")
     p.add_argument("--execute-live", action="store_true")
     p.add_argument("--exclusive-command-source", action="store_true")
     a = p.parse_args(argv)
@@ -53,7 +54,7 @@ def main(argv=None):
     signal.signal(signal.SIGINT, shutdown)
     signal.signal(signal.SIGTERM, shutdown)
     queue, heartbeat = Queue(maxsize=8), [time.monotonic()]
-    lock = None
+    lock = executor = None
     try:
         live = a.mode == "live"
         capability_check(capability, live=live, wall_s=time.time())
@@ -105,7 +106,14 @@ def main(argv=None):
                                     heartbeat=lambda: heartbeat[0], feedback=offer_feedback)
         else:
             guards, motion = FakeGuards(), None
-        executor = Executor(capability, a.nonce, guards=guards, live=live, motion=motion, cancelled=cancelled)
+        if a.five_move_episode:
+            from go2_perception.vln.five_move import EpisodeExecutor, EpisodeFakeGuards
+            if not live:
+                guards = EpisodeFakeGuards()
+            executor = EpisodeExecutor(capability, a.nonce, guards=guards, live=live, motion=motion,
+                                       cancelled=cancelled, emit=emit)
+        else:
+            executor = Executor(capability, a.nonce, guards=guards, live=live, motion=motion, cancelled=cancelled)
 
         def read():
             for line in sys.stdin:
@@ -117,7 +125,12 @@ def main(argv=None):
                         cancelled.set()
                         if message["type"] == "close":
                             closing.set()
-                    elif message.get("type") == "execute":
+                    elif a.five_move_episode and message.get("type") == "episode_sensor_failure":
+                        if message.get("episode_id") == a.nonce:
+                            executor.interrupt_sensor(message["reason"])
+                    elif (a.five_move_episode and message.get("type") in (
+                            "episode_arm", "episode_observe", "episode_identified", "episode_goal")
+                          or not a.five_move_episode and message.get("type") == "execute"):
                         queue.put_nowait(message)
                 except Exception:
                     cancelled.set()  # malformed IPC cannot result in motion
@@ -129,9 +142,13 @@ def main(argv=None):
         last = -1.
         while not closing.is_set():
             if time.monotonic()-heartbeat[0] > .5:
+                if a.five_move_episode:
+                    executor.interrupt_sensor("parent_heartbeat_lost")
                 cancelled.set()
                 closing.set()
                 continue
+            if a.five_move_episode:
+                executor.tick()
             if time.monotonic()-last > .05:
                 try:
                     emit({"type": "guards", "snapshot": guards.snapshot(), "nonce": a.nonce})
@@ -144,6 +161,20 @@ def main(argv=None):
                 message = queue.get(timeout=.01)
             except Empty:
                 continue
+            if a.five_move_episode:
+                kind = message["type"]
+                try:
+                    if kind == "episode_arm":
+                        executor.arm(message["grant"])
+                    elif kind == "episode_observe":
+                        executor.observe(message)
+                    else:
+                        executor.review(message)
+                except (Hold, ValueError, KeyError, TypeError, RuntimeError) as error:
+                    emit({"type":"episode_refusal", "nonce":a.nonce, "reason":str(error)})
+                    if kind in ("episode_arm", "episode_observe"):
+                        executor.finish("SENSOR_OR_CONTROL_FAILURE", str(error))
+                continue
             result = executor.execute(message["ticket"])
             retain_lock = live and (result["observed_stationary"] is not True or result["ownership_released"] is not True or
                                    result["post_release_stationary"] is not True) and result["started_monotonic_s"] is not None
@@ -153,12 +184,14 @@ def main(argv=None):
             emit({"type": "result", "result": result})
             if retain_lock:
                 emit({"type": "intervention_required", "reason": "Stop/release unverified; canonical lock retained."})
+        if a.five_move_episode:
+            executor.tick()
         return 0
     except Exception as error:
         emit({"type": "fatal", "error": f"{type(error).__name__}: {error}"})
         return 2
     finally:
-        if lock is not None:
+        if lock is not None and not getattr(executor, "retain_lock", False):
             lock.__exit__(None, None, None)
 
 

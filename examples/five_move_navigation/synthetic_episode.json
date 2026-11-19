@@ -1,0 +1,41 @@
+{
+  "schema": "go2-five-move-episode-v1",
+  "synthetic": true,
+  "target": "chair",
+  "note": "Canned decisions on a synthetic chair illustration. The view advances only after the expected fake movement reports settled progress. No model inference or physical arrival measurement.",
+  "decisions": [
+    {
+      "opos": 0,
+      "extent_m": 0.0,
+      "yaw_deg": 10,
+      "stop": false,
+      "expected": "SEARCH left",
+      "advance_after": "left"
+    },
+    {
+      "opos": 637,
+      "extent_m": 0.02,
+      "yaw_deg": 10,
+      "stop": false,
+      "expected": "APPROACH coarse left",
+      "advance_after": "left"
+    },
+    {
+      "opos": 645,
+      "extent_m": 0.48,
+      "yaw_deg": 11,
+      "stop": false,
+      "expected": "APPROACH forward",
+      "advance_after": "forward"
+    },
+    {
+      "opos": 648,
+      "extent_m": 0.0,
+      "yaw_deg": 0,
+      "stop": true,
+      "expected": "MODEL_STOPPED_ARRIVAL_UNVERIFIED"
+    }
+  ],
+  "expected_moves": 3,
+  "expected_outcome": "MODEL_STOPPED_ARRIVAL_UNVERIFIED"
+}

@@ -1,4 +1,12 @@
-## Current supervised motion diagnostics, November 19
+## Current milestone — bounded object search and approach, November 19
+
+The opt-in `feature/vln-five-move-navigation` branch adds one supervised episode with a maximum of five movement attempts under one area authorization. A fresh settled view and independently supported object identity gate each approach. The episode can search without a target mark. Its default ±15° approach band, 3° hysteresis and explicit 20–30° alignment turns apply only to episode selection. The executor retains the 1.0 m/s and 2.0 rad/s effective profile, its stopping allowances, and raw per-action diagnostics. [Implementation and evidence contract](FIVE_MOVE_NAVIGATION.md)
+
+**Verified offline.** One browser authorization produced four synthetic decisions and three movements, ending at native STOP with arrival unverified. The focused core regression selection passed 259 cases. A final run of all 31 episode cases covered two additional radio and remote-freshness checks. Ten pinned native processor tests passed with synthetic inputs and mocked generation. Physical tests and learned generation were outside this verification. [Reproduction commands](FIVE_MOVE_NAVIGATION.md#offline-verification)
+
+**Pending.** Claude's smallest pilot is a two-move, 45 s episode in a clear inspected area with one identifiable chair. Appearance changes, weak texture, similar furniture, model latency, odometry drift and the camera boot-specific timing bound can all force a hold or an early end. Navigation success on the robot is unverified. [Claude handoff](AGENT_HANDOFF.md#current-handoff-for-claude--bounded-object-navigation-november-19)
+
+## Historical single-action motion diagnostics, November 19
 
 Two counted effective-profile forward runs requested 0.600 m at 1.0 m/s.
 Settled odometry/LiDAR-fused estimates were 0.604/0.700 m and 0.616/0.791 m.
@@ -11,7 +19,7 @@ bound is specific to the measured November 19 boot and its mapped camera stream.
 The diagnostics patch records the failing guard, the original sensor inputs and
 selection behind each progress sample, and the refresh trial’s raw scans and
 poses through settling. The recorder reports overload and incomplete drain.
-Unsupported native headings between 0.10 rad and 20° remain on HOLD.
+The single-action selector holds unsupported native headings between 0.10 rad and 20°.
 The effective profile uses a 0.10 m forward stopping lead and a 2.0 rad/s turn
 rate. Independent distance and small-turn response are open measurement questions.
 [Record format](SUPERVISED_NAVIGATION_CONTRACT.md#motion-diagnostic-records)

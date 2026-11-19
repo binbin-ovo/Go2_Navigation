@@ -20,12 +20,14 @@ ROOT = Path(__file__).resolve().parents[1]
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--output", type=Path, required=True)
+    p.add_argument("--five-move-episode", action="store_true")
     a = p.parse_args(argv)
     if a.output.exists():
         p.error("fresh output directory required")
     env = {**os.environ, "PYTHONPATH": str(ROOT / "src"), "GO2_HARDWARE": "0", "GO2_SUPERVISED_LIVE": "0",
            "MUJOCO_RENDER_TEST": "0", "PYTHONDONTWRITEBYTECODE": "1"}
     process = subprocess.Popen([sys.executable, "-u", str(ROOT / "scripts/run_vln_supervised.py"),
+                                *(["--five-move-episode", "--profile", "go2-effective-v1"] if a.five_move_episode else []),
                                 "--lidar", "synthetic", "--output", str(a.output), "--port", "0", "--max-host-seconds", "30",
                                 "--min-free-disk-gb", "0", "--min-available-memory-gb", "0"],
                                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
@@ -72,6 +74,17 @@ def main(argv=None):
         url = address[0]
         page = get("")
         token = re.search(r'const TOKEN="([^"]+)"', page).group(1)
+        if a.five_move_episode:
+            wait(lambda s: s.get("camera", {}).get("latest") and (s.get("model") or {}).get("state") == "READY")
+            # Both camera and executor must have had their first independent guard sample.
+            send({"action":"authorize", "target":"go to the chair", "operator":"synthetic operator",
+                  "area_inspected":True, "exclusive_and_intervention_confirmed":True})
+            final = wait(lambda s: s["navigation"]["state"] == "TERMINAL", timeout=18)["navigation"]
+            fixture = json.loads((ROOT/"examples/five_move_navigation/synthetic_episode.json").read_text())
+            if (final.get("outcome"), final["moves"]) != (fixture["expected_outcome"], fixture["expected_moves"]):
+                raise RuntimeError(json.dumps(final))
+            status = "completed_synthetic_episode"
+            return 0
         send({"action": "ask", "target": "synthetic textured panel"})
         state = wait(lambda s: s.get("prediction") is not None)
         pred = state["prediction"]

@@ -168,7 +168,8 @@ def tensor_archive(values):
     return arrays, types
 
 
-def run_job(agent, job, dest, device, *, stream=None, profile_stages=False, evidence_writer=None):
+def run_job(agent, job, dest, device, *, stream=None, profile_stages=False, evidence_writer=None,
+            sample_factory=None):
     from lightnav.inference.samples import build_vln_traj_sample
     from lightnav.vln_utils import (
         safe_parse_apos_token,
@@ -200,7 +201,12 @@ def run_job(agent, job, dest, device, *, stream=None, profile_stages=False, evid
             return rgb
 
         history_start = time.monotonic()
-        if stream is None:
+        if sample_factory is not None:
+            if stream is not None:
+                raise ValueError("Custom samples cannot use streaming action/history state")
+            sample, image_tensors, metadata = sample_factory(agent, job, load_rgb)
+            result["context_policy"] = metadata
+        elif stream is None:
             # Phase 6C replay default remains unchanged.
             agent.reset(instruction=job["instruction"])
             for frame in job["frames"]:
@@ -210,9 +216,12 @@ def run_job(agent, job, dest, device, *, stream=None, profile_stages=False, evid
             result["native_state"] = stream.observe(agent, job, load_rgb)
         stages["history_reconstruction_s"] = time.monotonic() - history_start
         sample_start = time.monotonic()
-        sample = build_vln_traj_sample(
-            agent._get_video_tensor(), job["instruction"], None, agent.engine.bundle
-        )
+        if sample_factory is None:
+            sample = build_vln_traj_sample(
+                agent._get_video_tensor(), job["instruction"], None, agent.engine.bundle
+            )
+            image_tensors = {i: agent._get_video_tensor()[i] for s in sample["video_segments"]
+                             for i in s["frame_indices"]}
         segments = [
             {k: v for k, v in s.items() if k != "video"}
             for s in sample["video_segments"]
@@ -223,11 +232,9 @@ def run_job(agent, job, dest, device, *, stream=None, profile_stages=False, evid
             | {"video_segments": segments},
         )
         # Actual model-space input images, with upstream normalization inverted once.
-        selected_ids = sorted(
-            {i for s in sample["video_segments"] for i in s["frame_indices"]}
-        )
+        selected_ids = sorted(image_tensors)
         for i in selected_ids:
-            rgb = agent._get_video_tensor()[i].permute(1, 2, 0).numpy()
+            rgb = image_tensors[i].permute(1, 2, 0).numpy()
             Image.fromarray(
                 np.clip(np.rint((rgb + 1) * 127.5), 0, 255).astype(np.uint8)
             ).save(dest / f"input_{i:04d}.png")
@@ -287,9 +294,15 @@ def run_job(agent, job, dest, device, *, stream=None, profile_stages=False, evid
 
             target.get_video_features = vision
         prep_done = time.monotonic()
+        original_fps = processor.video_fps if sample_factory is not None else None
         try:
+            if sample_factory is not None:
+                processor.video_fps = sample["video_fps"]
             text, native_latency_ms = agent.engine.generate(sample)
         finally:
+            if sample_factory is not None:
+                processor.video_fps = original_fps
+                processor._sync_processor_settings()
             model.generate = original_generate
             processor.process_sample = original_process
             if target is not None:

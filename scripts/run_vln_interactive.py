@@ -290,7 +290,7 @@ def main(argv=None, *, app_factory=InteractiveApp, run_fields=None, synthetic_so
             session.worker = ProcessWorker(python=a.model_python, assets=a.assets, config=a.runtime_config,
                                            device=a.device, output=session.output / "worker",
                                            preparation_mode=a.preparation_mode,
-                                           tensor_evidence=a.tensor_evidence)
+                                           tensor_evidence=a.tensor_evidence, episode_context=session.bounded_context)
         camera.start()
         if lidar is not None:
             lidar.start()
@@ -366,7 +366,11 @@ def main(argv=None, *, app_factory=InteractiveApp, run_fields=None, synthetic_so
             if hasattr(app, "execution_summary"):
                 summary.update(app.execution_summary())
             write_json(store.root / "summary.json", _finite(json.loads(json.dumps(summary, default=str))))
-            message = "See navigation_summary.json for execution/stop/release status." if hasattr(app, "navigation") else "No robot command was sent."
+            message = "No robot command was sent."
+            if session.bounded_context:
+                message = "See episode_summary.json and executor events for episode status."
+            elif hasattr(app, "navigation"):
+                message = "See navigation_summary.json for execution/stop/release status."
             print(f"Closed ({app.termination}). {message}\n"
                   f"Reopen: run_vln_interactive.py --review-run {store.root}", flush=True)
     return code

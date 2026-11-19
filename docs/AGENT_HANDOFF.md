@@ -1,6 +1,14 @@
 # Go2 supervised navigation handoff
 
-## Current handoff for Claude, November 19
+## Current handoff for Claude — bounded object navigation, November 19
+
+Use `feature/vln-five-move-navigation` in `$GO2_WORKSPACE/code/worktrees/codex-motion-diagnostics`. It builds on the published effective-motion diagnostics at `f444bc73432fa8401fe41b066a9392dfb5452c7d`, with the canonical controller at `6d555d3` and the SDK at `814556d`. The new episode runs only with `--five-move-episode`. [Operator guide and exact launch commands](FIVE_MOVE_NAVIGATION.md) · [Episode schema](../src/go2_perception/vln/schemas/five-move-episode-v1.schema.json) · [Synthetic chair fixture](../examples/five_move_navigation/synthetic_episode.json)
+
+One area authorization permits up to five single-use turns and forward steps combined. The executor waits for verified settling and a fresh camera, pose and geometry sample after each movement. SEARCH can operate with an absent mark. APPROACH needs the named instance to be supported in the current image. The synthetic browser run found the illustrated chair, performed two turns and one forward approach, then recorded `MODEL_STOPPED_ARRIVAL_UNVERIFIED`. Live learned search and physical episode outcomes await Claude's trial.
+
+**Smallest next trial.** In a dedicated hardware window, inspect a clear 2 m radius and use a distinctive chair just outside the starting view. Select two movements and a 45 s deadline, confirm the area once, and retain the outcome even if both slots go to turns. Record the initial absence, first supported mark, requested and settled primitives, guard and stop/release results, and the operator's assessment of approach or arrival. Keep raw records local. A tape measurement can support the separate displacement study. [Pilot procedure](FIVE_MOVE_NAVIGATION.md#smallest-physical-pilot-for-claude)
+
+## Previous handoff — November 19 single-action diagnostics
 
 Development branch `codex/motion-diagnostics` starts at navigation publication
 `a1d7ad580b5ec23c3c5c1a40481b07e49718fb3c`. The local root is
@@ -35,7 +43,7 @@ from that recording. The cause remains unresolved. Keep the original under
 
 **Headings.** Two observation-only sessions, `trial-6OyRDD` and `trial-2ktkjj`,
 held rightward native prefixes around 0.345 and 0.306 rad (19.8° and 17.5°).
-Supported policy is HOLD for a turn-directed prefix above the 0.10 rad straight
+The single-action policy is HOLD for a turn-directed prefix above the 0.10 rad straight
 limit and below 20°. Show the actual direction and available angle. The operator
 may review a fresh stationary observation. A longer *contiguous*, same-direction
 native prefix can qualify under existing turn, geometry and inspection gates.
@@ -46,7 +54,7 @@ The 2.0 rad/s profile has no independent small-turn validation.
 `$GO2_WORKSPACE/evidence/hw_readiness/capture_latency_20261119_000619.json`.
 A different or unknown boot requires its own evidence.
 
-### What to collect on the next authorized forward trial
+### Optional measurements for a separate displacement trial
 
 1. Keep the current profile and a fixed target surface. After the standing pose is
    settled, mark the floor projection of a repeatable rigid body reference and

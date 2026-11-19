@@ -136,6 +136,7 @@ class ShadowSession:
             "live_unvalidated",
         ):
             raise ValueError("Explicit source/timing mode required")
+        self.bounded_context = False  # opt-in episode input policy
         self.output = Path(output)
         self.output.mkdir(parents=True, exist_ok=False)
         (self.output / "observations").mkdir()
@@ -373,11 +374,17 @@ class ShadowSession:
             }
         )
         selection = causal_history(episode, "current")
+        source_frames = selection["frames"]
+        bounded = None
+        if self.bounded_context:
+            from .bounded_context import select_context
+            bounded = select_context(source_frames, cutoff)
+            source_frames = [source_frames[i] for i in bounded["source_indices"]]
         self.sequence += 1
         folder = self.output / "requests" / f"{self.sequence:06d}"
         folder.mkdir()
         frames, provenance = [], []
-        for i, source in enumerate(selection["frames"]):
+        for i, source in enumerate(source_frames):
             dest = folder / f"frame_{i:04d}.png"
             if self.prepared_cache is not None:
                 digest, metadata, cache, frame_stages = self.prepared_cache.prepare(source, dest)
@@ -444,6 +451,9 @@ class ShadowSession:
             "annotations_consumed": False,
             "previous_actions_supplied": False,
         }
+        if bounded is not None:
+            context.update(bounded_context=bounded, history_policy=bounded["policy"],
+                           reset_policy="reset_and_reconstruct_bounded_causal_history")
         serialization_start = time.monotonic()
         write_json(folder / "job.json", job)
         write_json(folder / "snapshot.json", context)
