@@ -1,4 +1,38 @@
 # Go2 connection from macOS (verified 2026-11-07)
+
+## Local workspace (since 2026-11-18)
+The Desktop is iCloud-managed. On 2026-11-18 macOS offloaded runtime files (a contract schema,
+venv packages, SDK and Git objects) under disk pressure, and the executor blocked ~10 min reading
+one of them after dispatch. Everything the robot runtime reads now lives in one local folder
+outside Desktop, Documents and iCloud Drive. Open `code/navigation` for everyday work.
+
+| Path under `~/Robotics/Go2` | Contents |
+|---|---|
+| `code/navigation/` | main Git checkout (common `.git` lives here), branch `feature/vln-effective-motion` |
+| `code/control/` | linked worktree, canonical controller `feature/go2-high-level-control-audit`; its `data/outputs/go2_control/` holds controller logs and `.command.lock` |
+| `code/worktrees/` | temporary agent worktrees only; each states its purpose and is removed once merged/pushed and its data preserved |
+| `envs/core`, `envs/hw`, `envs/model` | Python 3.12.11 / 3.10.17 / 3.11.13 venvs recreated from `envs/pins/*.txt` (exact freezes of the previous envs) |
+| `envs/python/` | standalone CPython 3.11.13 used by `envs/model` |
+| `sdk/unitree_sdk2_python/` | Unitree SDK at 814556d (editable in `envs/hw`) |
+| `weights/lightnav/` | LightNav checkpoint and pinned source (`checkpoint_identity.json`) |
+| `evidence/` | camera heading, capture-latency bounds, readiness capability, Desktop inventory |
+| `runs/` | trial sessions (`runs/effective_trials/trial-*`) and smoke outputs |
+
+`GO2_WORKSPACE` overrides the root (default `~/Robotics/Go2`). The launcher and
+`hardware/make_capability.py` derive every runtime path from it. Normal launch, from a shell
+that has macOS local-network permission for camera multicast (a shell where `capture_latency.py`
+or the viewer previously received RTP):
+
+```bash
+cd ~/Robotics/Go2/code/navigation
+GO2_SUPERVISED_LIVE=1 bash scripts/launch_effective_trial.sh --live-exclusive sensor_only
+```
+
+Recreate an environment (no upgrades): `uv venv --python <version> envs/<name>` then
+`uv pip install --python envs/<name>/bin/python -r envs/pins/<name>.txt`. Before a live trial,
+`find ~/Robotics/Go2 -flags +dataless | head` must print nothing.
+
+## Original Desktop setup (historical)
 Every value here was observed on this Mac and robot unless marked otherwise. Access is
 **read-only**: DDS subscribers, DDS discovery readers and one multicast read socket. No robot
 command, firmware or robot-side setting was changed. Linux reference: [GO2_CONNECTION](GO2_CONNECTION.md).

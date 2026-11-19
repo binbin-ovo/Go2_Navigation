@@ -15,9 +15,14 @@ forward segment. The file-only preflight already passed with the existing
 evidence. The following command is for the operator with exclusive control.
 
 ```bash
-cd /Users/yushan/Desktop/Go2_Navigation/data/outputs/vln-effective-profile-worktree
+cd ~/Robotics/Go2/code/navigation
 GO2_SUPERVISED_LIVE=1 bash scripts/launch_effective_trial.sh --live-exclusive sensor_only
 ```
+
+All runtime files now live in the local workspace `~/Robotics/Go2` (layout and
+environment recreation in [MAC_CONNECTION](MAC_CONNECTION.md#local-workspace-since-2026-11-18)).
+The old Desktop launch commands are retired: the iCloud-managed Desktop offloaded
+files the executor needed.
 
 Expect the viewer to name `go2-effective-v1` with 1.0 m/s forward and 2.0 rad/s
 turn. Inspect the actual native path and selected segment, mark the target ROI,
@@ -25,9 +30,12 @@ confirm the instance and authorize once. For the archived box path the destinati
 is 0.60 m, trigger 0.50 m, base clearance requirement 0.85 m, deadline 3 s.
 Check the difference between settled measured distance and the destination,
 together with the stop/release evidence. A fresh answer can change or refuse the
-action. The capture timing bound belongs to Claude's recorded robot boot.
+action. The capture timing bound belongs to a recorded robot boot: 0.172 s for the boot
+seen 2026-11-18 22:24 (`evidence/hw_readiness/capture_latency_20261118_222418.json`);
+the earlier 0.148 s record belongs to the previous boot. After a robot reboot the
+provider holds until `hardware/capture_latency.py` is re-run for the new boot.
 
-The viewer writes under a fresh `data/outputs/effective_trials/trial-*/session`.
+The viewer writes under a fresh `~/Robotics/Go2/runs/effective_trials/trial-*/session`.
 Read `navigation/cycle_record.json` for the actual refreshed proposal, selected
 primitive, trigger sample, settled result, stationary/release fields and new
 observation. Read `events.jsonl` and `executor/executor_events.jsonl` for
@@ -36,6 +44,17 @@ The optional inspected turn scope binds a specific 0.65 m rear/side/cable
 inspection and permits yaw only. A stopped turn yields one advisory replan.
 Current provider coverage supports forward travel. Full model origin and Go2
 camera-to-body registration remain unknown.
+
+**2026-11-18 evening attempt (held before motion).** After the camera bound was
+re-measured for the new boot, trial `trial-HZbrPb` previewed forward 0.600 m at
+1.0 m/s (trigger 0.500 m, clearance 0.850 m, 3 s). The authorized dispatch blocked
+for ~10 min in `revalidate` reading an iCloud-offloaded schema file, then refused
+before claim (`initial_stationary_dwell_unverified`); the robot never moved. An
+earlier launch (`trial-qzUkyd`) lost its executor during model load without a
+logged cause. The runtime was then migrated to `~/Robotics/Go2`, re-verified
+(imports, one offline inference reproducing recorded tokens, capability, tests,
+read-only state/LiDAR/camera), and the forward trial is ready to repeat unchanged.
+Operator note: the viewer checklist must be ticked on the checkbox itself.
 
 **Evidence carried forward.** Claude already performed the first model-directed
 step and the three faster controller trials. Offline replay of 12 prediction
