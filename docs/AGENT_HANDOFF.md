@@ -74,7 +74,8 @@ After centring the box (target column 0.510), `trial-abZbVx`: forward 0.600 m, z
 (1.12 s), fused progress settled 0.791 m (`overshoot`, +0.19 m); odometry 0.616 m forward,
 +4.2 cm left, +4.3 deg; stop 1.92 s after zero, release code 0, avoidance on. In both completed
 runs odometry (~0.60-0.62 m) and the fused LiDAR progress (0.70-0.79 m, larger while closing on
-the box) disagree by 0.1-0.18 m; a tape measurement is needed before tuning the lead.
+the box) disagree by 0.1-0.18 m. No tape mark was taken for any 2026-11-19 run, so actual
+travel is not independently measured; take one before tuning the lead.
 Next: tape-verify travel; log the failing guard snapshot and keep LiDAR recording through
 motion (instrumentation only); decide how to cover 6-20 deg headings before the turn trial.
 
