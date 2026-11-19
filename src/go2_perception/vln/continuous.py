@@ -216,7 +216,12 @@ class ContinuousNavigator:
         if pid in self.seen or ident["observation_id"] in self.seen_frames or stamp <= self.last_capture:
             events.append({"ignored": "duplicate_or_superseded", "id": pid})
             return
-        if not number(ready) or not stamp <= received <= ready <= now:
+        lease_origin = delivery.get("worker_finished_s", ready)
+        if (
+            not number(ready)
+            or not number(lease_origin)
+            or not stamp <= received <= lease_origin <= ready <= now
+        ):
             raise Hold("noncausal_proposal_timestamps")
         # Only accepted/observed in-scope arrivals affect the watermark.
         self.last_capture = stamp
@@ -227,7 +232,7 @@ class ContinuousNavigator:
         if not number(bound) or bound < 0:
             raise Hold("unknown_capture_age_bound")
         age_check(stamp, now, FRESHNESS_S - bound, "observation")
-        age_check(ready, now, PLAN_LEASE_S, "plan_result")
+        age_check(lease_origin, now, PLAN_LEASE_S, "plan_result")
         if p["synthetic"] != (self.cap["kind"] == "synthetic"):
             raise Hold("synthetic_source_mismatch")
         if not p["synthetic"] and any(
@@ -288,11 +293,12 @@ class ContinuousNavigator:
             action=deepcopy(action),
             selection=deepcopy(selection),
             identity=deepcopy(ident),
-            ready=ready,
+            ready=lease_origin,
+            result_available_s=ready,
             issued=False,
         )
 
-    def tick(self, now, guard, *, delivery=None, cancel=False):
+    def tick(self, now, guard, *, delivery=None, cancel=False, worker_failed=False):
         """Return one expiring, simulated velocity sample. A late call cannot extend an old packet."""
         if not number(now) or now < self.start or self.last_tick is not None and now <= self.last_tick:
             self.terminal = "invalid_control_clock"
@@ -304,6 +310,8 @@ class ContinuousNavigator:
             "prediction_id": None,
             "events": [],
         }
+        if worker_failed:
+            self.terminal = self.terminal or "model_worker_failed"
         if cancel:
             self.terminal = "cancelled"
         if number(now) and now >= self.deadline:
@@ -359,6 +367,19 @@ class ContinuousNavigator:
         if self.terminal:
             self._brake(self.terminal, now)
             packet.update(mode="TERMINAL", velocity=[0.0, 0.0])
+        current = packet["prediction_id"]
+        packet["handover"] = (
+            "continue"
+            if old_id == current and current
+            else "replace"
+            if old_id and current
+            else "start"
+            if current
+            else "stop"
+            if old_id
+            else "hold"
+        )
+        packet["previous_prediction_id"] = old_id
         packet.update(
             reason=self.reason,
             plans=self.plans,
@@ -426,11 +447,28 @@ class ContinuousNavigator:
             prediction_id=plan["identity"]["prediction_id"],
             source_observation_id=plan["identity"]["observation_id"],
             capture_monotonic_s=plan["identity"]["observed_monotonic_s"],
-            result_monotonic_s=plan["ready"],
+            result_monotonic_s=plan["result_available_s"],
+            worker_finished_s=plan["ready"],
             capture_age_upper_s=now
             - plan["identity"]["observed_monotonic_s"]
             + plan["identity"]["uncertainty_bound_s"],
             selection_source=plan["selection"]["source"],
+            source_pose=dict(plan["identity"]["pose"]),
+            remaining_path=max(0.0, a["magnitude"] - max(0.0, done)),
+            remaining_to_brake=max(0.0, a["segment"]["stop_trigger"] - max(0.0, done)),
+            path_horizon_s=max(0.0, a["segment"]["stop_trigger"] - max(0.0, done)) / speed,
+            plan_horizon_s=max(
+                0.0,
+                min(
+                    (a["segment"]["stop_trigger"] - max(0.0, done)) / speed,
+                    plan["ready"] + PLAN_LEASE_S - now,
+                    self.deadline - now,
+                    plan["identity"]["observed_monotonic_s"]
+                    + FRESHNESS_S
+                    - plan["identity"]["uncertainty_bound_s"]
+                    - now,
+                ),
+            ),
             progress=done,
             action=deepcopy(a),
             expires_s=expires,

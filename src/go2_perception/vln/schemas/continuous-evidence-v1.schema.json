@@ -1,0 +1,384 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Five-move evidence for human review of continuous navigation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "source_kind",
+    "run_id",
+    "reviewer",
+    "navigation_commit",
+    "controller_commit",
+    "sdk_commit",
+    "artifacts",
+    "topics"
+  ],
+  "properties": {
+    "schema": {
+      "const": "go2-continuous-evidence-v1"
+    },
+    "source_kind": {
+      "enum": [
+        "pending",
+        "physical_five_move",
+        "synthetic",
+        "recorded_replay"
+      ]
+    },
+    "run_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+    "reviewer": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+    "navigation_commit": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "controller_commit": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "sdk_commit": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "path",
+          "sha256"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    },
+    "topics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tested_motion",
+        "stopping",
+        "camera_continuity",
+        "lidar_continuity",
+        "guard_failures",
+        "recognition_and_search",
+        "unsupported_capabilities"
+      ],
+      "properties": {
+        "tested_motion": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/finding"
+            },
+            {
+              "properties": {
+                "measurements": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "primitives": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "uniqueItems": true
+                    },
+                    "forward_mps": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    "turn_radps": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    "episode_move_budget": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "attempts": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "independent_distance_m": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "stopping": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/finding"
+            },
+            {
+              "properties": {
+                "measurements": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "end_reason": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "zero_verified": {
+                      "type": "boolean"
+                    },
+                    "release_code": {
+                      "type": "integer"
+                    },
+                    "post_release_stationary": {
+                      "type": "boolean"
+                    },
+                    "coast_m": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "camera_continuity": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/finding"
+            },
+            {
+              "properties": {
+                "measurements": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "clock_epoch": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "frames": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "max_gap_s": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "capture_bound_s": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "boot_id": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "lidar_continuity": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/finding"
+            },
+            {
+              "properties": {
+                "measurements": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "robot_epoch": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "scans": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "max_gap_s": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "dropped_scans": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "guard_failures": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/finding"
+            },
+            {
+              "properties": {
+                "measurements": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "rejections": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "reasons": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "uniqueItems": true
+                    },
+                    "radio_receipt_times_logged": {
+                      "type": "boolean"
+                    },
+                    "exact_veto_snapshots_logged": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "recognition_and_search": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/finding"
+            },
+            {
+              "properties": {
+                "measurements": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "search_turns": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "grounded_approaches": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "identity_review": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "arrival_review": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "unsupported_capabilities": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/finding"
+            },
+            {
+              "properties": {
+                "measurements": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "capabilities": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "uniqueItems": true
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "$defs": {
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "notes",
+        "evidence_ids",
+        "measurements"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "unassessed",
+            "observed",
+            "failed",
+            "unsupported"
+          ]
+        },
+        "notes": {
+          "type": "string"
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "measurements": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}

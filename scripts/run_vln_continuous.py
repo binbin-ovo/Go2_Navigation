@@ -1,6 +1,8 @@
 """Explicit offline entry point. Replay saved proposals or use the deterministic image fixture."""
 
 import argparse
+from base64 import b64encode
+from contextlib import closing, nullcontext
 from collections import Counter
 import json
 import math
@@ -9,6 +11,8 @@ from pathlib import Path
 from tempfile import mkdtemp
 from time import perf_counter
 
+from go2_perception.vln.continuous_planner import LightNavPlanner
+from go2_perception.vln.continuous_recording import TraceRecorder
 from go2_perception.vln.continuous import ContinuousNavigator, PERIOD_S
 from go2_perception.vln.continuous_simulation import SCENARIOS, simulate
 
@@ -140,6 +144,9 @@ def archive(root):
             proposal=p,
             grounding=evidence,
             available_s=pred["received_host_monotonic_s"],
+            inference_s=pred["inference_duration_s"],
+            native_generate_s=load(request / "native/result.json")["timing"]["native_generate_s"],
+            reviewed_input_path=str((root / pred["source_image"]["path"]).resolve()),
             archived_history_frames=len(history),
             history_policy=snapshot["history_policy"],
         ),
@@ -203,6 +210,8 @@ def replay(root, record):
         capture_uncertainty_s=ident["uncertainty_bound_s"],
         capture_to_result_s=start - ident["observed_monotonic_s"],
         guard_count=len(rows),
+        model_worker_s=delivery["inference_s"],
+        native_generate_s=delivery["native_generate_s"],
         historical_input_frames=delivery["archived_history_frames"],
         history_policy=delivery["history_policy"],
         grounding_status=delivery["grounding"]["status"],
@@ -217,7 +226,15 @@ def replay(root, record):
     result["radio_receipt_timestamps_present"] = sum(
         e["robot_state"].get("remote_monotonic_s") is not None for e in rows
     )
-    record(dict(kind="archived_proposal", delivery=delivery))
+    png = Path(delivery["reviewed_input_path"]).read_bytes()
+    record(
+        dict(
+            kind="archived_proposal",
+            delivery=delivery,
+            t=start,
+            view=dict(png_b64=b64encode(png).decode("ascii"), png_sha256=ident["source_image_sha256"]),
+        )
+    )
     idle = next(
         (e for e in cycle["execution_result"]["events"] if e.get("event") == "idle_stillness_at_dispatch"),
         None,
@@ -263,6 +280,7 @@ def replay(root, record):
                     counterfactual_pass=name,
                     t=now,
                     guard=guard,
+                    incoming_inference_s=offer["inference_s"] if offer else None,
                     offered_prediction_id=ident["prediction_id"] if offer else None,
                     packet=packet,
                 )
@@ -288,11 +306,21 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="mode", required=True)
     sim = sub.add_parser("simulate", help="kinematic proxy and delayed synthetic visual decisions")
-    sim.add_argument("--scenario", choices=(*SCENARIOS, "all"), default="all")
+    sim.add_argument(
+        "--scenario",
+        choices=(*SCENARIOS, "all"),
+        help="default: all fixture cases, or visible_after_search with LightNav",
+    )
     sim.add_argument(
         "--wall-clock",
         action="store_true",
         help="pace the proxy on the host clock with one asynchronous fixture worker",
+    )
+    sim.add_argument(
+        "--planner",
+        choices=("fixture", "lightnav"),
+        default="fixture",
+        help="use the pinned model worker on the simulated camera",
     )
     saved = sub.add_parser("replay", help="closed single-action sessions, read-only")
     saved.add_argument("--recording", type=Path, required=True, action="append", metavar="SESSION_DIR")
@@ -303,6 +331,13 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if any(os.environ.get(k, "0") != "0" for k in ("GO2_HARDWARE", "GO2_SUPERVISED_LIVE")):
         parser.error("disable GO2_HARDWARE and GO2_SUPERVISED_LIVE before using this offline utility")
+    if args.mode == "simulate" and args.planner == "lightnav":
+        if not args.wall_clock:
+            parser.error("use --wall-clock to measure the asynchronous LightNav worker")
+        if args.scenario == "two_second_planner":
+            parser.error(
+                "two_second_planner prescribes a fixture delay; select a scene with measured model latency"
+            )
     if args.mode == "replay":
         roots = [p.resolve(strict=True) for p in args.recording]
         if len(set(roots)) != len(roots):
@@ -325,24 +360,43 @@ def main(argv=None):
             Path(__file__).resolve().parents[1] / "examples/supervised_navigation/synthetic_cycle.json"
         )
         fixture = json.loads(fixture_path.read_bytes())
-        jobs = SCENARIOS if args.scenario == "all" else [args.scenario]
+        choice = args.scenario or ("visible_after_search" if args.planner == "lightnav" else "all")
+        jobs = (
+            [s for s in SCENARIOS if args.planner != "lightnav" or s != "two_second_planner"]
+            if choice == "all"
+            else [choice]
+        )
     else:
         jobs = roots
+    listing = [
+        dict(trace=f"trace-{n:02d}.jsonl", scenario=str(job))
+        if args.mode == "simulate"
+        else dict(
+            trace=f"trace-{n:02d}.jsonl",
+            recording=str(job),
+            passes={"recorded_only": {}, "assume_radio_sampled_at_guard_check": {}},
+        )
+        for n, job in enumerate(jobs, 1)
+    ]
+    (out / "review.json").write_text(json.dumps(dict(schema="go2-continuous-review-v1", results=listing)))
+    print(f"Offline review directory: {out}", flush=True)
     started = perf_counter()
     results = []
     for n, job in enumerate(jobs, 1):
         trace = f"trace-{n:02d}.jsonl"
-        with (out / trace).open("x") as stream:
-
-            def record(row):
-                stream.write(json.dumps(row, allow_nan=False, separators=(",", ":")) + "\n")
-
-            result = (
-                simulate(fixture, job, record, wall_clock=args.wall_clock)
-                if args.mode == "simulate"
-                else replay(job, record)
-            )
-        results.append(dict(result, trace=trace))
+        learned = args.mode == "simulate" and args.planner == "lightnav"
+        with TraceRecorder(out / trace, paced=args.mode == "simulate" and args.wall_clock) as record:
+            if args.mode == "simulate":
+                manager = (
+                    closing(LightNavPlanner.start(out / f"model-{n:02d}", Path(os.environ["GO2_WORKSPACE"])))
+                    if learned
+                    else nullcontext()
+                )
+                with manager as planner:
+                    result = simulate(fixture, job, record, wall_clock=args.wall_clock, planner=planner)
+            else:
+                result = replay(job, record)
+        results.append(dict(result, trace=trace, recording_stats=record.summary()))
     summary = dict(
         schema="go2-continuous-offline-v1",
         mode=args.mode,
@@ -350,7 +404,9 @@ def main(argv=None):
         host_elapsed_s=perf_counter() - started,
         results=results,
     )
-    (out / "summary.json").write_text(json.dumps(summary, indent=2, allow_nan=False) + "\n")
+    complete = out / "summary.tmp"
+    complete.write_text(json.dumps(summary, indent=2, allow_nan=False) + "\n")
+    complete.replace(out / "summary.json")
     print(out / "summary.json")
 
 

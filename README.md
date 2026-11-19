@@ -1,6 +1,6 @@
 ## Experimental continuous navigation
 
-Run the separate offline controller to compare saved LightNav decisions with current guard evidence or exercise rolling SEARCH/APPROACH plans on a moving simulated camera. The published five-move mode is the physical-validation baseline. [Offline commands and measured results](docs/CONTINUOUS_NAVIGATION.md) · [Five-move baseline](docs/FIVE_MOVE_NAVIGATION.md)
+Run the separate offline controller to compare saved LightNav decisions with current guard evidence or exercise rolling SEARCH/APPROACH plans on a moving simulated camera. Select `--planner lightnav --wall-clock` for asynchronous pinned model inference on the simulated camera. Review a growing or closed trace with the existing interactive viewer. The published five-move mode is the physical-validation baseline. [Offline commands and measured results](docs/CONTINUOUS_NAVIGATION.md) · [Five-move baseline](docs/FIVE_MOVE_NAVIGATION.md)
 
 ## Supervised Go2 navigation, November 19
 

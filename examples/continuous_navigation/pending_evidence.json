@@ -1,0 +1,54 @@
+{
+  "schema": "go2-continuous-evidence-v1",
+  "source_kind": "pending",
+  "run_id": null,
+  "reviewer": null,
+  "navigation_commit": null,
+  "controller_commit": null,
+  "sdk_commit": null,
+  "artifacts": [],
+  "topics": {
+    "tested_motion": {
+      "status": "unassessed",
+      "notes": "",
+      "evidence_ids": [],
+      "measurements": {}
+    },
+    "stopping": {
+      "status": "unassessed",
+      "notes": "",
+      "evidence_ids": [],
+      "measurements": {}
+    },
+    "camera_continuity": {
+      "status": "unassessed",
+      "notes": "",
+      "evidence_ids": [],
+      "measurements": {}
+    },
+    "lidar_continuity": {
+      "status": "unassessed",
+      "notes": "",
+      "evidence_ids": [],
+      "measurements": {}
+    },
+    "guard_failures": {
+      "status": "unassessed",
+      "notes": "",
+      "evidence_ids": [],
+      "measurements": {}
+    },
+    "recognition_and_search": {
+      "status": "unassessed",
+      "notes": "",
+      "evidence_ids": [],
+      "measurements": {}
+    },
+    "unsupported_capabilities": {
+      "status": "unassessed",
+      "notes": "",
+      "evidence_ids": [],
+      "measurements": {}
+    }
+  }
+}

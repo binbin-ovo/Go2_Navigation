@@ -130,6 +130,15 @@ def terminal_reader(commands, app, monotonic):
 
 
 def review_only(a):
+    if not (a.review_run / "run.json").is_file():
+        summary_path = a.review_run / "summary.json"
+        if not summary_path.is_file():
+            summary_path = a.review_run / "review.json"
+        if summary_path.is_file():
+            summary = json.loads(summary_path.read_bytes())
+            if summary.get("schema") in ("go2-continuous-offline-v1", "go2-continuous-review-v1"):
+                from go2_perception.vln.continuous_review import review_loop
+                return review_loop(a.review_run, summary, a.port)
     store = RunStore(a.review_run, create=False)
     run = json.loads((store.root / "run.json").read_text())
     app = InteractiveApp(store=store, session=None, camera=None, tap=None, mode="REVIEW",

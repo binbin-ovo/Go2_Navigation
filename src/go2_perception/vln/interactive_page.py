@@ -7,10 +7,7 @@ waypoints in their own model-local frame. Panel D is LiDAR only; nothing is regi
 across panels. All text is inserted with textContent.
 """
 
-PAGE = r"""<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Go2 VLN Review</title>
-<style>
+REVIEW_STYLE = r"""
 :root{--bg:#eef2f4;--panel:#fff;--ink:#142b39;--muted:#526875;--line:#d3dde2;--live:#0f7b4f;--replay:#1d5fa8;
 --review:#7a3fa0;--warn:#a5480b;--stale:#8a6d00;--bad:#b3261e;--pt:#ff2fc8;--path:#127eae;--yaw:#b34c12}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#11181c;--panel:#1a2329;--ink:#e3ecf0;
@@ -48,7 +45,12 @@ input[type=text]{font:inherit;padding:6px 10px;border:1px solid var(--line);bord
 button.big{font-size:16px;padding:8px 16px}button.primary{background:var(--replay);color:#fff;border-color:var(--replay)}
 .choices button{font-size:15px;padding:8px 14px}.choices button.sel{background:var(--live);color:#fff}
 #tanswer{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}@media(max-width:900px){#tanswer{grid-template-columns:1fr}}
-</style></head><body>
+"""
+
+PAGE = r"""<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Go2 VLN Review</title>
+<style>""" + REVIEW_STYLE + r"""</style></head><body>
 <header><strong id="banner">ADVISORY ONLY — NO ROBOT COMMANDS</strong><span id="mode" class="mode">…</span>
 <span id="trialhead"></span></header>
 <div class="strip" id="strip"></div>

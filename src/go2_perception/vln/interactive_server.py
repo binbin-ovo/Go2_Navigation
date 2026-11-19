@@ -54,6 +54,10 @@ def make_handler(app, token, monotonic=time.monotonic):
                     return self._send(200, getattr(app, "page", PAGE).replace("__TOKEN__", token), "text/html; charset=utf-8")
                 if url.path == "/api/state":
                     return self._send(200, _finite(app.state(now)))
+                if hasattr(app, "continuous_sample"):
+                    if url.path == "/api/continuous":
+                        return self._send(200, _finite(app.continuous_sample(q)))
+                    return self._send(404, {"error": "unknown trace route"})
                 if url.path == "/api/camera":
                     if app.tap is None:
                         return self._send(404, {"error": "no camera"})
@@ -82,6 +86,8 @@ def make_handler(app, token, monotonic=time.monotonic):
             return self._send(404, {"error": "not found"})
 
         def do_POST(self):
+            if hasattr(app, "continuous_sample"):
+                return self._send(405, {"error": "immutable trace review"})
             if not self._host_ok() or not secrets.compare_digest(self.headers.get("X-Review-Token", ""), token):
                 return self._send(403, {"error": "token and loopback host required"})
             length = int(self.headers.get("Content-Length") or 0)

@@ -10,6 +10,7 @@ from time import monotonic, sleep
 
 import numpy as np
 
+from .continuous_planner import encode_view
 from .continuous import ContinuousNavigator, PERIOD_S, simulated_velocity
 from .episode_mock import effective_mock_capability
 from .motion_profile import SENSOR, wrap
@@ -22,6 +23,8 @@ SCENARIOS = (
     "lidar_dropout",
     "operator_cancel",
     "stopped_control_clock",
+    "target_loss",
+    "no_continuation",
 )
 CAMERA = {"width": 161, "fx": 225.0, "cx": 80.0}
 START = 100.0
@@ -134,12 +137,14 @@ def integrate(pose, packet, start_s, end_s):
     )
 
 
-def simulate(fixture, scenario, record, *, wall_clock=False):
+def simulate(fixture, scenario, record, *, wall_clock=False, planner=None):
     """With wall_clock, one background visual worker can block while the calling thread checks guards."""
     close = Event()
-    with ThreadPoolExecutor(max_workers=1) if wall_clock else nullcontext() as pool:
+    if planner is not None and not wall_clock:
+        raise ValueError("actual LightNav requires wall-clock simulation")
+    with ThreadPoolExecutor(max_workers=1) if wall_clock and planner is None else nullcontext() as pool:
         try:
-            return _run(fixture, scenario, record, pool, close)
+            return _run(fixture, scenario, record, pool, close, planner)
         finally:
             close.set()
 
@@ -152,7 +157,7 @@ def _delayed_fixture(template, guard, image, sequence, delay, epoch, close):
     return result
 
 
-def _run(fixture, scenario, record, pool, close):
+def _run(fixture, scenario, record, pool, close, planner):
     if scenario not in SCENARIOS:
         raise ValueError("unknown scenario")
     cap = effective_mock_capability(deepcopy(fixture["capability"]))
@@ -178,7 +183,7 @@ def _run(fixture, scenario, record, pool, close):
     delivered_ages = []
     pending_id = None
     for step in range(242):
-        if pool is None:
+        if pool is None and planner is None:
             now = round(START + step * PERIOD_S, 6)
         else:
             sleep(max(0.0, next_wake - monotonic()))
@@ -192,7 +197,7 @@ def _run(fixture, scenario, record, pool, close):
         proxy_travel += math.hypot(pose["x_m"] - before["x_m"], pose["y_m"] - before["y_m"])
         proxy_turn += abs(wrap(pose["yaw_rad"] - before["yaw_rad"]))
         velocity = simulated_velocity(packet, now)
-        if pending and (pose["x_m"], pose["y_m"], pose["yaw_rad"]) != (
+        if pending_id and (pose["x_m"], pose["y_m"], pose["yaw_rad"]) != (
             before["x_m"],
             before["y_m"],
             before["yaw_rad"],
@@ -209,37 +214,56 @@ def _run(fixture, scenario, record, pool, close):
         dropout = scenario == "lidar_dropout" and elapsed is not None and elapsed >= 0.09
         guard = sensor(pose, now, velocity, clearance=0.12 if blocked else 3.0, available=not dropout)
         delivery = None
-        ready = None
-        if pending is not None:
-            if pool is None:
-                ready = pending
-            elif pending.done():
-                ready = pending.result()  # Nonblocking; the guard thread never waits for inference.
-        if ready is not None and ready["available_s"] <= now:
-            delivery, pending, pending_id = ready, None, None
+        worker_error = None
+        if planner is not None:
+            try:
+                delivery = planner.poll(now)
+            except (RuntimeError, ValueError, OSError) as exc:
+                worker_error = str(exc)
+        elif pending is not None:
+            ready = pending if pool is None else pending.result() if pending.done() else None
+            if ready is not None and ready["available_s"] <= now:
+                delivery, pending = ready, None
+                delivery["fixture_delay_s"] = delay
+        if delivery is not None:
+            pending_id = None
             delivered_ages.append(now - delivery["proposal"]["identity"]["observed_monotonic_s"])
-        if pending is None and now >= next_capture:
+        if worker_error is None and now + 1e-8 >= next_capture:
             sequence += 1
+            frame_id = f"sim-F{sequence:04d}"
             image = render(pose)
-            pending_id = f"sim-F{sequence:04d}"
-            pending = (
-                fixture_result(template, guard, image, sequence, delay)
-                if pool is None
-                else pool.submit(_delayed_fixture, template, guard, image, sequence, delay, epoch, close)
-            )
+            if scenario == "target_loss" and elapsed is not None and elapsed >= 0.09:
+                image.fill(0)
+            png, view = encode_view(image)
+            submit = pending_id is None and not (scenario == "no_continuation" and first_forward is not None)
+            if planner is not None:
+                try:
+                    planner.capture(now, png, view["png_sha256"], frame_id)
+                    if submit:
+                        planner.submit(template, guard, frame_id, CAMERA, (START, epoch))
+                except (RuntimeError, ValueError, OSError) as exc:
+                    worker_error = str(exc)
+                    submit = False
+            elif submit:
+                if pool is None:
+                    pending = fixture_result(template, guard, image, sequence, delay)
+                else:
+                    pending = pool.submit(
+                        _delayed_fixture, template, guard, image, sequence, delay, epoch, close
+                    )
+            if submit:
+                pending_id = frame_id
             record(
-                dict(
-                    kind="capture",
-                    t=now,
-                    observation_id=pending_id,
-                    pose=pose,
-                    configured_worker_delay_s=delay,
-                )
+                dict(kind="capture", t=now, observation_id=frame_id, pose=pose, view=view, submitted=submit)
             )
-            next_capture = now + 0.25
+            next_capture += 0.25
+            if next_capture <= now:
+                next_capture = now + 0.25
         control_times.append(now)
         cancel = scenario == "operator_cancel" and elapsed is not None and elapsed >= 0.09
-        packet = nav.tick(now, guard, delivery=delivery, cancel=cancel)
+        packet = nav.tick(
+            now, guard, delivery=delivery, cancel=cancel, worker_failed=worker_error is not None
+        )
         if first_forward is None and packet["velocity"][0] > 0:
             first_forward = now
         record(
@@ -251,21 +275,32 @@ def _run(fixture, scenario, record, pool, close):
                 packet=packet,
                 pose=pose,
                 pending_observation=pending_id,
+                worker_error=worker_error,
             )
         )
         if nav.terminal:
             end_reason = nav.terminal
             break
     return dict(
-        source="synthetic_image_fixture",
+        source="lightnav_on_simulated_camera" if planner else "synthetic_image_fixture",
+        distinct_camera_observations=sequence,
         scenario=scenario,
         end_reason=end_reason,
-        worker_latency_s=delay,
+        worker_latency_s=None if planner else delay,
+        learned_jobs=dict(
+            submitted=planner.submitted,
+            completed=planner.completed,
+            max_resident_camera_images=planner.max_images,
+        )
+        if planner
+        else None,
         period_s=PERIOD_S,
-        clock="host_monotonic" if pool else "virtual",
+        clock="host_monotonic" if pool or planner else "virtual",
         control_ticks=len(control_times),
-        control_gap_p95_s=float(np.percentile(np.diff(control_times), 95)),
-        control_gap_max_s=max(np.diff(control_times)),
+        control_gap_p95_s=float(np.percentile(np.diff(control_times), 95))
+        if len(control_times) > 1
+        else None,
+        control_gap_max_s=max(np.diff(control_times), default=None),
         result_age_at_poll_s=delivered_ages,
         started_s=START,
         ended_s=now,
