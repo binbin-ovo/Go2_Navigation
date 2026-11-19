@@ -2,6 +2,28 @@
 
 One model answers a visual question and proposes a path. Separate Python code decides whether the named object has been identified, whether a movement would be useful, and whether the available sensors support it. The historical box episode used the bounded five-move controller. The continuous controller has only been exercised offline.
 
+## From opening the website to physical movement
+
+This is the supervised **five-move LIVE** application used for the box trial. The launcher starts the backend on the Mac before the operator opens its local URL. The saved HTML replay lets you inspect the same stages using historical records.
+
+**While the page waits for a target, four things happen in parallel.**
+
+| What is running | What you see or what it does |
+|---|---|
+| Go2 front camera | New images arrive on the Mac. **A · Live camera** shows the latest view. |
+| LiDAR and odometry | **D · LiDAR** updates the top-down scan. The controller receives obstacle clearance and an estimate of the robot's position and heading. |
+| LightNav worker | The pretrained model loads once and waits for an authorized instruction and camera history. Panels B and C have no target prediction yet. |
+| Website and movement controller | The form waits for the target and operator confirmation. The executor monitors robot state, including stillness and operator input. The robot stays still. |
+
+**After you enter “box”, follow one decision.**
+
+1. **Authorize.** Typing fills the form. Selecting **Authorize episode**, with the operator confirmations, starts one bounded episode. It records “Go to the box and stop.” and waits for a fresh camera image. [Form handling and request timing](../src/go2_perception/vln/episode_app.py)
+2. **Predict.** The Mac corrects lens distortion and selects up to eight camera frames from this episode. LightNav uses those images and the instruction to predict a target mark or absence, a short path of ten positions and headings, and a possible STOP. One inference produces these outputs. Panel B uses the exact decision image. Panel A keeps updating while inference runs. [Camera history](../src/go2_perception/vln/bounded_context.py) · [Model inference](../scripts/lightnav_worker.py)
+3. **Decide.** A new mark can put the robot on **HOLD** while the operator identifies or rejects it. A current match to the named reference permits **APPROACH**. An absent or uncertain target can lead to **SEARCH** for another view. Python selects at most one short turn or forward step. Freshness, LiDAR clearance, odometry, operator input and remaining budget can veto it. A model STOP can end the episode with arrival still unverified. [Target check](../src/go2_perception/vln/episode_grounding.py) · [Action selection](../src/go2_perception/vln/episode_policy.py)
+4. **Move, stop, observe again.** For an approved step, the executor uses the canonical controller to send body-speed commands. The Go2's onboard controller drives the legs. Camera, LiDAR and odometry continue updating. The executor monitors progress and clearance, sends zero velocity, verifies stillness and releases command control. A new model decision requires a fresh view taken after settling. The episode ends at a stop, intervention, blocking condition, or its movement/time limit. [Dispatch](../src/go2_perception/vln/five_move.py) · [Velocity and stopping feedback](../src/go2_perception/vln/supervised_executor.py)
+
+**Follow the first real movement.** On November 19, the site began serving at **12:02:58** New York time and the model was ready at **12:03:53**. The operator submitted the box episode at **12:08:17**. At **12:08:23**, prediction P002 marked the wrong object. The robot waited. At **12:08:33**, the operator rejected that mark. A fresh prediction, P003, still lacked a verified box. At **12:08:36**, its SEARCH action issued the first velocity command for a 0.30 m forward step. The first zero-speed command followed at **12:08:36.633**. The executor completed its stop and release checks at **12:08:41**. The recorded settled estimate was 0.340 m. In the [offline replay](../START_HERE.md), open P002 and P003 in that order to see the difference between a displayed proposal and a dispatched movement.
+
 ## A 25-minute reading route
 
 | Minutes | Read in this order | Follow one input through to its output |

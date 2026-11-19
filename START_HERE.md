@@ -1,6 +1,8 @@
-# Start here — understand a Go2 decision
+# Start here — follow the Go2 website
 
-Open the box replay first. It shows the exact images LightNav received, the point and path it proposed, and what the supervised executor did with each decision. It runs on local files with the core Python environment.
+In the live five-move session, the camera and LiDAR are already running when the page opens. Panel **A** shows the latest camera image and panel **D** shows LiDAR. LightNav loads once and waits. You enter a target and select **Authorize episode**. Panel **B** then shows the exact image used for a prediction and its raw target mark. Panel **C** shows the proposed path. The controller decides whether to hold, search, or approach. An approved movement finishes and the robot settles before the next decision.
+
+Read [what happens from page opening through the first physical step](docs/CODE_WALKTHROUGH.md#from-opening-the-website-to-physical-movement). To watch what actually happened in the closed box trial, open the offline replay below.
 
 ```bash
 export GO2_WORKSPACE=/Users/yushan/Robotics/Go2
