@@ -9,10 +9,23 @@ import numpy as np
 from .motion_profile import Hold
 
 
+def reference_matches_target(name, requested):
+    """Allow case and whitespace differences. Every descriptive word still has to match."""
+    if not isinstance(name, str) or not isinstance(requested, str):
+        return False
+    return bool(name.strip()) and name.casefold().split() == requested.casefold().split()
+
+
+def valid_roi(roi):
+    return (isinstance(roi, (list, tuple, np.ndarray)) and np.shape(roi) == (4,)
+            and all(isinstance(v, (int, float, np.integer, np.floating)) and not isinstance(v, bool) and np.isfinite(v) for v in roi)
+            and 0 <= roi[0] < roi[2] <= 1 and 0 <= roi[1] < roi[3] <= 1)
+
+
 def object_reference(path, roi, target, operator):
     path = Path(path)
     image = cv2.imread(str(path), cv2.IMREAD_GRAYSCALE)
-    if image is None or len(roi) != 4 or not (0 <= roi[0] < roi[2] <= 1 and 0 <= roi[1] < roi[3] <= 1):
+    if image is None or not valid_roi(roi):
         raise Hold("invalid_reference_image_or_roi")
     keypoints, descriptors, size = features(image, roi)
     if descriptors is None or len(keypoints) < 12:
@@ -106,8 +119,9 @@ def ground(pred, path, rectification, target, ref, rejected=None):
     image = cv2.imread(str(path), cv2.IMREAD_GRAYSCALE)
     if image is None:
         raise Hold("current_target_image_unavailable")
-    match = locate(ref, image, point) if ref is not None and ref["target"] == target else None
-    incompatible = rejected is not None and locate(rejected, image, point) is not None
+    match = locate(ref, image, point) if ref is not None and reference_matches_target(ref["target"], target) else None
+    incompatible = (rejected is not None and reference_matches_target(rejected["target"], target)
+                    and locate(rejected, image, point) is not None)
     if match and incompatible:
         return dict(e, status="needs_identification", method="conflicting_instance_matches")
     if incompatible:

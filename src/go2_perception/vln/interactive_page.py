@@ -75,10 +75,10 @@ PAGE = r"""<!doctype html>
 <div class="grid">
 <section><h2>A · Live camera <span id="camstate" class="badge"></span></h2><img id="cam" class="cam" alt="Latest camera frame">
 <div id="cammeta" class="meta"></div></section>
-<section><h2>B · Model target <span id="plabel" class="badge"></span><span id="pid" class="note"></span></h2>
+<section><h2>B · Raw model mark <span id="plabel" class="badge"></span><span id="pid" class="note"></span></h2>
 <canvas id="pimg" width="448" height="256"></canvas><div id="pmeta" class="meta"></div>
-<p class="note">Drawn only on the exact image this prediction used. No boxes, no confidences. The operator's target text is a request, not a verified label.</p></section>
-<section><h2>C · Native waypoints and headings <span id="clabel" class="badge"></span></h2>
+<p class="note">The pink cross is an unverified model proposal on this exact input. CURRENT describes timing. Object identification is shown separately.</p></section>
+<section><h2>C · Proposed waypoints and headings <span id="clabel" class="badge"></span></h2>
 <canvas id="path" class="chart" width="440" height="330"></canvas><table id="wtab"></table><div id="cmeta" class="meta"></div>
 <p class="note">Model-local SE(2) frame of the decision image (x forward, y left, yaw CCW; metres/radians). No time base or speeds. Not registered to LiDAR, base or camera: no measured transform.</p></section>
 <section><h2>D · LiDAR top-down (base_link) <span id="lstate" class="badge"></span></h2>
@@ -117,10 +117,16 @@ function drawPred(p,img){const cv=$("pimg"),g=cv.getContext("2d");cv.width=img?i
   g.beginPath();g.moveTo(x-14,y);g.lineTo(x+14,y);g.moveTo(x,y-14);g.lineTo(x,y+14);g.stroke();g.strokeStyle=getComputedStyle(document.body).getPropertyValue("--pt");g.lineWidth=3;g.stroke()}
  if(p.opos_not_visible){g.fillStyle="rgba(0,0,0,.65)";g.fillRect(0,0,cv.width,34);g.fillStyle="#fff";g.font="bold 18px system-ui";g.fillText("OPOS-0: model says target NOT VISIBLE",10,23)}
  shownPred=p.prediction_id;shownPredObj=p;report();drawPath(p)}
-function panelB(){const p=S.prediction;if(!p){$("plabel").textContent="NO PREDICTION";$("pid").textContent="";$("pmeta").textContent="No model output yet. Use the Test box above.";shownPredObj=null;drawPath(null);return}
+function panelB(){const p=S.prediction;if(!p){loadingPred=null;
+ if(!S.navigation?.last_observation||S.navigation.state!=="TERMINAL"){
+   const cv=$("pimg");cv.getContext("2d").clearRect(0,0,cv.width,cv.height);shownPred=null;}$("plabel").textContent="NO PREDICTION";$("pid").textContent="";$("pmeta").textContent="No model output yet. Use the Test box above.";shownPredObj=null;drawPath(null);return}
  if(p.prediction_id!==shownPred&&p.prediction_id!==loadingPred){loadingPred=p.prediction_id;const snap=p;
-  if(p.image_url){const img=new Image();img.onload=()=>{loadingPred=null;drawPred(snap,img)};img.onerror=()=>{loadingPred=null;drawPred(snap,null)};img.src=p.image_url+"&t="+Date.now()}
-  else{loadingPred=null;drawPred(snap,null)}}
+  const cv=$("pimg");cv.getContext("2d").clearRect(0,0,cv.width,cv.height);shownPred=null;shownPredObj=null;
+  $("pid").textContent="";$("pmeta").textContent="Loading this prediction's source image";$("plabel").textContent="PENDING";
+  const finish=img=>{if(loadingPred!==snap.prediction_id||S.prediction?.prediction_id!==snap.prediction_id)return;
+    loadingPred=null;drawPred(snap,img)};
+  if(p.image_url){const img=new Image();img.onload=()=>finish(img);img.onerror=()=>finish(null);img.src=p.image_url+"&t="+Date.now()}
+  else{finish(null)}}
  if(p.prediction_id!==shownPred)return;const t=p.display_timing||{};$("plabel").textContent=p.label;$("plabel").className="badge "+p.label;$("clabel").textContent=p.label;$("clabel").className="badge "+p.label;$("pid").textContent=p.prediction_id+(p.mock?" · MOCK — no model":"");
  $("pmeta").textContent=["trial "+p.trial_id+(S.trial&&S.trial.trial_id===p.trial_id?" (active)":" (not the active trial)"),"instruction: "+p.instruction,
  p.opos_not_visible?"native target: OPOS-0 = NOT VISIBLE (model claim, not proof of absence)":p.target_fraction?"native target point (model claim): "+p.target_fraction.map(v=>v.toFixed(3)).join(", ")+" of image":"native target: none decodable",
@@ -200,12 +206,19 @@ function panelTest(){const G=S.guided;$("test").style.display=S.mode==="REVIEW"?
   else tCover("No archived image for this answer. Discard and ask again.");
   const box=$("tchoices");box.replaceChildren();Object.entries(G.choices).forEach(([k,v])=>{const b=document.createElement("button");b.textContent=v;b.onclick=()=>{tChoice=k;[...box.children].forEach(c=>c.classList.toggle("sel",c===b))};box.append(b)})}
  $("tsave").disabled=!canSave(G);$("tsave").textContent=G.pending_save||tSaving?"Saving…":tLoaded!==tShown?"Waiting for image…":"Save";
- $("tverdict").textContent=a.opos_not_visible?"Model: the "+G.target+" is NOT VISIBLE here.":a.target_fraction?"Model: the "+G.target+" is at the pink + .":"Model gave no usable point.";
+ $("tverdict").textContent=a.opos_not_visible?"Model: the "+G.target+" is NOT VISIBLE here.":a.target_fraction?"Unverified model mark for "+G.target+": pink + .":"Model gave no usable point.";
  $("tquestion").textContent=a.target_fraction?"Is the + on the "+G.target+"?":a.opos_not_visible?"Is that right — is the "+G.target+" really not in view?":"What do you see?";
  $("tqmeta").textContent=["answer "+a.prediction_id.split("-").pop()+" · model took "+fmt(a.inference_duration_s,1)+" s"+(a.mock?" · MOCK (no model)":""),
   "status when the answer arrived: "+a.label_at_receipt+" (observation was "+fmt(a.age_at_receipt_s,1)+" s old since receipt"+(a.exposure_age_at_receipt_s!=null?", "+fmt(a.exposure_age_at_receipt_s,1)+" s since estimated exposure":"")+")",
   "this image is now "+fmt(a.age_now_s,0)+" s old: judge THIS image, not the live view",
   "image = exactly what the model saw (frame "+a.source_frame_id+")"].join("\n")}
+function reviewEvidence(e){
+ if(e.rejection)return "Executor held this observation · "+e.rejection;
+ const g=e.grounding, candidates=e.reviews.map(r=>r.decision).join(", ");
+ const support=g.status==="supported"?(g.method==="synthetic_fixture"?"Synthetic fixture support":"Matched named reference"):
+   g.status==="absent"?"Model reports target absent":g.status==="uncertain"?"Target uncertain":"Unverified candidate";
+ const sel=e.selection, motion=sel?sel.mode+" · "+sel.source+" · "+sel.action.direction:"No dispatch recorded for this prediction";
+ return [support,g.method,candidates?"Image review: "+candidates:"",motion].filter(Boolean).join(" · ")}
 let reviewKey=null;
 function panelReview(){const R=S.review,box=$("review");if(!R){box.style.display="none";reviewKey=null;return}box.style.display="block";
  $("rtitle").textContent=R.trial_id+" · "+R.trial.instruction+(R.dialog_open?" · answer the questions in the terminal":"");
@@ -214,7 +227,8 @@ function panelReview(){const R=S.review,box=$("review");if(!R){box.style.display
  const key=R.trial_id+":"+R.predictions.length+":"+R.marks.length+":"+R.corrections.length;
  if(key!==reviewKey){reviewKey=key;const sh=$("sheet");sh.replaceChildren();
   R.predictions.forEach(p=>{const t=document.createElement("div");t.className="tile";const cv=document.createElement("canvas");const m=document.createElement("div");m.className="meta";
-   m.textContent=[p.prediction_id+" · "+p.label_at_receipt+(p.rejection_reason_at_receipt?" ("+p.rejection_reason_at_receipt+")":""),p.opos_not_visible?"OPOS-0: NOT VISIBLE":p.target_fraction?"point "+p.target_fraction.map(v=>v.toFixed(3)).join(", "):"no point",
+   m.textContent=[p.prediction_id+" · "+p.label_at_receipt+(p.rejection_reason_at_receipt?" ("+p.rejection_reason_at_receipt+")":""),p.opos_not_visible?"OPOS-0: model reports absence":p.target_fraction?"Unverified model mark "+p.target_fraction.map(v=>v.toFixed(3)).join(", "):"no point",
+    p.episode_review?reviewEvidence(p.episode_review):"Independent instance support unavailable for this image",
     "STOP "+p.native_stop+" · src "+p.source_frame.frame_id,"src t="+fmt(p.source_frame.observation_s,3)+" ("+p.source_frame.clock+")"].join("\n");
    t.append(cv,m);sh.append(t);const img=new Image();img.onload=()=>{cv.width=img.naturalWidth;cv.height=img.naturalHeight;const g=cv.getContext("2d");g.drawImage(img,0,0);
     if(p.target_fraction){const x=p.target_fraction[0]*cv.width,y=p.target_fraction[1]*cv.height;g.strokeStyle="#ff2fc8";g.lineWidth=3;g.beginPath();g.moveTo(x-12,y);g.lineTo(x+12,y);g.moveTo(x,y-12);g.lineTo(x,y+12);g.stroke()}

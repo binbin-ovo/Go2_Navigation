@@ -2,6 +2,8 @@
 
 A fast, offline controller can renew a SEARCH or APPROACH primitive while the proxy moves. It accepts the existing supervised v2 proposal, including the ten native LightNav waypoints and source-pose identity. A separate command-line entry point selects the experiment. Its only velocity consumer integrates expiring packets into a local kinematic proxy. The five-move viewer, executor and launch flags still select the published stop–observe–act policy. [Five-move publication](https://github.com/binbin-ovo/Go2_Navigation/commit/918f48c7880d1ade20034a1ab37664fd3fa2188e) · [Baseline operator guide](FIVE_MOVE_NAVIGATION.md)
 
+The [subsequent box diagnosis](TARGET_GROUNDING_REVIEW.md) examines completed five-move hardware sessions. Independent distance and a reviewed physical evidence bundle for continuous navigation remain pending.
+
 ## Reproduce the offline runs
 
 Use the migrated Mac workspace and the existing core interpreter. Each command prints a new private `summary.json` path. The replay command consumes the original closed sessions in place.

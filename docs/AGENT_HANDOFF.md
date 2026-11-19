@@ -1,6 +1,16 @@
 # Go2 supervised navigation handoff
 
+## Current handoff — grounding diagnosis and offline review
+
+Begin with [START_HERE](../START_HERE.md), the [25-minute source guide](CODE_WALKTHROUGH.md) and the [box evidence report](TARGET_GROUNDING_REVIEW.md). Review branch `feature/vln-target-grounding-review` builds on continuous publication `ebefe9d25c820765d66a363d3d30a17368b3b5d6`. Claude's checkout remains on `hardware/five-move-validation` at `918f48c` with its private boot-specific guard and corresponding test edits. The controller is `6d555d3`. The midday box episode used a measured 0.140 s boot-specific bound. The 0.159 s value in the earlier handoff describes a different boot.
+
+The closed `trial-THKUcr` run contains two operator-role rejections, two dispatched SEARCH steps, zero supported approaches, and an episode deadline. P002 was the wrong hallway mark on the exact model frame. On three saved histories, four descriptions and one repeat produced 13 decoded offline outputs. Extra detail suppressed a distractor but missed the edge box. The source-verified trace, side-by-side panels and exact replay commands are in the evidence report. New archives retain the originally entered text. The distinction between raw model marks, matched references, search and approach now appears in the viewer.
+
+**Verification.** The focused offline selection passed 217 tests in 35.61 s. The study used one isolated fixed-model worker and its own private output directory. The replay checked 123 original source files before and after. The closed logs supersede the older “physical five-move run pending” notes as evidence of these trials. Independent distance, formal validation of the continuous evidence contract and physical activation of the continuous prototype remain pending. The next diagnostic is a cross-view test of the identified reference on saved images. [Study and reproduction](TARGET_GROUNDING_REVIEW.md)
+
 ## Continuous navigation handoff for Claude
+
+This section records the earlier continuous-navigation publication.
 
 `feature/vln-continuous-navigation` continues the first controller publication `93b08825c4eb702c1d8b9af4cc2df2a54dc3d712` in `$GO2_WORKSPACE/code/worktrees/codex-motion-diagnostics`. The stable five-move branch below is the physical-test baseline. Use the existing core and model environments. The single controller emits expiring packets only to the kinematic proxy.
 

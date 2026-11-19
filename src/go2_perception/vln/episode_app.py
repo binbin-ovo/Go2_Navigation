@@ -7,7 +7,7 @@ import re
 import threading
 from types import SimpleNamespace
 
-from .episode_grounding import ground, object_reference
+from .episode_grounding import ground, object_reference, reference_matches_target, valid_roi
 from .episode_mock import EpisodeMockWorker
 from .episode_page import episode_page
 from .five_move import SCHEMA
@@ -19,10 +19,12 @@ from .supervised_app import NavigationUI
 
 
 def target_spec(text):
-    noun = re.sub(r"^go\s+to\s+(?:the\s+)?", "", str(text).strip(), flags=re.I)
+    if not isinstance(text, str) or not text.strip() or text.strip().rstrip(".!").casefold() in ("go to", "go to the", "the"):
+        raise ValueError("Enter an object description")
+    noun = re.sub(r"^go\s+to\s+(?:the\s+)?", "", text.strip(), flags=re.I)
     noun = re.sub(r"(?:\s+and\s+stop)?[.!]?$", "", noun, flags=re.I)
     noun = re.sub(r"^the\s+", "", noun.strip(), flags=re.I)
-    return expand_target(noun)
+    return {**expand_target(noun), "entered_target_text": text}
 
 
 class EpisodeUI(NavigationUI):
@@ -78,8 +80,9 @@ class EpisodeUI(NavigationUI):
         if not 1 <= len(operator) <= 100:
             raise Hold("named_operator_required")
         if self.settings.get("reference_path"):
-            if target.casefold() != self.settings["reference_target"].casefold():
-                raise Hold("reference_names_another_target")
+            if not reference_matches_target(self.settings["reference_target"], target):
+                raise Hold(f"reference_names_another_target: photo named {self.settings['reference_target']!r}, "
+                           f"requested {target!r}. Identify this description on an image or supply a photo named for it.")
             self.ref = object_reference(
                 self.settings["reference_path"], self.settings["reference_roi"], target, operator
             )
@@ -168,8 +171,10 @@ class EpisodeUI(NavigationUI):
             self.send("episode_identified", **binding)
             return
         point = pred["target_fraction"]
-        roi = payload["roi"]
-        if len(roi) != 4 or not (roi[0] <= point[0] <= roi[2] and roi[1] <= point[1] <= roi[3]):
+        roi = payload.get("roi")
+        if not valid_roi(roi):
+            raise Hold("Draw a rectangle around the marked object in panel B before identifying or rejecting it.")
+        if point is None or not (roi[0] <= point[0] <= roi[2] and roi[1] <= point[1] <= roi[3]):
             raise Hold("mark_must_be_inside_named_object_roi")
         path = self.app.prediction_image_path(pred["prediction_id"])
         if path is None:

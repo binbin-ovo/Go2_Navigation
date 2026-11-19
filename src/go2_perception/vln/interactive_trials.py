@@ -103,6 +103,7 @@ class RunStore:
                 (self.root / sub).mkdir(parents=True)
         elif not (self.root / "run.json").exists():
             raise FileNotFoundError(f"{root} is not an interactive review run")
+        self.closed_episode_decisions = None
         self.events = self.root / "events.jsonl"
         self.counter = len(read_jsonl(self.root / "trials/index.jsonl"))
 
@@ -209,10 +210,19 @@ def load_review(store, trial_id):
     folder = store.trial_dir(trial_id)
     trial = json.loads((folder / "trial.json").read_text())
     end = json.loads((folder / "trial_end.json").read_text()) if (folder / "trial_end.json").exists() else None
+    predictions = read_jsonl(folder / "predictions.jsonl")
+    if end and (store.root / "summary.json").is_file() and (store.root / "episode_summary.json").is_file():
+        from .grounding_review import episode_decisions
+        if store.closed_episode_decisions is None:
+            _, store.closed_episode_decisions = episode_decisions(store.root)
+        for pred in predictions:
+            record = store.closed_episode_decisions.get(pred["prediction_id"])
+            if record and (record.get("rejection") or record["grounding"]["image_sha256"] == (pred.get("source_image") or {}).get("file_sha256")):
+                pred["episode_review"] = record
     return {
         "trial": trial,
         "end": end,
-        "predictions": read_jsonl(folder / "predictions.jsonl"),
+        "predictions": predictions,
         "marks": read_jsonl(folder / "marks.jsonl"),
         "notes": read_jsonl(folder / "notes.jsonl"),
         "human_labels": read_jsonl(folder / "human_labels.jsonl"),
@@ -243,7 +253,7 @@ def contact_sheet(store, trial_id, prediction_image):
     sheet = Image.new("RGB", (cols * tw + 20, 130 + rows * th), "#eef2f4")
     draw = ImageDraw.Draw(sheet)
     trial = data["trial"]
-    panel_text(draw, (12, 10), f"REVIEW · {trial_id} · {trial['kind']} · advisory only, no robot commands",
+    panel_text(draw, (12, 10), f"REVIEW · {trial_id} · {trial['kind']} · archived predictions",
                fill="#142b39", size=20)
     panel_text(draw, (12, 42), f"Instruction: {trial['instruction']}"[:150], fill="#142b39", size=16)
     panel_text(draw, (12, 68), f"Operator text (not a verified label): {trial['operator_text']}"[:150],

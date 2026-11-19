@@ -1,4 +1,8 @@
-## Current milestone — experimental continuous navigation, November 19
+## Current review — object description, instance verification and dispatch
+
+The active physical checkout ran the bounded five-move baseline with a boot-specific guard update. The latest closed wrong-box episode at `918f48c` identified zero targets and recorded two forward SEARCH movements. The fixed-checkpoint description comparison used three saved histories and 13 requests. Richer wording suppressed a hallway distractor and missed a visible edge target. The review branch adds an immutable replay, clearer viewer evidence and a source reading guide. Focused verification passed 217 tests. [Start here](../START_HERE.md) · [Evidence and results](TARGET_GROUNDING_REVIEW.md)
+
+## Prior milestone — experimental continuous navigation, November 19
 
 `feature/vln-continuous-navigation` builds on five-move publication `918f48c7880d1ade20034a1ab37664fd3fa2188e`. Its separate offline runner supports expiring velocity packets, concurrent scene observation and simulated motion, compatible plan replacement, and independently timed guard checks. Default launchers continue to use their existing policies. [Controller and reproduction commands](CONTINUOUS_NAVIGATION.md)
 
@@ -76,7 +80,7 @@ imports the audited SDK only after explicit gates. Motion is limited to one disp
 attempt/session. Unknown stop ACK stays unknown; measured stationary and RPC release
 are separate. It is a supervised software cycle, not navigation success.
 
-## Current: browser one-answer review tool + paired-view experiment (2026-11-17)
+## Historical: browser one-answer review tool + paired-view experiment (2026-11-17)
 
 Branch `feature/vln-interactive-review` (worktree `/Users/yushan/Desktop/Go2_Navigation-vln-interactive`;
 published `73c83f1`, local corrections after it). Main and the motion-control PR untouched.

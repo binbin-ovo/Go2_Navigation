@@ -2,6 +2,8 @@
 
 This opt-in episode gives one operator authority to search for one named object within an inspected static area. The executor accepts at most five movement attempts. Finding the object changes the mode to APPROACH and preserves the number of attempts already spent.
 
+The [November 19 box review](TARGET_GROUNDING_REVIEW.md) traces a completed live five-move trial. The original development runs and commands below describe the baseline publication.
+
 ## Reproduce the offline trial
 
 Run from the dedicated worktree on the Mac. The driver starts the real loopback viewer, recorder and executor IPC with a synthetic camera, LiDAR and mock decisions. It authorizes once, checks the fixture's expected outcome and closes its child processes. The output directory must be new.
@@ -76,7 +78,7 @@ Private run artifacts include `episode_summary.json`, `executor/executor_events.
 
 ## Smallest physical pilot for Claude
 
-First run `bash scripts/launch_five_move_episode.sh --prepare-only` in this worktree. It verifies local capability evidence and exits before starting hardware. The 0.159 s uncertainty bound applies only to the measured November 19 boot and its matching camera mapping. A boot mismatch holds the episode. Use the project's existing boot-specific readiness procedure if necessary. [Mac workspace and sensor setup](MAC_CONNECTION.md) · [November 19 evidence](AGENT_HANDOFF.md#two-counted-forward-runs)
+First run `bash scripts/launch_five_move_episode.sh --prepare-only` in this worktree. It verifies local capability evidence and exits before starting hardware. The 0.159 s uncertainty bound applies only to the November 19 00:06 measurement and its matching boot. The later box trial used its own 11:31 measurement of 0.140 s. A boot mismatch holds the episode. Use the project's existing boot-specific readiness procedure if necessary. [Mac workspace and sensor setup](MAC_CONNECTION.md) · [November 19 evidence](AGENT_HANDOFF.md#two-counted-forward-runs)
 
 For a separately supervised hardware window, use one distinctive chair just outside the starting view, a clear static 2 m radius and a two-move budget. Aim to observe one search and one grounded approach. The operator can administer the first identification when the chair comes into view. Use a pre-identified image if that is more practical. The operator's emergency intervention must be available throughout. The hardware launch below is for Claude's pilot.
 
@@ -91,7 +93,7 @@ Record the run path, target/image correspondence before and after each attempt, 
 
 The selected core regressions passed 259 cases in 50.84 s. After adding the idle radio and stale-remote cases, the final episode module passed 31 cases in 0.64 s. The two runs cover 261 distinct core tests. The isolated model environment passed all 10 native processor tests in 5.33 s using CPU and mock generation. There were zero failures or skips in these selections. Hardware tests were excluded.
 
-The browser fixture produced one grant, a 30° search turn, a 20° coarse alignment turn, a 0.30 m forward approach and native STOP. The fake settled feedback was 20°, 10° and 0.20 m. All four inputs and three attempts remain visible in the private review. The terminal result was `MODEL_STOPPED_ARRIVAL_UNVERIFIED`. A separate native processor test exercised actual sparse inputs with synthetic pixels and mocked generation. Physical episode behavior and live learned recognition remain untested.
+The browser fixture produced one grant, a 30° search turn, a 20° coarse alignment turn, a 0.30 m forward approach and native STOP. The fake settled feedback was 20°, 10° and 0.20 m. All four inputs and three attempts remain visible in the private review. The terminal result was `MODEL_STOPPED_ARRIVAL_UNVERIFIED`. A separate native processor test exercised actual sparse inputs with synthetic pixels and mocked generation. At that publication physical behavior and live learned recognition awaited testing. Later closed box episodes and their grounding outcomes are recorded in the [target review](TARGET_GROUNDING_REVIEW.md).
 
 ```bash
 export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1
