@@ -4,6 +4,7 @@ privacy. Synthetic data only."""
 import json
 import shutil
 import subprocess
+import sys
 from copy import deepcopy
 from pathlib import Path
 
@@ -358,10 +359,12 @@ def test_private_output_paths(tmp_path):
 
 def test_fsd_viewer_refuses_tracked_output_for_recordings(tmp_path):
     r = subprocess.run(
-        [".venv/bin/python" if Path(".venv/bin/python").exists() else "python", "scripts/fsd_viewer.py", "--recording", "nonexistent", "--data", str(tmp_path), "--output", "docs/leak.mp4"],
-        capture_output=True, text=True, env={"PYTHONPATH": "src", "PATH": "/usr/bin:/bin:/opt/homebrew/bin"},
-    )  # fmt: skip
-    assert r.returncode != 0 and not Path("docs/leak.mp4").exists()
+        [sys.executable, "scripts/fsd_viewer.py", "--recording", "fixture", "--scene", str(FIXTURE),
+         "--data", str(tmp_path), "--output", "docs/leak.mp4"],
+        cwd=ROOT, capture_output=True, text=True, env={"PYTHONPATH": "src", "PATH": "/usr/bin:/bin:/opt/homebrew/bin"},
+    )
+    assert r.returncode != 0 and "path Git would track" in r.stderr
+    assert not (ROOT / "docs/leak.mp4").exists()
 
 
 # ---- planner readiness: stale/missing never reads as free ----

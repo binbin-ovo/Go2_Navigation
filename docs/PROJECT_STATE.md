@@ -1,10 +1,18 @@
-## Current milestone — bounded object search and approach, November 19
+## Current milestone — experimental continuous navigation, November 19
+
+`feature/vln-continuous-navigation` builds on five-move publication `918f48c7880d1ade20034a1ab37664fd3fa2188e`. Its separate offline runner supports expiring velocity packets, concurrent scene observation and simulated motion, compatible plan replacement, and independently timed guard checks. Default launchers continue to use their existing policies. [Controller and reproduction commands](CONTINUOUS_NAVIGATION.md)
+
+**Measured.** The short-delay image fixture achieved one forward-plan replacement while moving. At a two-second worker delay there were zero such replacements. Both runs reached the inspected-area veto. A host-paced check sustained 206 guard ticks in 10.26 s. Two closed forward recordings each provided five causal input frames and a verified grounded target. Both strict replays held at zero because the radio receipt timestamp was absent. Assigning the guard check time to that sample in a separate diagnostic yielded 10 and 9 hypothetical nonzero ticks. [Results and timing](CONTINUOUS_NAVIGATION.md#measured-results-on-november-19)
+
+**Verification and next evidence.** The complete offline selection passed 926 tests, with two optional simulator modules skipped and 19 hardware/model cases deselected. Physical five-move performance, learned continuous navigation and continuous hardware actuation await new evidence. Claude's next run uses the published baseline. [Hardware handoff](CONTINUOUS_NAVIGATION.md#hardware-handoff)
+
+## Published baseline — bounded object search and approach, November 19
 
 The opt-in `feature/vln-five-move-navigation` branch adds one supervised episode with a maximum of five movement attempts under one area authorization. A fresh settled view and independently supported object identity gate each approach. The episode can search without a target mark. Its default ±15° approach band, 3° hysteresis and explicit 20–30° alignment turns apply only to episode selection. The executor retains the 1.0 m/s and 2.0 rad/s effective profile, its stopping allowances, and raw per-action diagnostics. [Implementation and evidence contract](FIVE_MOVE_NAVIGATION.md)
 
 **Verified offline.** One browser authorization produced four synthetic decisions and three movements, ending at native STOP with arrival unverified. The focused core regression selection passed 259 cases. A final run of all 31 episode cases covered two additional radio and remote-freshness checks. Ten pinned native processor tests passed with synthetic inputs and mocked generation. Physical tests and learned generation were outside this verification. [Reproduction commands](FIVE_MOVE_NAVIGATION.md#offline-verification)
 
-**Pending.** Claude's smallest pilot is a two-move, 45 s episode in a clear inspected area with one identifiable chair. Appearance changes, weak texture, similar furniture, model latency, odometry drift and the camera boot-specific timing bound can all force a hold or an early end. Navigation success on the robot is unverified. [Claude handoff](AGENT_HANDOFF.md#current-handoff-for-claude--bounded-object-navigation-november-19)
+**Pending.** Claude's smallest pilot is a two-move, 45 s episode in a clear inspected area with one identifiable chair. Appearance changes, weak texture, similar furniture, model latency, odometry drift and the camera boot-specific timing bound can all force a hold or an early end. Navigation success on the robot is unverified. [Claude handoff](AGENT_HANDOFF.md#baseline-handoff-for-claude--bounded-object-navigation-november-19)
 
 ## Historical single-action motion diagnostics, November 19
 

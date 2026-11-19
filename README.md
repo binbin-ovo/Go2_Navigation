@@ -1,3 +1,7 @@
+## Experimental continuous navigation
+
+Run the separate offline controller to compare saved LightNav decisions with current guard evidence or exercise rolling SEARCH/APPROACH plans on a moving simulated camera. The published five-move mode is the physical-validation baseline. [Offline commands and measured results](docs/CONTINUOUS_NAVIGATION.md) · [Five-move baseline](docs/FIVE_MOVE_NAVIGATION.md)
+
 ## Supervised Go2 navigation, November 19
 
 Claude completed the first physical model-directed forward step using LightNav

@@ -1,8 +1,16 @@
 # Go2 supervised navigation handoff
 
-## Current handoff for Claude — bounded object navigation, November 19
+## Continuous navigation and the physical-validation handoff, November 19
 
-Use `feature/vln-five-move-navigation` in `$GO2_WORKSPACE/code/worktrees/codex-motion-diagnostics`. It builds on the published effective-motion diagnostics at `f444bc73432fa8401fe41b066a9392dfb5452c7d`, with the canonical controller at `6d555d3` and the SDK at `814556d`. The new episode runs only with `--five-move-episode`. [Operator guide and exact launch commands](FIVE_MOVE_NAVIGATION.md) · [Episode schema](../src/go2_perception/vln/schemas/five-move-episode-v1.schema.json) · [Synthetic chair fixture](../examples/five_move_navigation/synthetic_episode.json)
+Use `feature/vln-continuous-navigation` in `$GO2_WORKSPACE/code/worktrees/codex-motion-diagnostics` for offline research. The physical pilot belongs to the separate five-move publication below. The canonical controller is `6d555d3` and the SDK is `814556d`. The continuous runner has two entry points, `simulate` and `replay`. Both require disabled physical opt-ins. [Commands, interfaces and verified artifacts](CONTINUOUS_NAVIGATION.md)
+
+Six virtual scenarios, a host-paced slow worker and two existing single-action recordings were exercised. The short-delay fixture updated a forward plan during movement. The two-second fixture could only execute separated primitives. The two real recordings both lacked a radio receipt timestamp for strict replay. The separate conditional passes emitted one forward plan apiece. These results establish offline controller behavior. Physical performance and arrival remain unverified. The final core selection passed 926 tests. [Measured outcomes and limitations](CONTINUOUS_NAVIGATION.md#measured-results-on-november-19)
+
+When a hardware window becomes available, collect the agreed closed baseline episode, boot-specific camera timing, identified target, in-motion pose/LiDAR, model-result and radio receipt timestamps, and stop/release/stillness evidence. Keep the independent displacement measurement with its trial. The two existing single-action recordings and capability-only five-move preparations cannot establish physical continuous navigation. [Baseline pilot procedure](FIVE_MOVE_NAVIGATION.md#smallest-physical-pilot-for-claude)
+
+## Baseline handoff for Claude — bounded object navigation, November 19
+
+Claude’s validation checkout at `$GO2_WORKSPACE/code/navigation` was at five-move publication `918f48c7880d1ade20034a1ab37664fd3fa2188e` on `hardware/five-move-validation` when inspected. The published fallback branch is `feature/vln-five-move-navigation`. It builds on the published effective-motion diagnostics at `f444bc73432fa8401fe41b066a9392dfb5452c7d`, with the canonical controller at `6d555d3` and the SDK at `814556d`. The new episode runs only with `--five-move-episode`. [Operator guide and exact launch commands](FIVE_MOVE_NAVIGATION.md) · [Episode schema](../src/go2_perception/vln/schemas/five-move-episode-v1.schema.json) · [Synthetic chair fixture](../examples/five_move_navigation/synthetic_episode.json)
 
 One area authorization permits up to five single-use turns and forward steps combined. The executor waits for verified settling and a fresh camera, pose and geometry sample after each movement. SEARCH can operate with an absent mark. APPROACH needs the named instance to be supported in the current image. The synthetic browser run found the illustrated chair, performed two turns and one forward approach, then recorded `MODEL_STOPPED_ARRIVAL_UNVERIFIED`. Live learned search and physical episode outcomes await Claude's trial.
 
