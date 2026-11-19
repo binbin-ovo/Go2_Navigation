@@ -251,6 +251,6 @@ def test_camera_bound_is_scoped_to_the_measured_boot():
 
     meta = {"clock_epoch": "host_receipt_wall:bridge=fake:g0",
             "monotonic_mapping": "configured camera latency 0.048 s"}
-    assert g.capture_bound(meta, -1766897811.159) == (.159, g.CAMERA["basis"])
-    for older_boot in (-1766947283.136, -1766903986.310):
+    assert g.capture_bound(meta, -1766856813.961) == (.140, g.CAMERA["basis"])
+    for older_boot in (-1766897811.159, -1766947283.136, -1766903986.310):
         assert g.capture_bound(meta, older_boot) == (None, None)
