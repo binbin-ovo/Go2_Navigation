@@ -9,22 +9,23 @@ if [[ "$mode" == --live-exclusive && "${GO2_SUPERVISED_LIVE:-0}" != 1 ]]; then
   exit 2
 fi
 cd "$(dirname "$0")/.."
-base="$HOME/Desktop/Go2_Navigation"
-ready="$HOME/Desktop/Go2_Navigation-hw-readiness"
-control="$HOME/Desktop/Go2_Navigation-go2-control"
+# One local workspace outside cloud-synchronized folders; see docs/MAC_CONNECTION.md.
+workspace="${GO2_WORKSPACE:-$HOME/Robotics/Go2}"
+export GO2_WORKSPACE="$workspace"
+control="$workspace/code/control"
 export GO2_HARDWARE=0 MUJOCO_RENDER_TEST=0 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src:scripts
-mkdir -p data/outputs/effective_trials
-trial_dir=$(mktemp -d "$PWD/data/outputs/effective_trials/trial-XXXXXX")
-core="$ready/.venv/bin/python"
+mkdir -p "$workspace/runs/effective_trials"
+trial_dir=$(mktemp -d "$workspace/runs/effective_trials/trial-XXXXXX")
+core="$workspace/envs/core/bin/python"
 "$core" hardware/make_capability.py --profile go2-effective-v1 --turn-scope "$scope" \
-  --heading-file "$ready/data/outputs/hw_readiness/camera_heading.json" --output "$trial_dir/capability.json"
+  --heading-file "$workspace/evidence/hw_readiness/camera_heading.json" --output "$trial_dir/capability.json"
 echo "Trial directory: $trial_dir"
 if [[ "$mode" == --prepare-only ]]; then exit 0; fi
 exec "$core" scripts/run_vln_supervised.py --navigation-mode live --execute-live --exclusive-command-source \
   --profile go2-effective-v1 --capability "$trial_dir/capability.json" --control-root "$control" \
-  --hardware-python "$base/.venv-go2/bin/python" --unitree-sdk "$base/third_party/unitree_sdk2_python" \
+  --hardware-python "$workspace/envs/hw/bin/python" --unitree-sdk "$workspace/sdk/unitree_sdk2_python" \
   --camera go2 --lidar go2 --iface en9 --camera-host-ip 192.168.123.222 --backend lightnav \
-  --model-python "$base/data/outputs/phase6c/model-env/bin/python" --assets "$base/data/outputs/phase6c/lightnav" \
+  --model-python "$workspace/envs/model/bin/python" --assets "$workspace/weights/lightnav" \
   --runtime-config configs/pretrained_vln.yaml --device mps --calibration configs/go2_front_camera_calibration.yaml \
   --camera-latency configured --preparation-mode cached --tensor-evidence skip --min-free-disk-gb 10 \
   --output "$trial_dir/session" --port 8766

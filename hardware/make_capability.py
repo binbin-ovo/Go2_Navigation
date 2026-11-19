@@ -9,6 +9,7 @@ import argparse
 import hashlib
 import json
 import math
+import os
 import subprocess
 import sys
 import time
@@ -19,11 +20,11 @@ sys.path.insert(0, str(ROOT / "src"))
 from go2_perception.vln.motion_profile import INSPECTED, LIMITS as EFFECTIVE_LIMITS, PROFILE, SENSOR  # noqa: E402
 from go2_perception.vln.supervised import CONTROL_REVISION, Hold, capability_check  # noqa: E402
 
-HOME = Path.home()
-CONTROL_ROOT = HOME / "Desktop/Go2_Navigation-go2-control"
-HARDWARE_PY = HOME / "Desktop/Go2_Navigation/.venv-go2/bin/python"
+WORKSPACE = Path(os.environ.get("GO2_WORKSPACE", Path.home() / "Robotics/Go2"))  # local, not cloud-synced
+CONTROL_ROOT = WORKSPACE / "code/control"
+HARDWARE_PY = WORKSPACE / "envs/hw/bin/python"
 PROVIDER = ROOT / "hardware/supervised_guards.py"
-HEADING = ROOT / "data/outputs/hw_readiness/camera_heading.json"
+HEADING = WORKSPACE / "evidence/hw_readiness/camera_heading.json"
 CENTRE_RAY_YAW_DEG = 0.85   # rectified image-centre column relative to the optical axis (+ = left)
 
 # Updated only from recorded results; see docs/GO2_HARDWARE_READINESS.md.
@@ -109,7 +110,7 @@ def effective_profile(cap, scope, heading_file):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--output", type=Path, default=ROOT / "data/outputs/hw_readiness/capability.json")
+    ap.add_argument("--output", type=Path, default=WORKSPACE / "evidence/hw_readiness/capability.json")
     ap.add_argument("--valid-hours", type=float, default=12.0)
     ap.add_argument("--profile", choices=["legacy-first-row", PROFILE], default="legacy-first-row")
     ap.add_argument("--turn-scope", choices=[SENSOR, INSPECTED], default=SENSOR)

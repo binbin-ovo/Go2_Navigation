@@ -12,6 +12,7 @@ offset the provider compares against). Output (git-ignored): data/outputs/hw_rea
 """
 import argparse
 import json
+import os
 import random
 import sys
 import threading
@@ -74,7 +75,7 @@ def main():
     ap.add_argument("--iface", default="en9")
     ap.add_argument("--host-ip", default="192.168.123.222")
     ap.add_argument("--flips", type=int, default=40)
-    ap.add_argument("--out", type=Path, default=ROOT / "data/outputs/hw_readiness")
+    ap.add_argument("--out", type=Path, default=Path(os.environ.get("GO2_WORKSPACE", Path.home() / "Robotics/Go2")) / "evidence/hw_readiness")
     a = ap.parse_args()
 
     offset, n_odom = odom_offset(a.iface)
