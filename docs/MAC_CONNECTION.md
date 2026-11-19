@@ -8,25 +8,42 @@ outside Desktop, Documents and iCloud Drive. Open the [current start guide](../S
 
 | Path under `~/Robotics/Go2` | Contents |
 |---|---|
-| `code/navigation/` | main Git checkout (common `.git` lives here), Claude's active `hardware/five-move-validation` at this inspection |
+| `code/navigation/` | main Git checkout (common `.git` lives here) on `hardware/readable-navigation-integration`: the readable application (`START_HERE.md`, `app.py`, `sensors.py`, `navigation.py`) plus the boot-specific guard evidence; used for offline review and supervised hardware sessions |
 | `code/control/` | linked worktree, canonical controller `feature/go2-high-level-control-audit`; its `data/outputs/go2_control/` holds controller logs and `.command.lock` |
-| `code/worktrees/` | temporary agent worktrees only; each states its purpose and is removed once merged/pushed and its data preserved |
+| `code/worktrees/` | agent worktrees only (Codex develops in `codex-motion-diagnostics`); temporary ones are removed once merged/pushed and their data preserved |
 | `envs/core`, `envs/hw`, `envs/model` | Python 3.12.11 / 3.10.17 / 3.11.13 venvs recreated from `envs/pins/*.txt` (exact freezes of the previous envs) |
 | `envs/python/` | standalone CPython 3.11.13 used by `envs/model` |
 | `sdk/unitree_sdk2_python/` | Unitree SDK at 814556d (editable in `envs/hw`) |
 | `weights/lightnav/` | LightNav checkpoint and pinned source (`checkpoint_identity.json`) |
 | `evidence/` | camera heading, capture-latency bounds, readiness capability, Desktop inventory |
-| `runs/` | trial sessions (`runs/effective_trials/trial-*`) and smoke outputs |
+| `runs/` | trial sessions (`five_move/`, `effective_trials/`), website sessions (`application/`), offline checks and reviews |
 
-`GO2_WORKSPACE` overrides the root (default `~/Robotics/Go2`). The launcher and
-`hardware/make_capability.py` derive every runtime path from it. The historical one-action, motion-capable launcher below is for a supervised hardware session from a shell
-that has macOS local-network permission for camera multicast (a shell where `capture_latency.py`
-or the viewer previously received RTP):
+`GO2_WORKSPACE` overrides the root (default `~/Robotics/Go2`). The launchers and
+`hardware/make_capability.py` derive every runtime path from it.
+
+The ordinary website is offline and sends no robot commands:
 
 ```bash
 cd ~/Robotics/Go2/code/navigation
-GO2_SUPERVISED_LIVE=1 bash scripts/launch_effective_trial.sh --live-exclusive sensor_only
+GO2_HARDWARE=0 GO2_SUPERVISED_LIVE=0 ~/Robotics/Go2/envs/core/bin/python app.py
 ```
+
+A supervised hardware session is a separate, explicit procedure. Run it from a shell that has macOS
+local-network permission for camera multicast (a shell where `capture_latency.py` or the viewer
+previously received RTP). First check the robot boot: the camera bound in `hardware/supervised_guards.py`
+applies only to the boot it was measured on, so re-measure with `hardware/capture_latency.py` after a reboot
+(the episode holds otherwise). Then prepare, and launch with the episode limits stated:
+
+```bash
+cd ~/Robotics/Go2/code/navigation
+bash scripts/launch_five_move_episode.sh --prepare-only
+GO2_SUPERVISED_LIVE=1 bash scripts/launch_five_move_episode.sh --live-exclusive \
+  --move-budget 5 --episode-seconds 60 --area-radius-m 3 --alignment-deg 15
+```
+
+Movement still needs the operator's one browser authorization per episode. `python app.py supervised
+--live-exclusive` reaches the same launcher with the default limits (5 moves, 60 s, 2 m, 15°). The
+one-action launcher remains `GO2_SUPERVISED_LIVE=1 bash scripts/launch_effective_trial.sh --live-exclusive sensor_only`.
 
 Recreate an environment (no upgrades): `uv venv --python <version> envs/<name>` then
 `uv pip install --python envs/<name>/bin/python -r envs/pins/<name>.txt`. Before a live trial,

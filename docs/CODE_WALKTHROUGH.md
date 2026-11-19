@@ -43,7 +43,7 @@ Use the core interpreter in the development checkout. `app.py` pins local source
 
 ```bash
 export GO2_WORKSPACE=/Users/yushan/Robotics/Go2
-cd "$GO2_WORKSPACE/code/worktrees/codex-motion-diagnostics"
+cd "$GO2_WORKSPACE/code/navigation"
 source "$GO2_WORKSPACE/envs/core/bin/activate"
 export GO2_HARDWARE=0 GO2_SUPERVISED_LIVE=0
 export PYTHONPATH="$PWD/src:$PWD/scripts:$PWD/hardware"
@@ -87,6 +87,6 @@ python scripts/review_target_grounding.py \
 
 ## Workspace and launch modes
 
-`code/worktrees/codex-motion-diagnostics` hosts this application. `code/navigation` is Claude's physical-test checkout on `hardware/five-move-validation`. `code/control` is the separate audited controller at `6d555d3`, with its single `data/outputs/go2_control/.command.lock`. The SDK checkout is `814556d`. `envs/core`, `envs/model` and `envs/hw` serve separate interpreters. Shared weights, input recordings, run logs and calibration evidence live outside the development checkout. `python app.py supervised --help` describes the separate five-move operator procedure. `--prepare-only` reads pinned local evidence and exits. `--live-exclusive` requires the existing process opt-in and a separate fresh browser episode authorization. The [five-move](FIVE_MOVE_NAVIGATION.md) and [one-action](SUPERVISED_NAVIGATION.md) operator procedures describe the separately authorized hardware applications. The [continuous guide](CONTINUOUS_NAVIGATION.md) records fixture and model timing limitations.
+`code/navigation` hosts this application on `hardware/readable-navigation-integration` and is also the checkout for supervised hardware sessions. `code/worktrees/codex-motion-diagnostics` is Codex's development worktree. `code/control` is the separate audited controller at `6d555d3`, with its single `data/outputs/go2_control/.command.lock`. The SDK checkout is `814556d`. `envs/core`, `envs/model` and `envs/hw` serve separate interpreters. Shared weights, input recordings, run logs and calibration evidence live outside the development checkout. `python app.py supervised --help` describes the separate five-move operator procedure. `--prepare-only` reads pinned local evidence and exits. `--live-exclusive` requires the existing process opt-in and a separate fresh browser episode authorization. The [five-move](FIVE_MOVE_NAVIGATION.md) and [one-action](SUPERVISED_NAVIGATION.md) operator procedures describe the separately authorized hardware applications. The [continuous guide](CONTINUOUS_NAVIGATION.md) records fixture and model timing limitations.
 
 For historical phase commands use the pinned research tree listed in the [source inventory](CODE_INVENTORY.md). The [verification record](APPLICATION_REFACTOR.md) documents what was actually compared.

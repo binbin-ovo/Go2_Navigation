@@ -1,12 +1,12 @@
 # Start here · Go2 navigation
 
-Open the development checkout at `/Users/yushan/Robotics/Go2/code/worktrees/codex-motion-diagnostics`. It contains the application for this guide. Claude uses `code/navigation` for hardware sessions.
+Open the working checkout at `/Users/yushan/Robotics/Go2/code/navigation`. It is on `hardware/readable-navigation-integration`: this application plus the hardware session's boot-specific guard evidence. The same checkout serves offline review and supervised hardware sessions. Codex develops separately in `code/worktrees/codex-motion-diagnostics`.
 
 ## Open the offline website
 
 ```bash
 export GO2_WORKSPACE=/Users/yushan/Robotics/Go2
-cd "$GO2_WORKSPACE/code/worktrees/codex-motion-diagnostics"
+cd "$GO2_WORKSPACE/code/navigation"
 source "$GO2_WORKSPACE/envs/core/bin/activate"
 export GO2_HARDWARE=0 GO2_SUPERVISED_LIVE=0
 python app.py

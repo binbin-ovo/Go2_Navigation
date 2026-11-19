@@ -1,6 +1,42 @@
 # Go2 navigation handoff
 
-## Current application handoff
+## Current handoff — readable application adopted for hardware, November 19
+
+Open `$GO2_WORKSPACE/START_HERE.md` (a link to `code/navigation/START_HERE.md`). The working checkout `code/navigation` is on `hardware/readable-navigation-integration`: Codex's `codex/readable-navigation-app` at `283b4b5b953a6d4a79efa286ec55941dbcf4e956` merged with `hardware/five-move-validation` (`96282e9`). The only hardware change not already in the refactor was the boot-specific camera bound: 0.140 s at boot offset −1766856813.961 s from `evidence/hw_readiness/capture_latency_20261119_113103.json`, with the matching regression test. It applies only to that robot boot and holds otherwise; re-measure after any reboot. Earlier bounds (0.159, 0.148, 0.172 s) remain historical. The controller stays `code/control` at `6d555d3` with its single `.command.lock`; the SDK stays `814556d`.
+
+**What was checked offline (no robot connected, no movement).**
+
+- Core suite: 558 passed, 13 skipped (12 native model cases, 1 physical test).
+- Model environment: all 12 native cases pass. With `tests/test_bounded_native_integration.py` first, one `test_lightnav_runtime_integration.py` case fails, because each file puts a different LightNav source copy on `sys.path`. Either file alone, or the reverse order, passes. This test-isolation issue already existed before the refactor.
+- Five-move mock: SEARCH left 30°, APPROACH left 20°, APPROACH forward 0.30 m, then native STOP recorded as `MODEL_STOPPED_ARRIVAL_UNVERIFIED`, with zero physical sends.
+- Continuous offline trace: SHA-256 `d41e2829…` is identical to Codex's record.
+- Real LightNav replay on recorded box inputs (`scripts/compare_grounding_prompts.py`, `runs/target_grounding/prompts-xvqwacul`): all 13 decoded outputs and input hashes match the pre-refactor run (`prompts-h_7tnoou`, `d0ff6ac`). The four plain "box" cases reproduce the original live-episode outputs exactly.
+- Website (`app.py`): observation, five-move mock and continuous modes all opened in one browser session. The stop control cancelled the continuous run. Shutdown left no child processes.
+- Full target description: *large brown cardboard box on the floor* reached the stored instruction intact, and the mark stayed labelled unverified.
+- `sensors.py`: start, `latest_frame`, `latest_cloud`, `pose`, `status` and `stop` work on the recorded RGB episode and recorded LiDAR fixtures. The session refuses a restart after stop.
+- `navigation.py`: `select_action`, `supported_ground`, `area_check`, `image_bearing`, `native_intent`, `primitive` and `bounded_number` are identical to the November 19 five-move policy by syntax-tree comparison.
+  - `target_spec` additionally refuses empty or "go to the" text and keeps the typed text.
+  - Instance matching now ignores case and whitespace in the target name only. It also validates the drawn region, which fixes the `NoneType` error a reject without a region produced on hardware.
+  - Unchanged: motion profile, guards, capability generator, executor, bridges, calibration and runtime configs.
+- Hardware launch routes: `scripts/launch_five_move_episode.sh`, `scripts/launch_effective_trial.sh` and `app.py supervised` all pass `--prepare-only`. Each resolves `code/control`, `envs/hw`, the SDK, `weights/lightnav` and this checkout's guard provider at 1.0 m/s and 2.0 rad/s. No active subprocess or launcher references a removed path. The four missing script names are provenance notes in configs and docs.
+
+**Sensor interface differences.** `sensors.py` is a thin owner over the previous sources:
+
+- Live RGB still comes from the `go2_camera_bridge.py` child (RTP/H.264, `envs/hw`), and LiDAR/odometry from the `go2_lidar_bridge.py` DDS child. Replay uses a paced feeder and `synthetic_lidar_bridge.py --recording`.
+- New: public reads return copies, and camera status adds `alive` and `error`.
+- There is no "current geometry" accessor. Clearance geometry is still computed only by the executor's hash-pinned guard provider, a separate process.
+- Recorded LiDAR replay reads the `go2-recording-v1` layout. The `lidar/` chunk files written by five-move sessions use a different format, so they cannot yet be replayed through `sensors.py`.
+- `T_base_camera` remains unmeasured.
+
+**Next physical session (not run).**
+
+1. Connect the robot and run a read-only boot check. Re-measure the camera bound if the boot changed.
+2. Run `bash scripts/launch_five_move_episode.sh --prepare-only`.
+3. Launch with `GO2_SUPERVISED_LIVE=1 bash scripts/launch_five_move_episode.sh --live-exclusive --move-budget 5 --episode-seconds 60 --area-radius-m 3 --alignment-deg 15`, then give one browser authorization per episode.
+
+The refactored tree has not moved the robot. The first live session on it is also its first hardware check. The November 19 physical episode outcomes and operator wording are in `$GO2_WORKSPACE/runs/five_move/trial-*/operator_assessment.json`, and the formal five-move validation report is still pending. The continuous prototype remains offline-only.
+
+## Previous application handoff
 
 Open the workspace's `START_HERE.md`. The development checkout is `code/worktrees/codex-motion-diagnostics` on `codex/readable-navigation-app`, based on `91e98390baea3ec535a538d1fa5f3edae7024ae4`. From this checkout, activate `envs/core` and run `python app.py`. Camera and LiDAR, the browser, learned inference and command cadence keep their independent scheduling boundaries. The website starts in observation. Its five-move executor is synthetic and its continuous chair simulation is offline. The hardware operator procedure remains a separate explicit invocation.
 
