@@ -65,8 +65,18 @@ unconfirmed (suspected transient floor-fit drop under pitch). `trial-C3jMfl`: fo
 18 commands at 1.0 m/s, zero at feedback trigger 0.522 m (1.0 s), peak 0.700 m, settled 0.700 m
 fused progress, `target_within_tolerance` (+0.0998 m of ±0.10 m); odometry 0.604 m forward,
 +2.5 cm left, +3.6 deg; stop observed 2.77 s, release code 0, post-release still, avoidance on.
-Next: log the failing guard snapshot and keep LiDAR recording through motion (instrumentation
-only); then the inspected-disc turn trial at 2.0 rad/s in a new session.
+Operator note: before `trial-DQAArT` the Go2 had been moved after standing up and was not
+readjusted; the operator asked that this first run not be counted. From the stopped pose the
+model aimed 14-17.5 deg right (first-row yaw -0.25 to -0.31 rad) at an off-centre box, so
+`trial-6OyRDD`/`trial-2ktkjj` held: forward needs |yaw| <= 0.10 rad and turns need >= 0.349 rad
+(`below_effective_resolution` 0.345 and 0.306 rad). Headings of ~6-20 deg are currently neither.
+After centring the box (target column 0.510), `trial-abZbVx`: forward 0.600 m, zero at 0.522 m
+(1.12 s), fused progress settled 0.791 m (`overshoot`, +0.19 m); odometry 0.616 m forward,
++4.2 cm left, +4.3 deg; stop 1.92 s after zero, release code 0, avoidance on. In both completed
+runs odometry (~0.60-0.62 m) and the fused LiDAR progress (0.70-0.79 m, larger while closing on
+the box) disagree by 0.1-0.18 m; a tape measurement is needed before tuning the lead.
+Next: tape-verify travel; log the failing guard snapshot and keep LiDAR recording through
+motion (instrumentation only); decide how to cover 6-20 deg headings before the turn trial.
 
 **Evidence carried forward.** Claude already performed the first model-directed
 step and the three faster controller trials. Offline replay of 12 prediction
