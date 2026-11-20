@@ -34,7 +34,7 @@ Open `$GO2_WORKSPACE/START_HERE.md` (a link to `code/navigation/START_HERE.md`).
 2. Run `bash scripts/launch_five_move_episode.sh --prepare-only`.
 3. Launch with `GO2_SUPERVISED_LIVE=1 bash scripts/launch_five_move_episode.sh --live-exclusive --move-budget 5 --episode-seconds 60 --area-radius-m 3 --alignment-deg 15`, then give one browser authorization per episode.
 
-The refactored tree has not moved the robot. The first live session on it is also its first hardware check. The November 19 physical episode outcomes and operator wording are in `$GO2_WORKSPACE/runs/five_move/trial-*/operator_assessment.json`, and the formal five-move validation report is still pending. The continuous prototype remains offline-only.
+The refactored tree has not moved the robot. The first live session on it is also its first hardware check. The November 19 physical episodes, the evidence each run captures, the next-session procedure and compatibility notes for Codex are in the [five-move validation report](FIVE_MOVE_NAVIGATION_VALIDATION.md). Blocking for the observation website: the Mac has 17 GiB free and the website requires 20 GiB. The continuous prototype remains offline-only.
 
 ## Previous application handoff
 
