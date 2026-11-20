@@ -21,16 +21,29 @@ from go2_perception.navigation import DEFAULT_ALIGNMENT_DEG, DEFAULT_MOVES, DEFA
 ROOT = Path(__file__).resolve().parents[3]
 
 
+def add_episode_limits(p):
+    p.add_argument("--move-budget", type=int, default=DEFAULT_MOVES)
+    p.add_argument("--episode-seconds", type=float, default=DEFAULT_SECONDS)
+    p.add_argument("--area-radius-m", type=float, default=DEFAULT_RADIUS_M)
+    p.add_argument("--alignment-deg", type=float, default=DEFAULT_ALIGNMENT_DEG)
+
+
+def valid_episode_limits(a):
+    return (
+        1 <= a.move_budget <= 5
+        and 5 <= a.episode_seconds <= 60
+        and 1.2 <= a.area_radius_m <= 3
+        and 8 <= a.alignment_deg <= 18
+    )
+
+
 def main(argv=None, *, website=None):
     p = argparse.ArgumentParser(description=__doc__, add_help=False)
     p.add_argument("--help", action="store_true")
     p.add_argument("--navigation-mode", choices=["mock", "live"], default="mock")
     p.add_argument("--profile", choices=["legacy-first-row", PROFILE], default="legacy-first-row")
     p.add_argument("--five-move-episode", action="store_true", help="One grant for a bounded search and approach episode")
-    p.add_argument("--move-budget", type=int, default=DEFAULT_MOVES)
-    p.add_argument("--episode-seconds", type=float, default=DEFAULT_SECONDS)
-    p.add_argument("--area-radius-m", type=float, default=DEFAULT_RADIUS_M)
-    p.add_argument("--alignment-deg", type=float, default=DEFAULT_ALIGNMENT_DEG)
+    add_episode_limits(p)
     p.add_argument("--target-reference", type=Path, help="Optional private photograph of the requested instance")
     p.add_argument("--reference-target", help="Object name in the reference")
     p.add_argument("--reference-roi", type=float, nargs=4, metavar=("X0","Y0","X1","Y1"))
@@ -44,8 +57,7 @@ def main(argv=None, *, website=None):
         interactive.parser().print_help()
         return 0
     if a.five_move_episode:
-        if a.profile != PROFILE or not (1 <= a.move_budget <= 5 and 5 <= a.episode_seconds <= 60
-                and 1.2 <= a.area_radius_m <= 3 and 8 <= a.alignment_deg <= 18):
+        if a.profile != PROFILE or not valid_episode_limits(a):
             p.error("episode requires the effective profile and supported movement, duration, area and alignment limits")
         reference = [a.target_reference, a.reference_target, a.reference_roi]
         if any(reference) and (not all(reference) or not a.target_reference.is_file()):
@@ -66,6 +78,8 @@ def main(argv=None, *, website=None):
         if args.camera != "go2" or args.backend != "lightnav" or args.lidar != "go2":
             p.error("Live needs existing Go2 camera/LiDAR bridges and pinned LightNav backend")
         capability = json.loads(a.capability.read_text())
+        from .source_revision import clean_navigation
+        clean_navigation(ROOT, capability.get("navigation_source", {}))
     else:
         if args.camera != "synthetic" or args.backend != "mock" or args.lidar not in ("none", "synthetic"):
             p.error("This mock launcher accepts synthetic sources and mock worker only; no robot or model")

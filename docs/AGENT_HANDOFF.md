@@ -1,6 +1,14 @@
 # Go2 navigation handoff
 
-## Current development handoff — object-guided five-move navigation
+## Current handoff — physical evidence and the five-move policy
+
+Review `codex/physical-evidence-navigation` in `$GO2_WORKSPACE/code/worktrees/codex-motion-diagnostics`. Its history starts at Claude’s integrated `d62d936c67fed4ce10d0f364188bbaa596fee970` and includes the earlier offline study `ba8a7b692d45afe6bb7a7a2228826e34ca14571f`. Claude’s six closed trials remain the physical evidence for the previous implementation. This branch has offline verification.
+
+Start with the [owner’s guide](../START_HERE.md) and [measured comparison, commands and hardware handoff](NOV19_NAVIGATION_EVIDENCE.md). In the recordings, the closer enrolled box is now recognized, all four historical blind forward SEARCH steps hold, and the 14° right-hand target produces a separately checked turn request. A simulated clear disc permits that turn. The archive supplies its actual refusal. Five-move LiDAR chunks replay through the public sensor interface.
+
+For hardware adoption, review the exact source commit, generate a fresh capability from the clean reviewed checkout and verify the current boot’s timing evidence. Record an image-bound enrollment and post-settling identification, a genuinely clear search turn, an obstructed-turn refusal, physical heading and independent distance when available. Preserve the operator’s area, intervention, stop and release records. Physical validation of this feature is pending.
+
+## Earlier development handoff — object-guided five-move navigation
 
 Codex developed `codex/reliable-object-navigation` from Claude’s integrated hardware publication `2fa98f20b415003bdb6dae3518ea422a757f45ec` in `$GO2_WORKSPACE/code/worktrees/codex-motion-diagnostics`. The feature also incorporates Claude’s subsequent documentation-only integration `d62d936`, including the [historical hardware validation report](FIVE_MOVE_NAVIGATION_VALIDATION.md). The new behavior is in the five-move episode. Camera and LiDAR ingestion, operator launch, controller profiles and the separate continuous prototype retain the published interfaces.
 
@@ -35,7 +43,7 @@ Open `$GO2_WORKSPACE/START_HERE.md` (a link to `code/navigation/START_HERE.md`).
 - Live RGB still comes from the `go2_camera_bridge.py` child (RTP/H.264, `envs/hw`), and LiDAR/odometry from the `go2_lidar_bridge.py` DDS child. Replay uses a paced feeder and `synthetic_lidar_bridge.py --recording`.
 - New: public reads return copies, and camera status adds `alive` and `error`.
 - There is no "current geometry" accessor. Clearance geometry is still computed only by the executor's hash-pinned guard provider, a separate process.
-- Recorded LiDAR replay reads the `go2-recording-v1` layout. The `lidar/` chunk files written by five-move sessions use a different format, so they cannot yet be replayed through `sensors.py`.
+- Recorded LiDAR replay reads the `go2-recording-v1` layout. On that historical baseline the five-move `lidar/` chunks used a different format and could not be replayed through `sensors.py`.
 - `T_base_camera` remains unmeasured.
 
 **Next physical session (not run).**

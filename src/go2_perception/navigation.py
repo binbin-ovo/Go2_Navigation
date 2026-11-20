@@ -14,6 +14,7 @@ if not __package__:
 from go2_perception.vln.motion_profile import (
     DISC_RADIUS_M,
     FORWARD_CAP,
+    INSPECTED,
     MIN_FORWARD,
     MIN_TURN,
     PROFILE,
@@ -114,7 +115,26 @@ def select_action(grant, cap, proposal, evidence, views, attempts, was_aligned, 
         return dict(selection, reason="identify_or_reject_current_mark", review=True)
 
     def checked(action, source, reason):
-        check_clearance(geo, pose, action, cap)
+        if inspected is not None and action["type"] == "turn" and cap.get("turn_scope") == INSPECTED:
+            if (
+                grant.get("area_inspected") is not True
+                or grant.get("exclusive_and_intervention_confirmed") is not True
+            ):
+                raise Hold("inspected_turn_requires_current_episode_authorization")
+        try:
+            check_clearance(geo, pose, action, cap)
+        except Hold as exc:
+            if inspected is None or action["type"] != "turn":
+                raise
+            disc = geo.get("observed_turn_disc") or {}
+            raise Hold(
+                f"{action['direction']} {exc}: floor={disc.get('floor_returns')}, "
+                f"obstacles={disc.get('obstacle_returns')}, sectors={geo.get('directions')}, "
+                f"turn_clear_rad={geo.get('turn_clear_rad')}, requested={math.degrees(action['magnitude']):.1f}deg",
+                proposed_action=action,
+                mode=mode,
+                clearance=exc.details,
+            ) from exc
         area_check(grant, pose, action, attempts=attempts + 1)
         return dict(selection, action=action, source=source, reason=reason)
 
@@ -134,6 +154,34 @@ def select_action(grant, cap, proposal, evidence, views, attempts, was_aligned, 
                 native = None
             if native and native["type"] == "forward":
                 return checked(native, "native_prefix", "grounded_target_ahead")
+            if inspected is not None:
+                if straight_corridor_prefix(rows, cap["mapping"], band):
+                    return checked(
+                        primitive(cap, "forward", MIN_FORWARD, "short_observed_corridor"),
+                        "approach_policy",
+                        "grounded_within_alignment_band",
+                    )
+                sweep = initial_heading_sweep(rows)
+                error = abs(bearing)
+                uncertainty = cap["mapping"]["yaw_uncertainty_rad"]
+                residual = abs(error - MIN_TURN)
+                # One coarse re-observation only when the native heading and calibrated
+                # image bearing agree and the improvement exceeds the heading uncertainty.
+                if (
+                    sweep * bearing > 0
+                    and abs(sweep) >= MIN_TURN
+                    and residual + uncertainty <= band
+                    and error - residual > uncertainty
+                ):
+                    selection.update(native_prefix_yaw_rad=sweep, expected_residual_rad=residual)
+                    return checked(
+                        primitive(
+                            cap, "left" if bearing > 0 else "right", MIN_TURN, "coarse_target_alignment"
+                        ),
+                        "approach_policy",
+                        "native_turn_and_offcentre_target_reobserve",
+                    )
+                raise Hold("native_path_does_not_support_forward_approach")
             # The proposed translation must support an approach. Geometry independently
             # supports a short straight corridor. Curved/reversing suffixes add no extent.
             if extent < MIN_FORWARD or abs(native_yaw) > MIN_TURN:
@@ -144,6 +192,10 @@ def select_action(grant, cap, proposal, evidence, views, attempts, was_aligned, 
                 "grounded_within_alignment_band",
             )
         side = 1 if bearing > 0 else -1
+        if inspected is not None:
+            sweep = initial_heading_sweep(rows)
+            if abs(sweep) > 0.10:
+                native_yaw = sweep
         if side * native_yaw < -0.10:
             raise Hold("visible_target_and_native_heading_disagree")
         angle = min(TURN_CAP, max(MIN_TURN, abs(bearing)))
@@ -165,11 +217,12 @@ def select_action(grant, cap, proposal, evidence, views, attempts, was_aligned, 
 
     # Inspect new headings at the current location. Measured poses, including stalls,
     # determine where we actually looked. A forward viewpoint is also a distinct move.
-    preferred = "right" if native_yaw < -0.10 else "left"
+    search_yaw = initial_heading_sweep(rows) if inspected is not None else native_yaw
+    preferred = "right" if search_yaw < -0.10 else "left"
     recent_search = [v["attempt"] for v in views if v["attempt"]["mode"] == "SEARCH"]
     if (
         recent_search
-        and abs(native_yaw) <= 0.10
+        and abs(search_yaw) <= 0.10
         and recent_search[-1]["direction"] in ("left", "right")
     ):
         preferred = recent_search[-1]["direction"]
@@ -185,6 +238,8 @@ def select_action(grant, cap, proposal, evidence, views, attempts, was_aligned, 
     # Re-identification is available again after one inconclusive viewpoint change.
     hint = None
     if inspected is not None:
+        # Advancing along an unverified mark has no target-conditioned view benefit.
+        choices = [preferred, opposite]
         match = evidence.get("positive_reference", {})
         if (
             evidence["method"] == "reference_inconclusive_seek_view"
@@ -354,6 +409,58 @@ def primitive(cap, direction, magnitude, basis):
     }
 
 
+def straight_corridor_prefix(rows, mapping, band):
+    """A policy step along an observed corridor requires an aligned translation ray.
+
+    A modest change of body yaw can coexist with collinear forward translations.
+    Stop examining the chunk at the end of the requested step.
+    """
+    if "forward" not in mapping["verified_actions"]:
+        return False
+    px = py = 0.0
+    tangent = None
+    for x, y, yaw in rows:
+        dx, dy = x - px, y - py
+        if abs(wrap(yaw)) > band or dx < 0:
+            return False
+        if math.hypot(dx, dy) > 0.005:
+            angle = math.atan2(dy, dx)
+            if tangent is None:
+                tangent = angle
+            if (
+                abs(wrap(angle + mapping["yaw_rad"])) + mapping["yaw_uncertainty_rad"] > band
+                or abs(wrap(angle - tangent)) > mapping["yaw_uncertainty_rad"]
+            ):
+                return False
+        if x >= MIN_FORWARD and tangent is not None:
+            return True
+        px, py = x, y
+    return False
+
+
+def initial_heading_sweep(rows):
+    """Read signed relative heading from the first coherent prefix, including a curve.
+
+    Heading is a SEARCH hint. A path starting in translation cannot acquire a turn
+    hint from a distant bend. No translation from a curved chunk is executed here.
+    """
+    sweep = 0.0
+    for x, y, yaw in rows:
+        if not all(math.isfinite(v) for v in (x, y, yaw)) or x < -0.005:
+            break
+        angle = wrap(yaw)
+        travel = math.hypot(x, y)
+        if not sweep and travel > 0.025 and (abs(angle) <= 0.10 or travel >= MIN_FORWARD):
+            break  # A later bend cannot turn an initially straight approach into a search hint.
+        if abs(angle) < 0.005 and not sweep:
+            continue
+        if angle * sweep < 0 or abs(angle) + 0.02 < abs(sweep):
+            break
+        if abs(angle) > abs(sweep):
+            sweep = angle
+    return sweep
+
+
 def native_intent(rows):
     """Short contiguous forward/concordant prefix. A later row cannot rescue a reversal."""
     prev_x = prev_y = yaw = extent = 0.0
@@ -429,4 +536,10 @@ def supported_ground(grant, proposal, evidence):
         or any(match.get(k) != evidence[k] for k in ("reference_sha256", "roi"))
     ):
         raise Hold("reference_and_native_mark_disagree")
+    if match and match.get("algorithm") == "interior_sift" and not (
+        match.get("mark_in_inlier_hull") is True and match.get("mark_in_region") is True
+        and all(re.fullmatch(r"[0-9a-f]{64}", str(match.get(k))) for k in
+                ("current_prepared_sha256", "reference_prepared_sha256"))
+    ):
+        raise Hold("unsupported_detail_feature_match")
     return True

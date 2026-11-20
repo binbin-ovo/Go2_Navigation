@@ -11,12 +11,11 @@ import pytest
 from go2_perception.vln.bounded_context import sample_factory, select_context
 
 ASSETS = os.getenv("LIGHTNAV_ASSETS")
-pytestmark = [pytest.mark.model_integration,
+pytestmark = [pytest.mark.model_integration, pytest.mark.usefixtures("isolated_native_lightnav"),
               pytest.mark.skipif(not ASSETS, reason="Needs isolated pinned LightNav processor/source; no weights loaded")]
 
 
 def setup_native(monkeypatch):
-    monkeypatch.syspath_prepend(str(Path(ASSETS)/"source-local-v2/src"))
     from lightnav.inference.policies import NavigationPolicy
     from lightnav.slowfast import validate_slowfast_tiers
     original = json.loads((Path(ASSETS)/"checkpoint/eval_config.json").read_text())["tasks"]["vlnce"]["slowfast_tiers"]

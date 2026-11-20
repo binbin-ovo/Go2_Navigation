@@ -1,5 +1,7 @@
 # Box recognition and bounded navigation
 
+This report records the earlier `ba8a7b6` experiment. The [November 19 physical-evidence integration](NOV19_NAVIGATION_EVIDENCE.md) supersedes its SEARCH and re-identification results on the development branch.
+
 The clearest failure is visible on the exact image that LightNav consumed. The box occupied a strip along the right edge. The model placed OPOS 698 at image fraction (0.53125, 0.53704), on the hallway. The operator-role review rejected the candidate. Two later forward dispatches were SEARCH steps. The original episode ended at its deadline with zero supported approaches. The stored target, expanded instruction, worker prompt, frame selection and decoded pixel agree. More descriptive wording in the earlier experiment sometimes suppressed the correct edge target too. [Original review and frame hash](TARGET_GROUNDING_REVIEW.md)
 
 ## What the five-move application does

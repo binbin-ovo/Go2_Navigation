@@ -37,20 +37,25 @@ def page(path, title, body):
     )
 
 
-def main():
+def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--session", type=Path, required=True)
     p.add_argument(
         "--prediction",
-        required=True,
-        help="Open this prediction first. All decisions in its trial are included.",
+        help="Open this prediction first. Defaults to the last prediction in a single-trial session.",
     )
-    args = p.parse_args()
+    args = p.parse_args(argv)
     root = args.session.resolve()
+    summary, decisions = episode_decisions(root)
+    require(summary["state"] == "TERMINAL" and (root / "summary.json").is_file(), "closed session required")
+    if args.prediction is None:
+        candidates = list((root / "trials").glob("*/predictions.jsonl"))
+        if len(candidates) != 1 or not (predictions := records(candidates[0])):
+            p.error("Specify --prediction for a session with multiple trials or no default prediction")
+        args.prediction = predictions[-1]["prediction_id"]
     require(Path(args.prediction).name == args.prediction, "prediction ID")
     trial_dir = root / "trials" / args.prediction.rsplit("-P", 1)[0]
     selected = saved_input(root, args.prediction)
-    summary, decisions = episode_decisions(root)
     base = Path(os.environ["GO2_WORKSPACE"]).resolve() / "runs/target_grounding"
     require(base != root and root not in base.parents, "report destination inside recording")
     base.mkdir(exist_ok=True)

@@ -1,6 +1,7 @@
 """Repeat the fixed five-move box diagnostic on closed local recordings with cached LightNav."""
 
 import argparse
+from collections import Counter
 from contextlib import closing
 from copy import deepcopy
 from datetime import datetime
@@ -8,6 +9,7 @@ from html import escape
 import importlib.util
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 from tempfile import mkdtemp
@@ -20,6 +22,7 @@ from compare_grounding_prompts import wait
 from review_target_grounding import link, marked_image, page
 from go2_perception import navigation
 from go2_perception.vln import episode_grounding
+from go2_perception.vln.chunk_replay import chunk_events
 from go2_perception.vln.grounding_review import episode_decisions, saved_input
 from go2_perception.vln.motion_profile import Hold
 from go2_perception.vln.prediction_archive import file_hash, iter_records, load, require
@@ -101,19 +104,21 @@ def mask_history(frames, mask, folder):
     return result
 
 
+def model_worker(workspace, out):
+    return ProcessWorker(
+        python=workspace / "envs/model/bin/python",
+        assets=workspace / "weights/lightnav",
+        config=ROOT / "configs/pretrained_vln.yaml",
+        device="mps",
+        output=out / "worker",
+        preparation_mode="cached",
+        tensor_evidence="skip",
+        episode_context=True,
+    )
+
+
 def infer(workspace, out):
-    with closing(
-        ProcessWorker(
-            python=workspace / "envs/model/bin/python",
-            assets=workspace / "weights/lightnav",
-            config=ROOT / "configs/pretrained_vln.yaml",
-            device="mps",
-            output=out / "worker",
-            preparation_mode="cached",
-            tensor_evidence="skip",
-            episode_context=True,
-        )
-    ) as worker:
+    with closing(model_worker(workspace, out)) as worker:
         wait(worker, startup=True)
         model = load(out / "worker/model.json")
         for name, key, seq, _, _, target, mask in CASES:
@@ -191,7 +196,9 @@ def enrollment(workspace, source, decision, data, operator, observed):
         < data["job"]["frames"][-1]["observation_s"] - observed["uncertainty_bound_s"],
         "unbound or future enrollment",
     )
-    ref = episode_grounding.object_reference(enrolled["frames"][-1]["path"], r["roi"], r["target"], operator)
+    path = enrolled["frames"][-1]["path"]
+    detail = episode_grounding.request_detail(enrolled["prediction"], enrolled["request"], path, enrolled["snapshot"])
+    ref = episode_grounding.object_reference(path, r["roi"], r["target"], operator, detail=detail)
     require(ref["sha256"] == r["image_sha256"], "enrollment image")
     return ref
 
@@ -235,7 +242,7 @@ def replay_selection(module, grant, cap, proposal, ev, views, inspected, aligned
             **({"inspected": inspected} if current else {}),
         )
     except Hold as exc:
-        return dict(decision="HOLD", reason=str(exc))
+        return dict(decision="HOLD", reason=str(exc), refusal=exc.details)
     action = selected.get("action")
     return dict(
         decision=selected["mode"] + " " + action["direction"]
@@ -350,7 +357,7 @@ def analyze(workspace, source, out):
             native_output=native["native_output"],
         )
         proposal["identity"].update(source_image_sha256=image["sha256"], instruction=grant["instruction"])
-        pred.update(target_fraction=point, opos_not_visible=native["pointing"]["opos"] == 0)
+        pred.update(instruction=grant["instruction"], target_fraction=point, opos_not_visible=native["pointing"]["opos"] == 0)
         pred["source_image"]["file_sha256"] = image["sha256"]
         refs = [
             enrollment(workspace, src, decision, data, grant["operator"], proposal["identity"])
@@ -379,8 +386,10 @@ def analyze(workspace, source, out):
             ("before", old_ground, old_policy, False),
             ("after", episode_grounding, navigation, True),
         ):
+            detail = (episode_grounding.prepared_detail(pred, data["snapshot"], load(folder / "job.json"),
+                                                        image["image"]) if current else None)
             start = monotonic()
-            g = module.ground(*kwargs, **({"seek_view": True} if current else {}))
+            g = module.ground(*kwargs, **({"seek_view": True, "detail": detail} if current else {}))
             row[label] = dict(
                 grounding=g,
                 verify_ms=(monotonic() - start) * 1000,
@@ -405,6 +414,97 @@ def analyze(workspace, source, out):
         rows.append(row)
     write(out / "results.json", rows)
     return rows
+
+
+def audit_hardware(workspace, rows):
+    """Count every original native output separately from eligibility, reviews and dispatch."""
+    observations, dispatches, columns = [], [], Counter()
+    lidar_counts = {}
+    for name in ("cXouta", "cdyo3G", "231Apz", "bYheuc", "ivBOES", "THKUcr"):
+        session = workspace / "runs/five_move" / ("trial-" + name) / "session"
+        summary, decisions = episode_decisions(session)
+        require(
+            summary["state"] == "TERMINAL" and load(session / "summary.json")["termination"],
+            "open or incomplete recording",
+        )
+        lidar_counts[name] = dict(Counter(kind for _, kind, _, _ in chunk_events(session / "lidar")))
+        [predictions] = session.glob("trials/*/predictions.jsonl")
+        for pred in iter_records(predictions):
+            pid = pred["prediction_id"]
+            data = saved_input(session, pid)
+            native, ev = data["native"], decisions.get(pid, {})
+            point = target_fraction(native["pointing"])
+            require(
+                (list(point) if point else None) == pred["target_fraction"]
+                and native["native_output"] == pred["native_output"]
+                and native["waypoints"] == pred["waypoints"]
+                and pred["source_image"]["file_sha256"] == data["frames"][-1]["sha256"],
+                "native archive differs",
+            )
+            token = native["pointing"]["opos"]
+            prompt = (data["request"] / "native/prompt.txt").read_text()
+            with Image.open(data["frames"][-1]["path"]) as image:
+                require(image.size == (448, 256), "unexpected native input resolution")
+            require(data["job"]["instruction"] in prompt and
+                    re.findall(r"<opos_(\d+)>", native["native_output"]) == [str(token)],
+                    "native prompt or raw OPOS token differs")
+            columns[str((token - 1) % 48) if token else "absent"] += 1
+            observations.append(
+                dict(
+                    session=name,
+                    prediction_id=pid,
+                    opos=token,
+                    point=point,
+                    input_sha256=data["frames"][-1]["sha256"],
+                    history_indices=native["native_selected_frame_indices"],
+                    native_heading_hint_rad=navigation.initial_heading_sweep(native["waypoints"]),
+                    archived_age_s=pred["display_timing_at_receipt"]["observation_age_at_display_s"],
+                    inference_s=pred["inference_duration_s"],
+                    stop=native["decoder_stop"],
+                    receipt_refusal=pred["rejection_reason_at_receipt"],
+                    executor_refusal=ev.get("rejection"),
+                    reviews=ev.get("reviews", []),
+                )
+            )
+            if not ev.get("selection"):
+                continue
+            grant, cap, proposal, views, inspected, aligned, _ = decision_inputs(session, pid)
+            geo, action = proposal["identity"]["geometry"], ev["selection"]["action"]
+            current = replay_selection(
+                navigation, grant, cap, proposal, ev["grounding"], views, inspected, aligned, current=True
+            )
+            dispatches.append(
+                dict(
+                    session=name,
+                    prediction_id=pid,
+                    recorded_mode=ev["selection"]["mode"],
+                    recorded_direction=action["direction"],
+                    disc=geo["observed_turn_disc"],
+                    directions=geo["directions"],
+                    turn_clear_rad=geo["turn_clear_rad"],
+                    with_current_policy=current,
+                )
+            )
+    # Change one recorded predicate only. Keep native path, identity, inspection grant,
+    # area, pose and all other guard fields, including the unobserved rear.
+    local = next(row for row in rows if row["case"] == "clear-local-reference")
+    grant, cap, prop, views, seen, aligned, _ = decision_inputs(
+        Path(local["session"]), local["prediction_id"]
+    )
+    require(prop["identity"]["geometry"]["observed_turn_disc"]["obstacle_returns"] > 0, "recorded disc")
+    prop["identity"]["geometry"]["observed_turn_disc"]["obstacle_returns"] = 0
+    control = replay_selection(
+        navigation, grant, cap, prop, local["after"]["grounding"], views, seen, aligned, current=True
+    )
+    return dict(
+        columns_zero_based=dict(columns),
+        observations=observations,
+        recorded_dispatches=dispatches,
+        lidar_messages=lidar_counts,
+        single_field_controller_diagnostic=dict(
+            case=local["case"], changed="obstacle_returns=0", selection=control, hardware_execution=False
+        ),
+    )
 
 
 def render(out, rows):
@@ -459,7 +559,9 @@ def render(out, rows):
         "Selections are offline. Original reviews and recorded dispatches are in the JSON.</p><div class='grid'>"
         + "".join(panels)
         + "</div>"
-        + link(out / "results.json", "Inputs, evidence and selection details"),
+        + link(out / "results.json", "Inputs, evidence and selection details")
+        + (link(out / "six-trial-audit.json", "All six original trials and the clearance control")
+           if (out / "six-trial-audit.json").is_file() else ""),
     )
 
 
@@ -473,6 +575,7 @@ def main():
         type=Path,
         help="Check a saved run and produce a fresh comparison without rerunning LightNav",
     )
+    parser.add_argument("--hardware-report", action="store_true", help="Also audit all six closed Nov 19 trials")
     args = parser.parse_args()
     workspace = Path(os.environ["GO2_WORKSPACE"]).resolve()
     parent = workspace / "runs/target_grounding"
@@ -498,7 +601,8 @@ def main():
         infer(workspace, out)
         write(out / "inference_hashes.json", inference_hashes(out))
     rows = analyze(workspace, source, out)
-    render(out, rows)
+    if args.hardware_report:
+        write(out / "six-trial-audit.json", audit_hardware(workspace, rows))
     if args.dino_snapshot:
         from compare_box_regions import compare
 

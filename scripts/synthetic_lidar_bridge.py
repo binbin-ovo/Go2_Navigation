@@ -15,6 +15,7 @@ import sys
 import threading
 import time
 import uuid
+from zipfile import BadZipFile
 
 import numpy as np
 
@@ -86,7 +87,12 @@ def main(argv=None):
            else "synthetic_robot (not a Go2 clock)",
            "access": "no_socket_no_dds_" + source})
     events = []  # (time offset s, kind, header, payload)
-    if a.recording:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+    from go2_perception.vln.chunk_replay import chunk_directory, chunk_events
+    chunks = chunk_directory(a.recording) if a.recording else None
+    if chunks is not None:
+        events = chunk_events(chunks, no_odom=a.no_odom)
+    elif a.recording:
         root = a.recording
         scan_dir = root / "lidar" / "utlidar_cloud_base"
         scans = [json.loads(x) for x in (scan_dir / "index.jsonl").read_text().splitlines() if x]
@@ -111,7 +117,8 @@ def main(argv=None):
     rng = np.random.default_rng(7)
     stamp_base, rebooted, paused = a.stamp_base, False, False
     next_scan, next_odom, i = 0.0, 0.0, 0
-    replay_index = 0
+    replay = iter(events)
+    pending = None
     while not closed.is_set():
         elapsed = time.monotonic() - start
         if elapsed > a.seconds:
@@ -121,13 +128,22 @@ def main(argv=None):
             closed.wait(a.pause_s)
             continue
         if a.recording:
-            if replay_index >= len(events):
-                break
-            due, kind, fields, xyz = events[replay_index]
+            if pending is None:
+                try:
+                    pending = next(replay, None)
+                except (OSError, KeyError, ValueError, EOFError, BadZipFile) as exc:
+                    write({"type": "error", "bridge_id": bridge_id, "error": str(exc)})
+                    return
+                if pending is None:
+                    break
+            due, kind, fields, xyz = pending
             if elapsed < due:
                 time.sleep(min(0.005, due - elapsed))
                 continue
-            replay_index += 1
+            pending = None
+            if kind == "replay_boundary":
+                write({"type": kind, "bridge_id": bridge_id, **fields})
+                continue
         else:
             if a.reboot_after_s is not None and not rebooted and elapsed > a.reboot_after_s:
                 rebooted, stamp_base = True, a.stamp_base - 900.0  # robot clock restarts

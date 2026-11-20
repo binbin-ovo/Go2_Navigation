@@ -29,7 +29,7 @@ def main(argv=None):
     process = subprocess.Popen([sys.executable, "-u", str(ROOT / "scripts/run_vln_supervised.py"),
                                 *(["--five-move-episode", "--profile", "go2-effective-v1"] if a.five_move_episode else []),
                                 "--lidar", "synthetic", "--output", str(a.output), "--port", "0", "--max-host-seconds", "30",
-                                "--min-free-disk-gb", "0", "--min-available-memory-gb", "0"],
+                                "--min-free-disk-gb", "1", "--min-available-memory-gb", "0"],
                                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                text=True, bufsize=1, env=env)
     lines, found = [], threading.Event()

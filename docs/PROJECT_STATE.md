@@ -1,6 +1,10 @@
 # Current navigation application
 
-## Object-guided five-move branch
+## Current development — November 19 physical-evidence integration
+
+`codex/physical-evidence-navigation` reproduces 23 raw outputs across six closed physical trials and compares ten saved decisions/conditions with the integrated baseline. The verified closer box passes the existing geometric match thresholds at full rectified resolution. Each of the four original forward SEARCH dispatches holds on its recorded obstructed turn disc. A clean-disc controller diagnostic selects a bounded 20° alignment turn for the 14° target. The website can replay the five-move scanner archives and display both storage limits. Physical adoption awaits a reviewed clean commit, a fresh capability and new hardware evidence. [Results, test counts and reproduction](NOV19_NAVIGATION_EVIDENCE.md)
+
+## Earlier object-guided five-move branch
 
 The dedicated development branch `codex/reliable-object-navigation` adds image-bound reference diagnostics, bounded SEARCH memory and a fixed offline comparison against integrated publication `2fa98f20b415003bdb6dae3518ea422a757f45ec`. On ten distinct decision conditions, one verified centered target supported APPROACH. Four earlier reviews became bounded SEARCH, and one became a geometry hold. The right-edge and partially covered cases still lacked supported instance identity. The two-cutoff box reveal recovered a correct native point and a supported 0.60 m proposal. The actual model missed the rendered chair after the proxy turned. Physical progress for the new branch remains unmeasured. [Measured findings, tests and local reports](OBJECT_GUIDED_NAVIGATION.md) · [Handoff](AGENT_HANDOFF.md)
 

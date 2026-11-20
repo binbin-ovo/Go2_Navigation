@@ -51,7 +51,7 @@ function strip(){const s=$("strip");s.replaceChildren();const r=S.resources||{},
  chip("recording",S.recording&&S.recording.trial?"ON "+S.recording.trial:"off"),
  chip("memory","app "+gib(rss.app_parent)+" · worker "+(rss.model_worker==null?"n/a":gib(rss.model_worker))+" · avail "+gib(r.system_available_bytes),(r.low||[]).some(x=>x.includes("memory")||x.includes("RSS"))),
  chip("queue","cam inbox "+(c.inbox_queued??"?")+"/"+(c.inbox_capacity??"?")+" · overflow "+((c.counts||{}).inbox_overflow??0)+(S.lidar&&S.lidar.recording?" · lidar writer "+S.lidar.recording.queued+"/"+S.lidar.recording.queue_max:"")),
- chip("disk","run "+gib(r.run_bytes)+" · free "+gib(r.disk_free_bytes),(r.low||[]).some(x=>x.includes("disk")||x.includes("quota"))));
+ chip("disk","run "+gib(r.run_bytes)+" / "+gib(r.run_quota_bytes)+" · free "+gib(r.disk_free_bytes)+" · floor "+gib(r.min_free_disk_bytes),(r.low||[]).some(x=>x.includes("disk")||x.includes("quota"))));
  if(S.resource_stop)s.append(chip("STOPPED",S.resource_stop.join("; "),true))}
 function panelA(){const c=S.camera;if(!c){$("camstate").textContent="NO CAMERA";$("cammeta").textContent="Camera source not configured.";return}
  $("camstate").textContent=c.state;$("camstate").className="badge "+c.state.split(" ")[0];const L=c.latest;

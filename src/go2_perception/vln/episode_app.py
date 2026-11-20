@@ -4,9 +4,10 @@ from copy import deepcopy
 import json
 from queue import Empty, Full
 import threading
+from time import monotonic
 
 
-from .episode_grounding import ground, object_reference, reference_matches_target, remember_rejection, valid_roi
+from .episode_grounding import ground, object_reference, reference_matches_target, remember_rejection, request_detail, valid_roi
 from .episode_mock import EpisodeMockWorker
 from .episode_page import episode_page
 from .five_move import SCHEMA
@@ -170,7 +171,9 @@ class EpisodeUI(BoundProposalUI):
         path = self.app.prediction_image_path(pred["prediction_id"])
         if path is None:
             raise Hold("review_image_unavailable")
-        ref = object_reference(path, roi, self.grant["target"], payload["operator"])
+        request = self.app.store.root / pred["request_directory"]
+        ref = object_reference(path, roi, self.grant["target"], payload["operator"],
+                               detail=request_detail(pred, request, path))
         if ref["sha256"] != last["image_sha256"]:
             raise Hold("review_image_changed")
         if payload["action"] == "identify":
@@ -203,10 +206,14 @@ class EpisodeUI(BoundProposalUI):
         context = json.loads((self.app.store.root / pred["request_directory"] / "snapshot.json").read_text())
         if context["history"][-1]["source"]["frame_id"] != pred["source_frame"]["frame_id"]:
             raise Hold("current_image_history_mismatch")
+        verification_started = monotonic()
         evidence = ground(
             pred, path, context["history"][-1]["rectification"], self.grant["target"], self.ref, self.rejected,
             seek_view=True,
+            detail=(request_detail(pred, self.app.store.root / pred["request_directory"], path, context)
+                    if self.ref or self.rejected else None),
         )
+        evidence["verification_duration_s"] = monotonic() - verification_started
         if (
             not self.live
             and self.grant["target"] == self.fixture["target"]

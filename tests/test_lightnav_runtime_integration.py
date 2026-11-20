@@ -1,12 +1,10 @@
 """Opt-in tests of the actual pinned upstream processor's CPU/MPS pooling path."""
 
 import os
-from pathlib import Path
-import sys
 
 import pytest
 
-pytestmark = pytest.mark.model_integration
+pytestmark = [pytest.mark.model_integration, pytest.mark.usefixtures("isolated_native_lightnav")]
 ASSETS = os.getenv("LIGHTNAV_ASSETS")
 
 
@@ -15,7 +13,6 @@ def test_native_reset_clears_full_history_and_vision_cache():
     import numpy as np
     from types import SimpleNamespace
 
-    sys.path.insert(0, str(Path(ASSETS) / "source-local-v2/src"))
     from lightnav.inference.policies import NavigationPolicy
 
     resets = []
@@ -54,7 +51,6 @@ def test_native_pooling_cpu_mps_preserves_geometry_dtype_and_deepstack():
 
     if not torch.backends.mps.is_available():
         pytest.skip("MPS not available in this execution context")
-    sys.path.insert(0, str(Path(ASSETS) / "source-local-v2/src"))
     from lightnav.processing import post_vit_spatial_pool
 
     torch.manual_seed(5)

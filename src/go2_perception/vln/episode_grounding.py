@@ -1,6 +1,7 @@
 """Re-identify a human-named object in the current rectified frame, allowing viewpoint changes."""
 
 from hashlib import sha256
+import json
 from pathlib import Path
 
 import cv2
@@ -51,14 +52,113 @@ def remember_rejection(previous, new):
     return [new, *recent[:4]]
 
 
-def object_reference(path, roi, target, operator):
+def prepared_detail(pred, snapshot, job, native_path):
+    """Bind the current prepared image to the exact uncropped native view and decision."""
+    if pred.get("mock") or pred.get("backend") != "lightnav":
+        return None
+    native = Path(native_path)
+    try:
+        item = snapshot["history"][-1]
+        src, frame, view = item["source"], job["frames"][-1], item["rectification"]["view"]
+        display = pred["source_image"]
+        index = snapshot["bounded_context"]["source_indices"][-1]
+        size = view["size_wh"]
+        if not (
+            view["rectified"] is True
+            and view["distortion_model"] == "pinhole_radtan"
+            and view.get("crop_xywh") == [0, 0, *size]
+            and view.get("padding_ltrb") == [0] * 4
+            and view.get("resize_scale_xy") == [1, 1]
+        ):
+            return None  # The mapping to this view is unsupported. Native ORB remains available.
+        if not (
+            snapshot["current_source"] == src
+            and all(
+                src[k] == pred["source_frame"][k]
+                for k in (
+                    "frame_id",
+                    "clock_epoch",
+                    "observation_s",
+                    "available_s",
+                    "received_monotonic_s",
+                    "exposure_monotonic_s",
+                )
+            )
+            and src["observation_s"]
+            == frame["observation_s"]
+            <= src["available_s"]
+            == frame["available_s"]
+            <= job["decision_time_s"]
+            == snapshot["source_cutoff_s"]
+            and src["clock_epoch"] == job["clock_epoch"]
+            and job["instruction"] == pred["instruction"]
+            and len(snapshot["history"]) == len(job["frames"]) == display["job_frame_index"] + 1
+            and index == display["causal_grid_index"]
+            and native.name == f"input_{index:04d}.png"
+        ):
+            raise Hold("prepared_detail_frame_binding_mismatch")
+        return dict(
+            path=frame["path"], sha256=frame["sha256"], size=size, native_sha256=display["file_sha256"]
+        )
+    except (KeyError, IndexError, TypeError) as exc:
+        raise Hold("incomplete_prepared_detail_binding") from exc
+
+
+def request_detail(pred, request, native_path, snapshot=None):
+    if pred.get("mock") or pred.get("backend") != "lightnav":
+        return None
+    if Path(native_path).resolve().parent != (request / "native").resolve():
+        raise Hold("prepared_detail_request_mismatch")
+    context = snapshot or json.loads((request / "snapshot.json").read_bytes())
+    job = json.loads((request / "job.json").read_bytes())
+    native = json.loads((request / "native/result.json").read_bytes())
+    if not (
+        native["status"] == "decoded"
+        and native["native_output"] == pred["native_output"]
+        and native["native_selected_frame_indices"] == context["bounded_context"]["source_indices"]
+        and all(native[k] == job[k] for k in ("clock_epoch", "decision_id", "episode_id"))
+    ):
+        raise Hold("prepared_detail_native_decision_mismatch")
+    detail = prepared_detail(pred, context, job, native_path)
+    if (
+        detail
+        and Path(detail["path"]).resolve() != (request / f"frame_{len(job['frames']) - 1:04d}.png").resolve()
+    ):
+        raise Hold("prepared_detail_request_mismatch")
+    return detail
+
+
+def detail_features(detail, native_sha, roi=None):
+    if detail["native_sha256"] != native_sha:
+        raise Hold("prepared_detail_native_hash_mismatch")
+    image, _ = read_gray(detail["path"], "prepared_detail_unavailable", detail["sha256"])
+    h, w = image.shape
+    if [w, h] != list(detail["size"]):
+        raise Hold("prepared_detail_dimensions_changed")
+    pts, desc = cv2.SIFT_create().detectAndCompute(image, None)
+    if roi is not None and desc is not None:
+        x0, y0, x1, y1 = np.asarray(roi) * [w, h, w, h]
+        # Nominal radius of the rotated 4x4 OpenCV SIFT sampling grid, in keypoint diameters.
+        support_radius = 3.75 * np.sqrt(2)
+        keep = [
+            i
+            for i, p in enumerate(pts)
+            if min(p.pt[0] - x0, x1 - p.pt[0], p.pt[1] - y0, y1 - p.pt[1]) > support_radius * p.size
+        ]
+        pts, desc = [pts[i] for i in keep], desc[keep]
+    return np.float32([p.pt for p in pts]).reshape(-1, 2), desc, (w, h)
+
+
+def object_reference(path, roi, target, operator, *, detail=None):
     if not valid_roi(roi):
         raise Hold("invalid_reference_image_or_roi")
     image, image_sha = read_gray(path, "invalid_reference_image_or_roi")
+    if detail and image.shape != (256, 448):
+        raise Hold("unexpected_native_image_size")
     keypoints, descriptors, size = features(image, roi)
     if descriptors is None or len(keypoints) < 12:
         raise Hold("reference_has_too_few_distinctive_features")
-    return {
+    reference = {
         "target": target,
         "operator": operator,
         "sha256": image_sha,
@@ -67,6 +167,13 @@ def object_reference(path, roi, target, operator):
         "points": keypoints,
         "descriptors": descriptors,
     }
+    if detail is not None:
+        pts, desc, size = detail_features(detail, image_sha, roi)
+        if desc is not None and len(pts) >= 12:
+            reference["detail"] = dict(
+                reference, points=pts, descriptors=desc, size=size, prepared_sha256=detail["sha256"]
+            )
+    return reference
 
 
 def features(image, roi=None):
@@ -85,18 +192,19 @@ def features(image, roi=None):
     return np.float32([p.pt for p in pts]).reshape(-1, 2), desc, (w, h)
 
 
-def localize(ref, current, point):
+def localize(ref, current, point, *, interior=False):
     """Locate an enrolled ROI before asking whether the current native mark agrees."""
     q, desc, (w, h) = current
     evidence = dict(
         reference_sha256=ref["sha256"],
         reference_roi=list(ref["roi"]),
+        algorithm="interior_sift" if interior else "native_orb",
         operator=ref["operator"],
         localized=False,
     )
     if desc is None or len(q) < 12:
         return dict(evidence, reason="too_few_current_features")
-    matcher = cv2.BFMatcher(cv2.NORM_HAMMING)
+    matcher = cv2.BFMatcher(cv2.NORM_L2 if interior else cv2.NORM_HAMMING)
     pairs = matcher.knnMatch(ref["descriptors"], desc, k=2)
     reverse = {
         (a.trainIdx, a.queryIdx)
@@ -134,6 +242,18 @@ def localize(ref, current, point):
         if point is None
         else cv2.pointPolygonTest(polygon, (float(point[0] * w), float(point[1] * h)), False) >= 0
     )
+    if interior:
+        evidence["reference_prepared_sha256"] = ref["prepared_sha256"]
+        evidence["mark_in_region"] = inside
+        evidence["mark_in_inlier_hull"] = (
+            None
+            if point is None
+            else cv2.pointPolygonTest(
+                cv2.convexHull(b[keep]), (float(point[0] * w), float(point[1] * h)), False
+            )
+            >= 0
+        )
+        inside = inside and evidence["mark_in_inlier_hull"]
     return dict(
         evidence,
         localized=True,
@@ -143,7 +263,7 @@ def localize(ref, current, point):
     )
 
 
-def ground(pred, path, rectification, target, ref, rejected=None, *, seek_view=False):
+def ground(pred, path, rectification, target, ref, rejected=None, *, seek_view=False, detail=None):
     """Bind native visibility, positive localization and rejected-instance evidence to one image.
 
     Five-move episodes opt into a new SEARCH viewpoint on inconclusive enrolled identity.
@@ -169,11 +289,38 @@ def ground(pred, path, rectification, target, ref, rejected=None, *, seek_view=F
     }
     if (positive or negatives) and (point is not None or seek_view and positive):
         image, _ = read_gray(path, "current_target_image_unavailable", e["image_sha256"])
+        if detail and image.shape != (256, 448):
+            raise Hold("unexpected_native_image_size")
         current = features(image)
+        detailed = None
+
+        def match_instance(reference, *, negative=False):
+            nonlocal detailed
+            native_match = localize(reference, current, point)
+            if (
+                not seek_view
+                or detail is None
+                or "detail" not in reference
+                or native_match.get("mark_inside")
+                or native_match.get("localized")
+                and not negative
+            ):
+                return native_match
+            if detailed is None:
+                detailed = detail_features(detail, e["image_sha256"])
+            candidate = localize(reference["detail"], detailed, point, interior=True)
+            candidate["current_prepared_sha256"] = detail["sha256"]
+            if negative and candidate.get("mark_in_region"):
+                # A rejected instance can veto anywhere in its projected region.
+                candidate["mark_inside"] = True
+            if candidate.get("localized"):
+                return dict(candidate, native_orb=native_match)
+            return dict(native_match, detail_attempt=candidate)
+
         if positive:
-            e["positive_reference"] = localize(ref, current, point)
+            e["positive_reference"] = match_instance(ref)
         if negatives and point is not None:
-            e["rejected_references"] = [localize(r, current, point) for r in negatives]
+            e["rejected_references"] = [match_instance(r, negative=True) for r in negatives]
     match = e.get("positive_reference", {})
     if any(r.get("mark_inside") for r in e.get("rejected_references", [])):
         if match.get("mark_inside"):

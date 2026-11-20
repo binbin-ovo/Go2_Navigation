@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import math
 import os
 from pathlib import Path
 import sys
@@ -19,7 +20,7 @@ def observe(args, output, website):
     """Start independent sensor and advisory workers; a target starts a model request."""
     from go2_perception.sensors import default_source_args
 
-    options = default_source_args(args, args.workspace)
+    options = default_source_args(args, args.workspace) + storage_options(args)
     if args.model == "lightnav":
         options += [
             "--backend",
@@ -36,7 +37,11 @@ def observe(args, output, website):
     return session_runner.main([*options, "--output", str(output)], website=website)
 
 
-def five_move(output, website):
+def storage_options(args):
+    return ["--min-free-disk-gb", str(args.min_free_disk_gb), "--run-quota-gb", str(args.run_quota_gb)]
+
+
+def five_move(output, website, storage=()):
     """Use the same bounded episode and independent executor with synthetic inputs."""
     from go2_perception.vln.motion_profile import PROFILE
     from go2_perception.vln.supervised_launch import main as supervised
@@ -52,6 +57,7 @@ def five_move(output, website):
             "synthetic",
             "--output",
             str(output),
+            *storage,
         ],
         website=website,
     )
@@ -104,27 +110,36 @@ def supervised_operator(argv):
     """Enter the existing five-move operator procedure in a separate process."""
     parser = argparse.ArgumentParser(prog="app.py supervised", description=__doc__)
     flags = parser.add_mutually_exclusive_group(required=True)
-    flags.add_argument(
-        "--prepare-only", action="store_true", help="verify local evidence and exit"
-    )
+    flags.add_argument("--prepare-only", action="store_true", help="verify local evidence and exit")
     flags.add_argument(
         "--live-exclusive",
         action="store_true",
         help="requires the existing live opt-in and a separate browser episode grant",
     )
+    from go2_perception.vln.supervised_launch import add_episode_limits, valid_episode_limits
+
+    add_episode_limits(parser)
     options = parser.parse_args(argv)
+    if not valid_episode_limits(options):
+        parser.error("limits: 1–5 moves, 5–60 seconds, 1.2–3 m area radius, 8–18 degrees alignment")
     action = "--prepare-only" if options.prepare_only else "--live-exclusive"
     launcher = ROOT / "hardware/launch_supervised.sh"
-    os.execl("/bin/bash", "bash", str(launcher), "five-move", action)
+    fields = ("move_budget", "episode_seconds", "area_radius_m", "alignment_deg")
+    limits = [item for key in fields for item in ("--" + key.replace("_", "-"), str(getattr(options, key)))]
+    print("Requested five-move limits", " ".join(limits), flush=True)
+    os.execl("/bin/bash", "bash", str(launcher), "five-move", action, *limits)
 
 
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
+    if argv[:1] == ["review"]:
+        from scripts.review_target_grounding import main as review_trial
+        return review_trial(argv[1:])
     if argv[:1] == ["supervised"]:
         return supervised_operator(argv[1:])
     parser = argparse.ArgumentParser(
         description=__doc__,
-        epilog="Separate physical operator procedure: app.py supervised --help",
+        epilog="Review a closed trial with app.py review --help. Operator procedure: app.py supervised --help.",
     )
     parser.add_argument("--mode", choices=WebsiteMode.names, default="observe")
     parser.add_argument(
@@ -150,7 +165,7 @@ def main(argv=None):
     parser.add_argument(
         "--lidar-recording",
         type=Path,
-        help="optional go2-recording-v1 replay directory",
+        help="legacy recording directory or five-move session/lidar chunk archive",
     )
     parser.add_argument(
         "--model",
@@ -159,7 +174,11 @@ def main(argv=None):
         help="observation-only backend",
     )
     parser.add_argument("--device", choices=["cpu", "mps", "cuda"], default="mps")
+    parser.add_argument("--min-free-disk-gb", type=float, default=20, help="free space floor in GiB (default 20)")
+    parser.add_argument("--run-quota-gb", type=float, default=6, help="per-run ceiling in GiB (default 6)")
     args = parser.parse_args(argv)
+    if not all(math.isfinite(v) and v > 0 for v in (args.min_free_disk_gb, args.run_quota_gb)):
+        parser.error("storage limits must be positive finite GiB")
     if args.source == "replay" and (not args.episode or not args.episode.is_file()):
         parser.error("--source replay requires an existing --episode")
     if args.source != "replay" and (args.episode or args.lidar_recording):
@@ -181,7 +200,7 @@ def main(argv=None):
             if mode == "observe":
                 code = observe(args, output, website)
             elif mode == "five-move":
-                code = five_move(output, website)
+                code = five_move(output, website, storage_options(args))
             else:
                 code = continuous(output, website)
             if code:

@@ -179,6 +179,8 @@ def main(argv=None, *, app_factory=InteractiveApp, run_fields=None, synthetic_so
             and 1 <= a.max_requests_per_trial <= 64 and 1 <= a.max_trials <= 200
             and 5 <= a.trial_max_s <= 600 and 1 <= a.camera_stride <= 8):
         p.error("Invalid bounds")
+    if not all(math.isfinite(v) and v > 0 for v in (a.min_free_disk_gb, a.run_quota_gb)):
+        p.error("Storage thresholds must be finite positive GiB")
     output = a.output or ROOT / "data/outputs/vln_interactive" / time.strftime("run_%Y%m%d_%H%M%S")
     if output.exists():
         p.error("Output must be a new directory; existing evidence is never overwritten")
@@ -218,13 +220,14 @@ def main(argv=None, *, app_factory=InteractiveApp, run_fields=None, synthetic_so
               "max_requests_per_trial": a.max_requests_per_trial, "trial_max_s": a.trial_max_s,
               "max_trials": a.max_trials, "reviewer": a.reviewer,
               "record_lidar_continuously": a.record_lidar_continuously}
+    from .source_revision import source_state
+    navigation_source = source_state(ROOT)
     run_info = {
         "schema": "go2-vln-interactive-run-v1",
         "created_wall_utc": utc_now(),
         "mode": mode, "backend": a.backend,
         "arguments": {k: str(v) if isinstance(v, Path) else v for k, v in vars(a).items()},
-        "git_commit": subprocess.run(["git", "-C", str(ROOT), "rev-parse", "HEAD"], capture_output=True,
-                                     text=True, check=False).stdout.strip(),
+        "git_commit": navigation_source["commit"], "navigation_source": navigation_source,
         "limits": asdict(limits), "advisory_age_s_unchanged": 3.0,
         "temporal_policy": "existing full-history reconstruction per request; bounded-context policy NOT enabled",
         "preparation_mode": a.preparation_mode, "tensor_evidence": a.tensor_evidence,

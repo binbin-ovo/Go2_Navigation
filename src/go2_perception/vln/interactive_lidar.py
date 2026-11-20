@@ -140,6 +140,12 @@ class LidarState:
         self.bridge_id, self.source = header.get("bridge_id"), header.get("source")
         self.last_seq = {"scan": None, "odom": None}
 
+    def replay_boundary(self):
+        self.robot_epoch += 1
+        self.counts["robot_epoch_changes"] += 1
+        self._reset_epoch()
+        self.last_seq = {"scan": None, "odom": None}
+
     def odom(self, header, now=None):
         host_mono, change = self._check_clocks(header, now)
         self._seq("odom", header["seq"])
@@ -151,6 +157,7 @@ class LidarState:
         self.offset_samples += 1
         self.last_odom = {"stamp": header["stamp"], "host_mono": host_mono,
                           "position": header["position"], "q_xyzw": header["q_xyzw"]}
+        self.last_odom.update({k: v for k, v in header.items() if k.startswith("recorded_")})
         return change
 
     def scan(self, header, xyz, now=None):
@@ -165,6 +172,7 @@ class LidarState:
         self.latest = {"xyz": xyz, "seq": header["seq"], "stamp": header["stamp"], "t_mid": t_mid,
                        "time_span_s": span, "host_mono": host_mono, "n": int(len(xyz)),
                        "frame_id": header.get("frame_id")}
+        self.latest.update({k: v for k, v in header.items() if k.startswith("recorded_")})
         self.scan_robot_t.append(t_mid)
         self.scan_host_mono.append(host_mono)
         self.pending_windows.append((t_mid, xyz))
@@ -217,6 +225,8 @@ class LidarState:
                 pose = {"valid": True, "frame": "odom (robot-reported; origin at odometry start)",
                         "x": p[0], "y": p[1], "z": p[2], "yaw_rad": yaw_of(self.last_odom["q_xyzw"]),
                         "stamp_robot": self.last_odom["stamp"], "host_age_s": age}
+        if self.last_odom is not None:
+            pose.update({k: v for k, v in self.last_odom.items() if k.startswith("recorded_")})
         views = {}
         windows = {}
         if latest is not None:
@@ -242,6 +252,7 @@ class LidarState:
         latest_info = None
         if latest is not None:
             latest_info = {k: latest[k] for k in ("seq", "stamp", "t_mid", "time_span_s", "n", "frame_id")}
+            latest_info.update({k: v for k, v in latest.items() if k.startswith("recorded_")})
             latest_info["host_age_s"] = now - latest["host_mono"]
             latest_info["robot_age_vs_latest_odom_s"] = (
                 None if self.last_odom is None else self.last_odom["stamp"] - latest["t_mid"])
@@ -560,6 +571,12 @@ class LidarSource:
                         recorder.offer(kind, header, xyz, epoch, now)
                     if now - self.last_snapshot >= self.snapshot_period:
                         self._snapshot(now)
+                elif kind == "replay_boundary":
+                    if not self.hello or self.hello.get("source") != "recording_replay":
+                        raise RuntimeError("unexpected replay boundary")
+                    with self.lock:
+                        self.state.replay_boundary()
+                    self._event("replay_boundary", boundary=header)
                 elif kind in ("stats", "bye", "error"):
                     with self.lock:
                         if kind == "bye":
@@ -567,7 +584,8 @@ class LidarSource:
                         else:
                             self.stats = header
                     if kind == "error":
-                        self._event("bridge_error", error=header.get("error"))
+                        self.error = header.get("error") or "unspecified LiDAR bridge error"
+                        self._event("bridge_error", error=self.error)
         except Exception as error:  # surfaced to the app, never silent
             self.error = repr(error)
             self._event("reader_error", error=self.error)
@@ -607,6 +625,7 @@ class LidarSource:
                 return None
             xyz = scan["xyz"]
             meta = {key: scan[key] for key in ("frame_id", "seq", "stamp", "t_mid", "time_span_s", "host_mono")}
+            meta.update({k: v for k, v in scan.items() if k.startswith("recorded_")})
             meta["robot_epoch"] = self.state.epoch_label()
         return xyz.copy(), meta
 

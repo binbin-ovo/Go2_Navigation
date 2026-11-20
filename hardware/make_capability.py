@@ -17,6 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
+from go2_perception.vln.source_revision import clean_navigation  # noqa: E402
 from go2_perception.vln.motion_profile import INSPECTED, LIMITS as EFFECTIVE_LIMITS, PROFILE, SENSOR  # noqa: E402
 from go2_perception.vln.supervised import CONTROL_REVISION, Hold, capability_check  # noqa: E402
 
@@ -120,12 +121,14 @@ def main():
         ap.error("inspected turns require the effective profile")
     if a.output.exists():
         ap.error("choose a fresh capability output path")
+    navigation_source = clean_navigation(ROOT)
     revision = git(CONTROL_ROOT, "rev-parse", "HEAD")
     if revision != CONTROL_REVISION or git(CONTROL_ROOT, "status", "--porcelain", "--untracked-files=no"):
         sys.exit(f"control checkout is not the clean pinned {CONTROL_REVISION}")
     cap = {
         "capability_id": f"go2-hw-{git(ROOT, 'rev-parse', '--short', 'HEAD')}-{int(time.time())}",
         "kind": "hardware",
+        "navigation_source": navigation_source,
         "configuration_id": "go2-pro-front-camera-f5dedd82-avoid-route-forward-pilot",
         "valid_until_wall_s": time.time() + 3600 * a.valid_hours,
         "control": {"revision": revision, "root": str(CONTROL_ROOT), "python": str(HARDWARE_PY),

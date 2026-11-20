@@ -656,7 +656,8 @@ def test_five_move_search_remembers_inspected_views_and_local_stalls():
     )
     failed = dict(start, attempt={"mode": "SEARCH", "direction": "right", "no_progress": True})
     later = dict(start, x_m=start["x_m"] + 1.0, attempt={"mode": "SEARCH", "direction": "left"})
-    assert select(inspected, [failed, later])["action"]["direction"] == "forward"
+    with pytest.raises(Hold, match="right_stalled_from_this_view"):
+        select(inspected, [failed, later])
     # An identical turn in a different place, epoch or facing direction can be useful.
     for moved in (
         dict(failed, x_m=start["x_m"] + 0.7),
@@ -664,16 +665,6 @@ def test_five_move_search_remembers_inspected_views_and_local_stalls():
         dict(failed, yaw_rad=start["yaw_rad"] + 1),
     ):
         assert select(inspected, [moved, later])["action"]["direction"] == "right"
-    step = 0.30
-    inspected.append(
-        dict(
-            start,
-            x_m=start["x_m"] + step * math.cos(start["yaw_rad"]),
-            y_m=start["y_m"] + step * math.sin(start["yaw_rad"]),
-        )
-    )
-    with pytest.raises(Hold, match="forward_view_already_inspected"):
-        select(inspected, [failed, later])
 
 
 def test_reference_can_guide_search_but_never_authorize_approach_or_bypass_clearance():
@@ -740,3 +731,62 @@ def test_inconclusive_identity_gets_one_new_view_then_an_opportunity_to_reidenti
     m["evidence"]["previous_image_review"] = {"prediction_id": "P2"}
     ex.observe(m)
     assert len(ex.attempts) == 2 and ex.attempts[-1]["mode"] == "SEARCH"
+
+
+@pytest.mark.parametrize("side", [-1, 1])
+def test_coarse_alignment_uses_heading_of_curved_path_only_with_clearance(side):
+    ex, _ = episode()
+    msg = observation(ex, 1, angle=side * 14)
+    prop, ev = msg["proposal"], msg["evidence"]
+    prop["waypoints"] = [
+        [0.023, side * 0.007, side * 0.314],
+        [0.165, side * 0.057, side * 0.364],
+        [0.303, side * 0.115, side * 0.435],
+    ]
+
+    def choose():
+        return select_action(ex.grant, ex.cap, prop, ev, [], 0, False, inspected=[])
+
+    selected = choose()
+    assert selected["aligned"] and selected["mode"] == "APPROACH"
+    assert selected["action"]["direction"] == ("right" if side < 0 else "left")
+    assert selected["action"]["speed"] == 2 and selected["action"]["magnitude"] == pytest.approx(
+        math.radians(20)
+    )
+    assert selected["source"] == "approach_policy" and selected["expected_residual_rad"] < math.radians(8)
+    disc = prop["identity"]["geometry"]["observed_turn_disc"]
+    disc["obstacle_returns"] = 143
+    with pytest.raises(Hold, match="obstacles=143"):
+        choose()
+    disc["obstacle_returns"] = 0
+    for angle in (side * 5, -side * 14):
+        prop["point_fraction"] = observation(ex, 2, angle=angle)["proposal"]["point_fraction"]
+        with pytest.raises(Hold, match="native_path_does_not_support_forward"):
+            choose()
+    prop["point_fraction"] = observation(ex, 3, angle=-side * 22)["proposal"]["point_fraction"]
+    with pytest.raises(Hold, match="native_heading_disagree"):
+        choose()
+
+
+def test_missing_target_curved_right_hint_and_no_forward_escape():
+    ex, _ = episode()
+    msg = observation(ex, 1, extent=0)
+    prop = msg["proposal"]
+    prop["waypoints"] = [[0.044, -0.008, -0.312], [0.16, -0.06, -0.37], [0.30, -0.12, -0.45]]
+
+    def choose():
+        return select_action(ex.grant, ex.cap, prop, msg["evidence"], [], 0, False, inspected=[])
+
+    from go2_perception.navigation import initial_heading_sweep
+    assert initial_heading_sweep([[0.15, 0, 0], [0.25, -0.02, -0.35]]) == 0
+    turn = choose()
+    assert turn["action"]["direction"] == "right" and turn["source"] == "search_policy"
+    prop["identity"]["geometry"]["observed_turn_disc"].update(obstacle_returns=130)
+    with pytest.raises(Hold, match=r"no_supported_search_viewpoint: right .*obstacles=130.*left"):
+        choose()
+    prop["identity"]["geometry"].pop("observed_turn_disc")
+    with pytest.raises(Hold, match="floor=None, obstacles=None"):
+        choose()
+    ex.grant["area_inspected"] = False
+    with pytest.raises(Hold, match="requires_current_episode_authorization"):
+        choose()

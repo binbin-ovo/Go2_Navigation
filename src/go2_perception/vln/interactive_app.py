@@ -136,6 +136,7 @@ class ResourceMonitor(threading.Thread):
             low.append(f"run directory {run_bytes / 2**30:.2f} GiB above quota")
         value = {"sampled": True, "rss_bytes_by_process": rss, "system_available_bytes": vm.available,
                  "disk_free_bytes": disk.free, "run_bytes": run_bytes, "low": low,
+                 "min_free_disk_bytes": self.limits["min_free_disk_bytes"], "run_quota_bytes": self.limits["run_quota_bytes"],
                  "note": "per-process RSS; worker MPS memory is reported by the worker separately "
                          "and is not added to any RSS figure",
                  "sampled_host_monotonic_s": time.monotonic()}
