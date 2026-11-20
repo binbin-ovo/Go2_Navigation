@@ -32,10 +32,12 @@ def source_state(root):
     return state
 
 
-def clean_navigation(root, expected=None):
+def clean_navigation(root, capability_id=None):
     state = source_state(root)
     if state["dirty"] is not False:
         raise Hold("hardware_evidence_requires_clean_navigation_checkout")
-    if expected is not None and state != expected:
-        raise Hold("capability_navigation_source_mismatch")
+    if capability_id is not None:
+        prefix, _, issued = str(capability_id).rpartition("-")
+        if prefix != f"go2-hw-{state['commit']}" or not issued.isascii() or not issued.isdecimal():
+            raise Hold("capability_navigation_source_mismatch")
     return state

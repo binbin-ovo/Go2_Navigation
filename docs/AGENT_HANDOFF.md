@@ -6,7 +6,7 @@ Review `codex/physical-evidence-navigation` in `$GO2_WORKSPACE/code/worktrees/co
 
 Start with the [owner’s guide](../START_HERE.md) and [measured comparison, commands and hardware handoff](NOV19_NAVIGATION_EVIDENCE.md). In the recordings, the closer enrolled box is now recognized, all four historical blind forward SEARCH steps hold, and the 14° right-hand target produces a separately checked turn request. A simulated clear disc permits that turn. The archive supplies its actual refusal. Five-move LiDAR chunks replay through the public sensor interface.
 
-For hardware adoption, review the exact source commit, generate a fresh capability from the clean reviewed checkout and verify the current boot’s timing evidence. Record an image-bound enrollment and post-settling identification, a genuinely clear search turn, an obstructed-turn refusal, physical heading and independent distance when available. Preserve the operator’s area, intervention, stop and release records. Physical validation of this feature is pending.
+For hardware adoption, review the exact source commit, generate a fresh capability from the clean reviewed checkout and verify the current boot’s timing evidence. Both published capability schemas accept the existing ID with the full navigation SHA. Supervised startup checks that ID against its own clean source. Record an image-bound enrollment and post-settling identification, a genuinely clear search turn, an obstructed-turn refusal, physical heading and independent distance when available. Preserve the operator’s area, intervention, stop and release records. Physical validation of this feature is pending.
 
 ## Earlier development handoff — object-guided five-move navigation
 

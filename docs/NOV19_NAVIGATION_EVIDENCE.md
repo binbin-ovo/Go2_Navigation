@@ -99,11 +99,11 @@ export LIGHTNAV_ASSETS="$GO2_WORKSPACE/weights/lightnav"
 "$modelpy" -m pytest -q -rs -p no:cacheprovider tests/test_lightnav_runtime_integration.py tests/test_bounded_native_integration.py
 ```
 
-Focused tests passed 78/78. The full core run passed 574 with 13 skips. Twelve skipped tests require the isolated model runtime and passed 12/12 in each file order. The remaining skipped test subscribes to physical Go2 streams.
+Focused tests passed 80/80. The full core run passed 576 with 13 skips. Twelve skipped tests require the isolated model runtime and passed 12/12 in each file order. The remaining skipped test subscribes to physical Go2 streams.
 
 ## Claude’s hardware handoff
 
-Review the feature commit and use a clean checkout. Both preparation and live supervised startup verify navigation provenance. The capability must match the navigation commit. Each new run records HEAD, Git status and, for tracked edits in offline runs, a digest of the working diff. The previous development commit introduced inspected-view memory in the five-move executor. Carry the reviewed versions together and generate a new capability. The canonical controller, guard provider and motion profile retain their hardware baselines.
+Review the feature commit and use a clean checkout. Both preparation and live supervised startup verify navigation provenance. The existing capability ID now carries the full clean navigation SHA, and supervised startup compares it with the running checkout. Both contract versions retain their published field sets. Each new run records HEAD, Git status and, for tracked edits in offline runs, a digest of the working diff. The previous development commit introduced inspected-view memory in the five-move executor. Carry the reviewed versions together and generate a new capability. The canonical controller, guard provider and motion profile retain their hardware baselines.
 
 ```bash
 "$py" app.py supervised --prepare-only --move-budget 5 --episode-seconds 60 \

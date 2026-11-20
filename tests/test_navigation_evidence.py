@@ -4,6 +4,7 @@ from copy import deepcopy
 from hashlib import sha256
 import json
 import subprocess
+import sys
 
 import cv2
 import numpy as np
@@ -177,12 +178,14 @@ def test_clean_source_required_for_capability_and_live_launch(tmp_path):
     git("-c", "user.name=fixture", "-c", "user.email=f@local", "commit", "--allow-empty", "-m", "fixture")
     clean = clean_navigation(tmp_path)
     assert not clean["dirty"] and len(clean["commit"]) == 40
+    capability_id = f"go2-hw-{clean['commit']}-12345"
+    assert clean_navigation(tmp_path, capability_id) == clean
     with pytest.raises(Hold, match="source_mismatch"):
-        clean_navigation(tmp_path, {})
+        clean_navigation(tmp_path, "go2-hw-123abcd-12345")
     (tmp_path / "navigation.py").write_text("edited")
     assert source_state(tmp_path)["status_porcelain"] == ["?? navigation.py"]
     with pytest.raises(Hold, match="clean_navigation"):
-        clean_navigation(tmp_path, clean)
+        clean_navigation(tmp_path, capability_id)
     git("add", "navigation.py")
     first_hash = source_state(tmp_path)["tracked_diff_sha256"]
     (tmp_path / "navigation.py").write_text("different edit")
@@ -224,3 +227,32 @@ def test_public_supervised_limits_are_forwarded_and_validated(monkeypatch):
         with pytest.raises(SystemExit):
             app.main(args)
     assert len(commands) == 1
+
+
+@pytest.mark.parametrize("profile,version", [("legacy-first-row", 1), ("go2-effective-v1", 2)])
+def test_generated_capability_with_full_commit_obeys_existing_contract(
+    tmp_path, monkeypatch, profile, version
+):
+    monkeypatch.setattr(sys, "path", list(sys.path))
+    from hardware import make_capability as builder
+    from go2_perception.vln.supervised import validate_record
+
+    heading = tmp_path / "heading.json"
+    heading.write_text(json.dumps({"accepted_yaw_deg": [0.835]}))
+    output = tmp_path / "capability.json"
+    monkeypatch.setattr(builder, "CONTROL_ROOT", tmp_path)
+    monkeypatch.setattr(builder, "CONTROL_LOGS", {})
+    monkeypatch.setattr(builder, "HEADING_SHA256", sha256(heading.read_bytes()).hexdigest())
+    monkeypatch.setattr(builder, "clean_navigation", lambda _: {"commit": "c" * 40})
+    monkeypatch.setattr(
+        builder, "git", lambda root, *args: builder.CONTROL_REVISION if args[0] == "rev-parse" else ""
+    )
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["make_capability", "--profile", profile, "--heading-file", str(heading), "--output", str(output)],
+    )
+    builder.main()
+    cap = json.loads(output.read_bytes())
+    validate_record("capability", cap, version)
+    assert cap["capability_id"].startswith(f"go2-hw-{'c' * 40}-")

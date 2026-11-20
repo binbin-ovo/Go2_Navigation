@@ -126,9 +126,8 @@ def main():
     if revision != CONTROL_REVISION or git(CONTROL_ROOT, "status", "--porcelain", "--untracked-files=no"):
         sys.exit(f"control checkout is not the clean pinned {CONTROL_REVISION}")
     cap = {
-        "capability_id": f"go2-hw-{git(ROOT, 'rev-parse', '--short', 'HEAD')}-{int(time.time())}",
+        "capability_id": f"go2-hw-{navigation_source['commit']}-{int(time.time())}",
         "kind": "hardware",
-        "navigation_source": navigation_source,
         "configuration_id": "go2-pro-front-camera-f5dedd82-avoid-route-forward-pilot",
         "valid_until_wall_s": time.time() + 3600 * a.valid_hours,
         "control": {"revision": revision, "root": str(CONTROL_ROOT), "python": str(HARDWARE_PY),

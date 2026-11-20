@@ -79,7 +79,7 @@ def main(argv=None, *, website=None):
             p.error("Live needs existing Go2 camera/LiDAR bridges and pinned LightNav backend")
         capability = json.loads(a.capability.read_text())
         from .source_revision import clean_navigation
-        clean_navigation(ROOT, capability.get("navigation_source", {}))
+        clean_navigation(ROOT, capability.get("capability_id") or "")
     else:
         if args.camera != "synthetic" or args.backend != "mock" or args.lidar not in ("none", "synthetic"):
             p.error("This mock launcher accepts synthetic sources and mock worker only; no robot or model")
