@@ -1,6 +1,25 @@
 # Go2 navigation handoff
 
-## Current handoff — physical evidence and the five-move policy
+## Current handoff — physical-evidence policy adopted for hardware, November 20
+
+`code/navigation` runs `hardware/physical-evidence-integration`: Codex's `codex/physical-evidence-navigation` at `e068be19f539faa5bddaac72d71797721d6c7bd3` (a fast-forward of the integrated `d62d936`) plus this record. The guard provider (`hardware/supervised_guards.py`, sha256 `3c0e7c56…19bf`), the motion profile, executor dispatch checks, both bridges and the controller (`code/control` at `6d555d3`) are byte-identical to the November 19 hardware baseline. The boot-specific camera bound (0.140 s at offset −1766856813.961) is unchanged and still applies only to that boot; it HOLDs on any other. No robot movement was performed for this integration.
+
+**Offline checks (clean worktree at `e068be1`).** Focused 102 passed; core 576 passed, 13 skipped; model environment 12/12 in both file orders (the earlier order conflict is fixed). `evaluate_object_navigation.py --hardware-report --reuse-inference …/object-navigation-5ggvlnu9` wrote `runs/target_grounding/object-navigation-kctqjtnp`; apart from timings and the omitted DINO diagnostic, every field of the ten cases and the six-trial audit equals Codex's `object-navigation-7n88hu29`. Recorded frame hashes, prediction IDs and archived native outputs match (the descriptive-prompt and two cover cases are deliberate interventions). A probe of `check_clearance` refused all 13 incomplete or obstructed turn-disc cases (absent disc, missing obstacle count, fewer than two floor returns, short radius, any obstacle return, missing forward sector, wrong epoch, unavailable geometry, restrictive measured side sector) and allowed only the fully observed clear disc. Five-move LiDAR chunks from `trial-231Apz` replayed through `sensors.py` (185 scans, no gaps, unknown cells reported as never free). The fixture search simulation stopped with arrival unverified; the five-move mock repeated SEARCH left, APPROACH left, APPROACH forward, model STOP with no robot commands, and its `run.json` recorded `e068be1`, clean. File-only preparation produced capability `go2-hw-e068be19f539faa5bddaac72d71797721d6c7bd3-…`, pinning the guard provider sha256 and control `6d555d3`; out-of-range limits are rejected. All 4,033 pre-existing private evidence files were unchanged.
+
+**What the recordings reproduce.** The approached box at `231Apz` P004 is re-identified without a new operator click (interior SIFT 23/24, spread 0.121, just above the 0.12 threshold; native ORB alone failed at 12/23). A previously rejected hallway appearance yields HOLD, never APPROACH. The four recorded blind forward SEARCH steps now HOLD because neither turn disc was clear (97–247 obstacle returns). The 14° right target at `bYheuc` P003 requests a 20° right turn only in the controller diagnostic with obstacle returns set to zero; with its recorded 143 returns it is refused.
+
+**Limitations.** In the inspected-disc scope, unobserved rear and side space is covered by the operator's fresh 30 s turn inspection, not by LiDAR; the LiDAR condition is at least two floor returns and zero obstacle returns in the 0.65 m disc. Every recorded hallway snapshot had obstacle returns in that disc, and the logs cannot separate the robot body, cable and floor clutter from real objects, so a genuinely open area may still refuse every turn. Re-identification succeeded on one development pair close to its spread threshold. `T_base_camera` remains unmeasured and arrival is never verified. Free disk is about 20 GiB, at the website's default floor. None of this behaviour has run on the robot.
+
+**Next supervised session (not authorized yet).** After the robot boots, check its offset against `CAMERA.boot_offset_s` and re-measure with `hardware/capture_latency.py` if it differs. Then, from `code/navigation` with `GO2_WORKSPACE=$HOME/Robotics/Go2`:
+
+```bash
+"$GO2_WORKSPACE/envs/core/bin/python" app.py supervised --prepare-only --move-budget 5 --episode-seconds 60 --area-radius-m 3 --alignment-deg 15
+GO2_SUPERVISED_LIVE=1 "$GO2_WORKSPACE/envs/core/bin/python" app.py supervised --live-exclusive --move-budget 5 --episode-seconds 60 --area-radius-m 3 --alignment-deg 15
+```
+
+Scenarios: A, a clear off-centre turn with settled heading and fresh identification; B, an obstacle in the swept disc, expecting refusal with no follow-up turn; C, enrollment, one bounded approach and re-identification on the settled image. Report each physical episode separately from these offline results.
+
+## Development handoff — physical evidence and the five-move policy
 
 Review `codex/physical-evidence-navigation` in `$GO2_WORKSPACE/code/worktrees/codex-motion-diagnostics`. Its history starts at Claude’s integrated `d62d936c67fed4ce10d0f364188bbaa596fee970` and includes the earlier offline study `ba8a7b692d45afe6bb7a7a2228826e34ca14571f`. Claude’s six closed trials remain the physical evidence for the previous implementation. This branch has offline verification.
 

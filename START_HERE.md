@@ -1,6 +1,6 @@
 # Start here · Go2 navigation
 
-For the November 19 evidence fixes, use `code/worktrees/codex-motion-diagnostics` on `codex/physical-evidence-navigation`. Claude’s supervised baseline lives in `code/navigation` on `hardware/readable-navigation-integration`.
+For the November 19 evidence fixes, use `code/worktrees/codex-motion-diagnostics` on `codex/physical-evidence-navigation`. The reviewed supervised hardware checkout is `code/navigation` on `hardware/physical-evidence-integration`, which carries that work.
 
 ## Open the offline website
 

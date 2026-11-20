@@ -8,7 +8,7 @@ outside Desktop, Documents and iCloud Drive. Open the [current start guide](../S
 
 | Path under `~/Robotics/Go2` | Contents |
 |---|---|
-| `code/navigation/` | main Git checkout (common `.git` lives here) on `hardware/readable-navigation-integration`: the readable application (`START_HERE.md`, `app.py`, `sensors.py`, `navigation.py`) plus the boot-specific guard evidence; used for offline review and supervised hardware sessions |
+| `code/navigation/` | main Git checkout (common `.git` lives here) on `hardware/physical-evidence-integration`: the readable application with the physical-evidence five-move policy (`START_HERE.md`, `app.py`, `sensors.py`, `navigation.py`) plus the boot-specific guard evidence; used for offline review and supervised hardware sessions |
 | `code/control/` | linked worktree, canonical controller `feature/go2-high-level-control-audit`; its `data/outputs/go2_control/` holds controller logs and `.command.lock` |
 | `code/worktrees/` | agent worktrees only (Codex develops in `codex-motion-diagnostics`); temporary ones are removed once merged/pushed and their data preserved |
 | `envs/core`, `envs/hw`, `envs/model` | Python 3.12.11 / 3.10.17 / 3.11.13 venvs recreated from `envs/pins/*.txt` (exact freezes of the previous envs) |
