@@ -80,7 +80,16 @@ def target_spec(text):
     return {**expand_target(noun), "entered_target_text": text}
 
 
-def select_action(grant, cap, proposal, evidence, views, attempts, was_aligned):
+def same_view(old, x, y, yaw, pose):
+    """A local viewpoint in the same odometry frame and boot epoch."""
+    return (
+        (old["frame"], old["robot_epoch"]) == (pose["frame"], pose["robot_epoch"])
+        and math.hypot(old["x_m"] - x, old["y_m"] - y) < 0.25
+        and abs(wrap(old["yaw_rad"] - yaw)) < math.radians(12)
+    )
+
+
+def select_action(grant, cap, proposal, evidence, views, attempts, was_aligned, *, inspected=None):
     """Choose HOLD/review, SEARCH or APPROACH from a bound image, native path and fresh geometry.
 
     The result is a selection. The separate executor grants or rejects each dispatch.
@@ -172,6 +181,35 @@ def select_action(grant, cap, proposal, evidence, views, attempts, was_aligned):
         and recent_search[-1]["direction"] != "forward"
     ):
         choices = ["forward", preferred, opposite]
+    # Five-move SEARCH remembers the fresh camera poses the executor accepted.
+    # Re-identification is available again after one inconclusive viewpoint change.
+    hint = None
+    if inspected is not None:
+        match = evidence.get("positive_reference", {})
+        if (
+            evidence["method"] == "reference_inconclusive_seek_view"
+            and views
+            and match.get("reference_sha256")
+            and views[-1]["attempt"].get("inconclusive_reference") == match["reference_sha256"]
+            and not same_view(views[-1], pose["x_m"], pose["y_m"], pose["yaw_rad"], pose)
+            and not evidence.get("previous_image_review")
+        ):
+            return dict(selection, reason="reidentify_after_new_view", review=True)
+        if evidence["method"] == "reference_visible_without_native_agreement" and match.get(
+            "localized"
+        ):
+            if not verified_features(match, grant) or match.get("mark_inside") is True:
+                raise Hold("unbound_reference_viewpoint")
+            x0, y0, x1, y1 = match["roi"]
+            if not (0 <= x0 < x1 <= 1 and 0 <= y0 < y1 <= 1):
+                raise Hold("invalid_reference_viewpoint_roi")
+            bearing = image_bearing(
+                ((x0 + x1) / 2, (y0 + y1) / 2), evidence["camera"], cap["mapping"]
+            )
+            if abs(bearing) > math.radians(grant["alignment_deg"]):
+                hint = "left" if bearing > 0 else "right"
+                choices = [hint]
+
     reasons = []
     for direction in choices:
         forward = direction == "forward"
@@ -179,22 +217,30 @@ def select_action(grant, cap, proposal, evidence, views, attempts, was_aligned):
         # prefix with coherent signed yaw. A translated viewpoint is policy-selected.
         supported_turn = (
             not forward
+            and hint is None
             and direction == preferred
             and MIN_TURN <= abs(native_yaw) <= TURN_CAP
-            and all(
-                math.hypot(x, y) <= 0.025 and ang * native_yaw >= 0.0
-                for x, y, ang in rows
-            )
+            and all(math.hypot(x, y) <= 0.025 and ang * native_yaw >= 0.0 for x, y, ang in rows)
         )
-        amount = (
-            MIN_FORWARD
-            if forward
-            else (abs(native_yaw) if supported_turn else TURN_CAP)
-        )
-        predicted_heading = pose["yaw_rad"] + (
-            amount if direction == "left" else -amount
-        )
-        if not forward and any(
+        amount = MIN_FORWARD if forward else (abs(native_yaw) if supported_turn else TURN_CAP)
+        predicted_heading = pose["yaw_rad"] + (amount if direction == "left" else -amount)
+        if inspected is not None:
+            tx = pose["x_m"] + (amount * math.cos(pose["yaw_rad"]) if forward else 0)
+            ty = pose["y_m"] + (amount * math.sin(pose["yaw_rad"]) if forward else 0)
+            yaw = pose["yaw_rad"] if forward else predicted_heading
+            if any(same_view(v, tx, ty, yaw, pose) for v in inspected):
+                reasons.append(direction + "_view_already_inspected")
+                continue
+            if any(
+                v["attempt"]["mode"] == "SEARCH"
+                and v["attempt"]["direction"] == direction
+                and v["attempt"].get("no_progress")
+                and same_view(v, pose["x_m"], pose["y_m"], pose["yaw_rad"], pose)
+                for v in views
+            ):
+                reasons.append(direction + "_stalled_from_this_view")
+                continue
+        elif not forward and any(
             math.hypot(v["x_m"] - pose["x_m"], v["y_m"] - pose["y_m"]) < 0.25
             and abs(wrap(v["yaw_rad"] - predicted_heading)) < math.radians(12)
             for v in views
@@ -202,29 +248,29 @@ def select_action(grant, cap, proposal, evidence, views, attempts, was_aligned):
             reasons.append("heading_already_inspected")
             continue
         if (
-            recent_search
+            inspected is None
+            and recent_search
             and recent_search[-1]["direction"] == direction
             and recent_search[-1].get("no_progress")
         ):
             reasons.append("previous_attempt_made_no_progress")
             continue
         try:
-            return checked(
+            result = checked(
                 primitive(cap, direction, amount, "observed_search_viewpoint"),
                 "native_search_prefix" if supported_turn else "search_policy",
-                "inspect_new_viewpoint",
+                "recenter_localized_reference" if hint else "inspect_new_viewpoint",
             )
+            if reasons:
+                result["skipped_viewpoints"] = list(reasons)
+            return result
         except Hold as exc:
             reasons.append(str(exc))
     raise Hold("no_supported_search_viewpoint: " + ", ".join(reasons))
 
 
 def bounded_number(value, low, high, label):
-    if (
-        type(value) not in (int, float)
-        or not math.isfinite(value)
-        or not low <= value <= high
-    ):
+    if type(value) not in (int, float) or not math.isfinite(value) or not low <= value <= high:
         raise Hold("invalid_" + label)
     return value
 
@@ -328,6 +374,20 @@ def native_intent(rows):
     return extent, yaw
 
 
+def verified_features(match, grant):
+    """The executor independently checks the operator and quantitative feature evidence."""
+    sha = match.get("reference_sha256")
+    count = match.get("inliers")
+    fraction, spread, residual = (match.get(k) for k in ("inlier_fraction", "feature_spread", "median_residual_px"))
+    return (
+        match.get("operator") == grant["operator"]
+        and isinstance(sha, str) and re.fullmatch(r"[0-9a-f]{64}", sha) is not None
+        and type(count) is int and count >= 12
+        and all(type(v) in (int, float) for v in (fraction, spread, residual))
+        and 0.8 <= fraction <= 1 and 0.12 <= spread <= 1 and 0 <= residual <= 2.0
+    )
+
+
 def supported_ground(grant, proposal, evidence):
     """Bind the semantic verification to this requested target, source image and model point."""
     ident = proposal["identity"]
@@ -360,13 +420,13 @@ def supported_ground(grant, proposal, evidence):
         raise Hold("unsupported_target_roi")
     if evidence["method"] == "synthetic_fixture" and proposal["synthetic"]:
         return True
-    if evidence["method"] != "identified_instance_features" or not (
-        evidence.get("operator") == grant["operator"]
-        and len(evidence.get("reference_sha256", "")) == 64
-        and evidence.get("inliers", 0) >= 12
-        and evidence.get("inlier_fraction", 0) >= 0.8
-        and evidence.get("feature_spread", 0) >= 0.12
-        and 0 <= evidence.get("median_residual_px", 99) <= 2.0
-    ):
+    if evidence["method"] != "identified_instance_features" or not verified_features(evidence, grant):
         raise Hold("insufficient_instance_evidence")
+    match = evidence.get("positive_reference")
+    if match is not None and (
+        match.get("localized") is not True or match.get("mark_inside") is not True
+        or not verified_features(match, grant)
+        or any(match.get(k) != evidence[k] for k in ("reference_sha256", "roi"))
+    ):
+        raise Hold("reference_and_native_mark_disagree")
     return True

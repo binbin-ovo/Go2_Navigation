@@ -1,6 +1,16 @@
 # Go2 navigation handoff
 
-## Current handoff — readable application adopted for hardware, November 19
+## Current development handoff — object-guided five-move navigation
+
+Codex developed `codex/reliable-object-navigation` from Claude’s integrated hardware publication `2fa98f20b415003bdb6dae3518ea422a757f45ec` in `$GO2_WORKSPACE/code/worktrees/codex-motion-diagnostics`. The feature also incorporates Claude’s subsequent documentation-only integration `d62d936`, including the [historical hardware validation report](FIVE_MOVE_NAVIGATION_VALIDATION.md). The new behavior is in the five-move episode. Camera and LiDAR ingestion, operator launch, controller profiles and the separate continuous prototype retain the published interfaces.
+
+The fixed replay found a wrong native hallway mark at the edge and zero ORB matches from the earlier clear-box photo. Grounding DINO localized the category at the right edge but added about two seconds per image. It stays in the private offline comparison. The feature patch records independent localization and mark agreement, retains recent rejections, and uses inspected poses and failed directions when seeking a new view. Four decisions changed from REVIEW to SEARCH and one to HOLD on the ten-case matrix. The same centered decision still supports a 0.60 m forward selection. A controlled two-cutoff LightNav replay recovered the box after uncovering it. In closed-loop chair simulation the fixture recovered and the real model exhausted five SEARCH turns.
+
+Offline verification passed 566 core tests plus all 12 isolated native tests. One physical test remained disabled.
+
+Start with the [fixed comparison, local artifacts, commands and hardware measurements](OBJECT_GUIDED_NAVIGATION.md) and [website-to-movement walkthrough](CODE_WALKTHROUGH.md). For the actual recordings, input the closed-session files under `$GO2_WORKSPACE/runs/five_move/`; model jobs and comparison reports are private under `runs/target_grounding/`. On Claude’s next authorized trial, collect the intended instance ROI, rejected mark, measured pose/heading, independent travel and stop, exact post-settle view and guard decision. The edge scene still lacks a cross-view instance match and a verified physical recovery.
+
+## Hardware adoption record — readable application, November 19
 
 Open `$GO2_WORKSPACE/START_HERE.md` (a link to `code/navigation/START_HERE.md`). The working checkout `code/navigation` is on `hardware/readable-navigation-integration`: Codex's `codex/readable-navigation-app` at `283b4b5b953a6d4a79efa286ec55941dbcf4e956` merged with `hardware/five-move-validation` (`96282e9`). The only hardware change not already in the refactor was the boot-specific camera bound: 0.140 s at boot offset −1766856813.961 s from `evidence/hw_readiness/capture_latency_20261119_113103.json`, with the matching regression test. It applies only to that robot boot and holds otherwise; re-measure after any reboot. Earlier bounds (0.159, 0.148, 0.172 s) remain historical. The controller stays `code/control` at `6d555d3` with its single `.command.lock`; the SDK stays `814556d`.
 

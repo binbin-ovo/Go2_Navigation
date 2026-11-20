@@ -57,6 +57,7 @@ class EpisodeExecutor(Executor):
         self.grant = None
         self.state = "IDLE"
         self.mode, self.reason, self.outcome = "SEARCH", "awaiting_area_authorization", None
+        self.inspected = []  # At most 64 accepted decisions per episode.
         self.attempts, self.views, self.predictions, self.observations = [], [], set(), set()
         self.found, self.aligned = False, False
         self.after = 0.0
@@ -258,6 +259,7 @@ class EpisodeExecutor(Executor):
                 return self.publish()
             raise
         grounded = supported_ground(self.grant, p, evidence)
+        self.inspected.append(dict(ident["pose"]))
         self.found |= grounded
         if not grounded:
             self.aligned = False
@@ -286,7 +288,8 @@ class EpisodeExecutor(Executor):
             return self.finish("MOVE_BUDGET_EXHAUSTED", "final_view_after_last_attempt")
         try:
             selected = select_action(
-                self.grant, self.cap, p, evidence, self.views, len(self.attempts), self.aligned
+                self.grant, self.cap, p, evidence, self.views, len(self.attempts), self.aligned,
+                inspected=self.inspected,
             )
         except Hold as exc:
             return self.finish("BLOCKED_OR_NO_USEFUL_ACTION", str(exc))
@@ -331,6 +334,8 @@ class EpisodeExecutor(Executor):
             "mode": self.mode,
             "source": selected["source"],
         }
+        if evidence["method"] == "reference_inconclusive_seek_view":
+            row["inconclusive_reference"] = evidence["positive_reference"]["reference_sha256"]
         self.attempts.append(row)
         self.views.append({**i["pose"], "attempt": row})
         self.state, self.reason = "MOVING", selected["reason"]

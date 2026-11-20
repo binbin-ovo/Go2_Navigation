@@ -1,6 +1,7 @@
 """Offline episode behavior, using synthetic poses, images, clocks and controller routes."""
 
 from copy import deepcopy
+from hashlib import sha256
 import json
 import math
 from pathlib import Path
@@ -396,7 +397,7 @@ def test_grounding_requires_reidentification_in_the_current_image(tmp_path):
     }
     pred = {
         "prediction_id": "p",
-        "source_image": {"file_sha256": digest("new")},
+        "source_image": {"file_sha256": sha256(dest.read_bytes()).hexdigest()},
         "opos_not_visible": False,
         "target_fraction": [0.71, 0.51],
     }
@@ -566,3 +567,176 @@ def test_idle_control_supervision_latches_before_an_inflight_model_can_dispatch(
     with pytest.raises(Hold, match="inactive"):
         ex.observe(pending)
     assert not ex.attempts
+
+
+def test_independent_localization_separates_edge_mismark_partial_and_no_mark(tmp_path):
+    # A textured visible surface is shifted and partly covered at the right edge.
+    rng = np.random.default_rng(938)
+    patch = rng.integers(0, 256, (128, 142), dtype=np.uint8)
+    ref_im = np.full((256, 448), 32, np.uint8)
+    ref_im[65:193, 160:302] = patch
+    source, dest = tmp_path / "ref.png", tmp_path / "current.png"
+    assert cv2.imwrite(str(source), ref_im)
+    ref = object_reference(source, [160 / 448, 65 / 256, 302 / 448, 193 / 256], "box", "pilot")
+    edge = np.full_like(ref_im, 60)
+    edge[70:198, 340:] = patch[:, :108]
+    edge[155:198, 340:378] = 100
+    assert cv2.imwrite(str(dest), edge)
+    rc = {
+        "view": {
+            "rectified": True,
+            "distortion_model": "pinhole_radtan",
+            "K": [[300, 0, 224], [0, 300, 128], [0, 0, 1]],
+            "size_wh": [448, 256],
+        }
+    }
+
+    def verdict(point, positive=ref, negative=None):
+        pred = dict(
+            prediction_id="p1",
+            source_image={"file_sha256": sha256(dest.read_bytes()).hexdigest()},
+            target_fraction=point,
+            opos_not_visible=point is None,
+        )
+        return ground(pred, dest, rc, "box", positive, negative, seek_view=True)
+
+    for pt in ([0.50, 0.5], None):
+        e = verdict(pt)
+        assert e["status"] == "uncertain" and e["method"] == "reference_visible_without_native_agreement"
+        assert e["positive_reference"]["roi"][0] > 0.7
+        assert e["positive_reference"]["mark_inside"] is (None if pt is None else False)
+    assert verdict([0.9, 0.47])["status"] == "supported"
+    assert verdict([0.9, 0.47], ref, ref)["method"] == "conflicting_instance_matches"
+    assert verdict([0.9, 0.47], None, ref)["method"] == "previously_rejected_instance"
+    assert cv2.imwrite(str(dest), np.full_like(edge, 100))
+    e = verdict([0.5, 0.5])
+    assert (e["status"], e["positive_reference"]["reason"]) == ("uncertain", "too_few_current_features")
+    assert verdict(None)["native_visibility"] == "reported_absent"
+    with pytest.raises(Hold, match="image_changed"):
+        ground(
+            dict(
+                prediction_id="p",
+                source_image={"file_sha256": "0" * 64},
+                target_fraction=[0.5, 0.5],
+                opos_not_visible=False,
+            ),
+            dest,
+            rc,
+            "box",
+            ref,
+            seek_view=True,
+        )
+
+
+def test_five_move_search_remembers_inspected_views_and_local_stalls():
+    ex, _ = episode()
+    msg = observation(ex, 1, extent=0)
+    pose = msg["proposal"]["identity"]["pose"]
+
+    def select(inspected, attempts):
+        return select_action(
+            ex.grant,
+            ex.cap,
+            msg["proposal"],
+            msg["evidence"],
+            attempts,
+            len(attempts),
+            False,
+            inspected=inspected,
+        )
+
+    start = dict(pose, yaw_rad=math.pi - 0.05)
+    pose.update(start)
+    yaw = select([start], [])["action"]["magnitude"]
+    inspected = [start, dict(start, yaw_rad=math.remainder(start["yaw_rad"] + yaw, 2 * math.pi))]
+    skipped = select(inspected, [])
+    assert (
+        skipped["action"]["direction"] == "right"
+        and "left_view_already_inspected" in skipped["skipped_viewpoints"]
+    )
+    failed = dict(start, attempt={"mode": "SEARCH", "direction": "right", "no_progress": True})
+    later = dict(start, x_m=start["x_m"] + 1.0, attempt={"mode": "SEARCH", "direction": "left"})
+    assert select(inspected, [failed, later])["action"]["direction"] == "forward"
+    # An identical turn in a different place, epoch or facing direction can be useful.
+    for moved in (
+        dict(failed, x_m=start["x_m"] + 0.7),
+        dict(failed, robot_epoch="other"),
+        dict(failed, yaw_rad=start["yaw_rad"] + 1),
+    ):
+        assert select(inspected, [moved, later])["action"]["direction"] == "right"
+    step = 0.30
+    inspected.append(
+        dict(
+            start,
+            x_m=start["x_m"] + step * math.cos(start["yaw_rad"]),
+            y_m=start["y_m"] + step * math.sin(start["yaw_rad"]),
+        )
+    )
+    with pytest.raises(Hold, match="forward_view_already_inspected"):
+        select(inspected, [failed, later])
+
+
+def test_reference_can_guide_search_but_never_authorize_approach_or_bypass_clearance():
+    ex, _ = episode()
+    msg = observation(ex, 1, angle=3, status="uncertain")
+    msg["evidence"].update(
+        method="reference_visible_without_native_agreement",
+        positive_reference={
+            "localized": True,
+            "roi": [0.85, 0.3, 0.99, 0.7],
+            "mark_inside": False,
+            "operator": "pilot",
+            "reference_sha256": "5" * 64,
+            "inliers": 13,
+            "inlier_fraction": 0.95,
+            "feature_spread": 0.3,
+            "median_residual_px": 0.5,
+        },
+    )
+
+    def select():
+        return select_action(ex.grant, ex.cap, msg["proposal"], msg["evidence"], [], 0, False, inspected=[])
+
+    s = select()
+    assert (s["mode"], s["action"]["direction"], s["source"], s["reason"]) == (
+        "SEARCH",
+        "right",
+        "search_policy",
+        "recenter_localized_reference",
+    )
+    msg["evidence"]["positive_reference"]["operator"] = "other"
+    with pytest.raises(Hold, match="unbound_reference_viewpoint"):
+        select()
+    msg["evidence"]["positive_reference"]["operator"] = "pilot"
+    msg["proposal"]["identity"]["geometry"]["observed_turn_disc"]["obstacle_returns"] = 1
+    with pytest.raises(Hold, match="observed_turn_disc"):
+        select()
+
+
+def test_inconclusive_identity_gets_one_new_view_then_an_opportunity_to_reidentify():
+    ex, _ = episode()
+
+    def uncertain(seq):
+        m = observation(ex, seq, angle=3, status="uncertain")
+        m["evidence"].update(
+            method="reference_inconclusive_seek_view", positive_reference={"reference_sha256": "f" * 64}
+        )
+        return m
+
+    ex.observe(uncertain(1))
+    assert len(ex.attempts) == 1 and ex.attempts[0]["mode"] == "SEARCH"
+    ex.observe(uncertain(2))
+    assert ex.state == "IDENTIFYING" and ex.reason == "reidentify_after_new_view" and len(ex.attempts) == 1
+    ex.review(
+        dict(
+            type="episode_identified",
+            episode_id=ex.nonce,
+            operator="pilot",
+            prediction_id="P2",
+            image_sha256=ex.last["image_sha256"],
+        )
+    )
+    m = uncertain(3)
+    m["evidence"]["previous_image_review"] = {"prediction_id": "P2"}
+    ex.observe(m)
+    assert len(ex.attempts) == 2 and ex.attempts[-1]["mode"] == "SEARCH"

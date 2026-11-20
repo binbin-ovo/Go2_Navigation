@@ -6,7 +6,7 @@ from queue import Empty, Full
 import threading
 
 
-from .episode_grounding import ground, object_reference, reference_matches_target, valid_roi
+from .episode_grounding import ground, object_reference, reference_matches_target, remember_rejection, valid_roi
 from .episode_mock import EpisodeMockWorker
 from .episode_page import episode_page
 from .five_move import SCHEMA
@@ -36,7 +36,8 @@ class EpisodeUI(BoundProposalUI):
             mode="SEARCH",
             reason="awaiting_area_authorization",
         )
-        self.grant = self.ref = self.rejected = self.uncertain_review = None
+        self.grant = self.ref = self.uncertain_review = None
+        self.rejected = []
         self.processed_sequence = 0
         self.waiting = False
         self.abort = threading.Event()
@@ -175,7 +176,7 @@ class EpisodeUI(BoundProposalUI):
         if payload["action"] == "identify":
             self.ref = ref
         else:
-            self.rejected = ref
+            self.rejected = remember_rejection(self.rejected, ref)
             self.uncertain_review = binding
         self.app.store.event(
             "episode_instance_review",
@@ -203,7 +204,8 @@ class EpisodeUI(BoundProposalUI):
         if context["history"][-1]["source"]["frame_id"] != pred["source_frame"]["frame_id"]:
             raise Hold("current_image_history_mismatch")
         evidence = ground(
-            pred, path, context["history"][-1]["rectification"], self.grant["target"], self.ref, self.rejected
+            pred, path, context["history"][-1]["rectification"], self.grant["target"], self.ref, self.rejected,
+            seek_view=True,
         )
         if (
             not self.live
@@ -222,8 +224,8 @@ class EpisodeUI(BoundProposalUI):
                 evidence.update(
                     status="uncertain",
                     method="seek_new_view_after_inconclusive_identification",
-                    previous_image_review=self.uncertain_review,
                 )
+            evidence["previous_image_review"] = self.uncertain_review
             self.uncertain_review = None
         self.waiting = True
         self.send("episode_observe", proposal=proposal, evidence=evidence)

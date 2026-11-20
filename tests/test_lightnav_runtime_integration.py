@@ -36,10 +36,13 @@ def test_native_reset_clears_full_history_and_vision_cache():
     policy.reset("Second epoch")
     assert policy._history_frame_ids == [] and not cache
     assert policy._buffer_len == 0 and policy._sf_buffer is None
-    policy.observe(np.full((90, 160, 3), 255, dtype=np.uint8))
+    white = np.full((90, 160, 3), 255, dtype=np.uint8)
+    # The official float32 resize can round constant white a few ulps below one.
+    expected = policy._convert_frame(white)
+    policy.observe(white)
     assert policy._history_frame_ids == [0]
     assert policy._get_video_tensor().shape[0] == 1
-    assert policy._get_video_tensor().min() == 1  # only the new white observation
+    assert policy._get_video_tensor()[0].equal(expected)  # pixel-exact single new frame
     assert policy.instruction == "Second epoch" and len(resets) == 2
 
 

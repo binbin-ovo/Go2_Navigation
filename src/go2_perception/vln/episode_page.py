@@ -69,6 +69,9 @@ function episodePanel(){
   const g=bound?last.grounding:null;
   const status=!g?"Awaiting verification on this image":g.status==="supported"?
     (g.method==="synthetic_fixture"?"Synthetic fixture support":"Matched the identified reference on this image"):
+    g.method==="reference_visible_without_native_agreement"?"Reference located · native mark absent or elsewhere":
+    g.method==="reference_inconclusive_seek_view"?"Instance unverified on this view · "+g.positive_reference.reason:
+    g.method==="previously_rejected_instance"?"Mark on a previously rejected object":
     g.status==="absent"?"Model reports target absent":g.status==="uncertain"?"Uncertain · "+g.method:"Unverified model mark · identify or reject";
   $("groundStatus").textContent=(e.target?"Requested: "+e.target+" · ":"")+status;
   $("eyes").disabled=$("eno").disabled=!bound||!episodeROI;
@@ -76,7 +79,7 @@ function episodePanel(){
   $("egoal").hidden=!e.arrival_review_available;
   const age=last?Math.max(0,S.host_monotonic_s-last.observed_monotonic_s):null;
   const t=last?["Image "+last.prediction_id+" · source "+last.observed_monotonic_s.toFixed(3)+" s · age now "+age.toFixed(2)+" s · decision age "+last.age_at_decision_s.toFixed(2)+" s",
-    "Visibility "+last.grounding.status+" · native STOP "+last.native_stop]:[];
+    "Identity "+last.grounding.status+" · native visibility "+(last.grounding.native_visibility||"see native mark")+" · native STOP "+last.native_stop]:[];
   for(const a of (e.attempts||[]))t.push("#"+a.slot+" "+a.mode+" "+a.source+" "+a.direction+" requested "+a.requested.toFixed(3)+" "+a.unit+
     " · settled "+(a.measured==null?"pending":a.measured.toFixed(3))+" · "+(a.outcome||a.status||"in progress"));
   $("etrace").textContent=t.join("\\n");overlayEpisode(e)}

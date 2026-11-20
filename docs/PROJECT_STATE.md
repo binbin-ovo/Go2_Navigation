@@ -1,5 +1,13 @@
 # Current navigation application
 
+## Object-guided five-move branch
+
+The dedicated development branch `codex/reliable-object-navigation` adds image-bound reference diagnostics, bounded SEARCH memory and a fixed offline comparison against integrated publication `2fa98f20b415003bdb6dae3518ea422a757f45ec`. On ten distinct decision conditions, one verified centered target supported APPROACH. Four earlier reviews became bounded SEARCH, and one became a geometry hold. The right-edge and partially covered cases still lacked supported instance identity. The two-cutoff box reveal recovered a correct native point and a supported 0.60 m proposal. The actual model missed the rendered chair after the proxy turned. Physical progress for the new branch remains unmeasured. [Measured findings, tests and local reports](OBJECT_GUIDED_NAVIGATION.md) · [Handoff](AGENT_HANDOFF.md)
+
+Offline verification passed 566 core tests plus all 12 isolated native tests. One physical test remained disabled.
+
+## Integrated application baseline
+
 The application refactor on `codex/readable-navigation-app` is based on grounding review `91e9839`. The public launch command is `python app.py`. The core website supports observation, five-move mock navigation and continuous simulation. The separate operator procedure preserves the original live gates and command owner. Claude's operational checkout and the shared runtimes were left in place.
 
 Offline verification passed 558 core tests. Thirteen skipped there, including twelve native cases that passed separately in the model environment. The physical test remained disabled.
