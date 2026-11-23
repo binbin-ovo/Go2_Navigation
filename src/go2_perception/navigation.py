@@ -181,15 +181,17 @@ def select_action(grant, cap, proposal, evidence, views, attempts, was_aligned, 
                         "approach_policy",
                         "native_turn_and_offcentre_target_reobserve",
                     )
-                # A straight native path rotated off body-forward still supports one short
-                # step when its heading agrees with the verified target already in the band.
-                heading = straight_native_heading(rows, cap["mapping"])
-                if heading is not None and abs(wrap(heading - bearing)) <= band:
-                    selection.update(native_heading_rad=heading)
+                # A native path rotated off body-forward still supports one short step when its
+                # heading agrees with the verified target already in the band.
+                # A curve must agree twice as closely as a straight line.
+                heading, straight = native_forward_heading(rows, cap["mapping"])
+                if heading is not None and abs(wrap(heading - bearing)) <= (band if straight else band / 2):
+                    selection.update(native_heading_rad=heading, native_path_straight=straight)
                     return checked(
                         primitive(cap, "forward", MIN_FORWARD, "short_observed_corridor"),
                         "approach_policy",
-                        "verified_target_and_straight_native_heading_agree",
+                        "verified_target_and_straight_native_heading_agree"
+                        if straight else "verified_target_and_native_chord_agree",
                     )
                 raise Hold("native_path_does_not_support_forward_approach")
             # The proposed translation must support an approach. Geometry independently
@@ -448,34 +450,36 @@ def straight_corridor_prefix(rows, mapping, band):
     return False
 
 
-def straight_native_heading(rows, mapping):
-    """Base-frame heading of a straight forward native prefix, or None.
+def native_forward_heading(rows, mapping):
+    """(base-frame chord heading, straight) of the native prefix up to the step length.
 
-    Every translation up to the step length must share one tangent, and the body yaw
-    must follow that tangent, both within the heading uncertainty. Curves, reversals
-    and sideways paths return None.
+    The prefix must advance at every row. It is straight when every tangent and body yaw
+    stays within the heading uncertainty of the first tangent, and a gentle curve when
+    they stay within 10 degrees of the chord. Reversals, sideways or sharper paths give
+    (None, None).
     """
     if "forward" not in mapping["verified_actions"]:
-        return None
+        return None, None
     uncertainty = mapping["yaw_uncertainty_rad"]
-    px = py = 0.0
-    tangent = None
+    prefix, px, py = [], 0.0, 0.0
     for x, y, yaw in rows:
-        if not all(math.isfinite(v) for v in (x, y, yaw)):
-            return None
-        dx, dy = x - px, y - py
-        if dx < 0:
-            return None
-        if math.hypot(dx, dy) > 0.005:
-            angle = math.atan2(dy, dx)
-            if tangent is None:
-                tangent = angle
-            if abs(wrap(angle - tangent)) > uncertainty or abs(wrap(yaw - tangent)) > uncertainty:
-                return None
-        if tangent is not None and math.hypot(x, y) >= MIN_FORWARD:
-            return wrap(tangent + mapping["yaw_rad"])
+        if not all(math.isfinite(v) for v in (x, y, yaw)) or x - px < 0:
+            return None, None
+        if math.hypot(x - px, y - py) > 0.005:
+            prefix.append((math.atan2(y - py, x - px), yaw))
         px, py = x, y
-    return None
+        if prefix and math.hypot(x, y) >= MIN_FORWARD:
+            break
+    else:
+        return None, None
+    chord = math.atan2(py, px)
+    first = prefix[0][0]
+    if all(abs(wrap(a - first)) <= uncertainty and abs(wrap(yaw - first)) <= uncertainty for a, yaw in prefix):
+        return wrap(first + mapping["yaw_rad"]), True
+    # On an arc the end tangent leads the chord by the chord angle, so allow half a coarse turn.
+    if all(abs(wrap(a - chord)) <= MIN_TURN / 2 and abs(wrap(yaw - chord)) <= MIN_TURN / 2 for a, yaw in prefix):
+        return wrap(chord + mapping["yaw_rad"]), False
+    return None, None
 
 
 def initial_heading_sweep(rows):

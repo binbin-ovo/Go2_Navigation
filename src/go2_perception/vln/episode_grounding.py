@@ -46,6 +46,12 @@ def read_gray(path, unavailable, expected_sha=None):
     return image, image_sha
 
 
+# RANSAC consensus tolerance in native pixels. A planar front approached off-axis leaves
+# 2.3-3.7 px perspective error under a similarity model (November 22, dishwasher). The
+# accepted match still needs a median residual of at most 2 px.
+CONSENSUS_PX = 4.0
+
+
 def remember_rejection(previous, new):
     """Retain at most five operator-rejected regions for this episode."""
     recent = [r for r in previous if (r["sha256"], r["roi"]) != (new["sha256"], new["roi"])]
@@ -217,7 +223,7 @@ def localize(ref, current, point, *, interior=False):
         return dict(evidence, reason="too_few_mutual_matches")
     a = np.float32([ref["points"][m.queryIdx] for m in good])
     b = np.float32([q[m.trainIdx] for m in good])
-    mat, inliers = cv2.estimateAffinePartial2D(a, b, method=cv2.RANSAC, ransacReprojThreshold=2.5)
+    mat, inliers = cv2.estimateAffinePartial2D(a, b, method=cv2.RANSAC, ransacReprojThreshold=CONSENSUS_PX)
     if mat is None or inliers is None:
         return dict(evidence, reason="no_consistent_transform")
     keep = inliers.ravel().astype(bool)
@@ -263,11 +269,38 @@ def localize(ref, current, point, *, interior=False):
     )
 
 
-def ground(pred, path, rectification, target, ref, rejected=None, *, seek_view=False, detail=None):
+def chained_reference(ref, path, evidence, *, detail=None):
+    """Enroll the view where the instance was just verified, so a closer view can match it.
+
+    Only a supported match on its own image becomes a link. The link keeps the original
+    operator and records which reference verified it.
+    """
+    match = evidence.get("positive_reference") or {}
+    if (
+        evidence.get("status") != "supported"
+        or evidence.get("method") != "identified_instance_features"
+        or match.get("mark_inside") is not True
+        or not valid_roi(match.get("roi"))
+    ):
+        return None
+    try:
+        link = object_reference(path, match["roi"], ref["target"], ref["operator"], detail=detail)
+    except Hold:
+        return None
+    if link["sha256"] != evidence["image_sha256"]:
+        raise Hold("chained_reference_image_changed")
+    link["verified_by"] = match["reference_sha256"]
+    link["origin_sha256"] = ref.get("origin_sha256", ref["sha256"])
+    return link
+
+
+def ground(pred, path, rectification, target, ref, rejected=None, *, seek_view=False, detail=None, links=()):
     """Bind native visibility, positive localization and rejected-instance evidence to one image.
 
     Five-move episodes opt into a new SEARCH viewpoint on inconclusive enrolled identity.
     The default preserves the review behavior of the separate continuous replay.
+    `links` are verified views of the same instance, newest first; the operator's
+    enrollment is tried first and a link is used only when it places the mark.
     """
     view = rectification["view"]
     if not view["rectified"] or view["distortion_model"] != "pinhole_radtan":
@@ -319,6 +352,17 @@ def ground(pred, path, rectification, target, ref, rejected=None, *, seek_view=F
 
         if positive:
             e["positive_reference"] = match_instance(ref)
+            for link in links:
+                if e["positive_reference"].get("mark_inside") or not reference_matches_target(link["target"], target):
+                    break
+                linked = match_instance(link)
+                if linked.get("mark_inside"):
+                    e["positive_reference"] = dict(
+                        linked,
+                        verified_by=link["verified_by"],
+                        origin_sha256=link["origin_sha256"],
+                        enrolled_attempt={k: e["positive_reference"].get(k) for k in ("reason", "mutual_matches", "inliers")},
+                    )
         if negatives and point is not None:
             e["rejected_references"] = [match_instance(r, negative=True) for r in negatives]
     match = e.get("positive_reference", {})

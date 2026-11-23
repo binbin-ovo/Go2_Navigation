@@ -174,3 +174,50 @@ def test_recorded_stationary_scans_give_plausible_clearance():
     # A level-floor assumption reported the rising floor as an obstacle at 1.59 m here.
     assert detail["nearest_obstacle_m"] is not None and detail["nearest_obstacle_m"] > 2.0
     assert 1.5 < clear < 2.5
+
+
+def _floor_with_side_bias(seed=0):
+    """Floor as cloud_base reports it on 2026-11-22: range-dependent rise, +0.05..0.07 m at the sides."""
+    rng = np.random.default_rng(seed)
+    r = rng.uniform(0.3, 2.4, 9000)
+    a = rng.uniform(-np.pi * 0.75, np.pi * 0.75, 9000)  # the rear is LiDAR-blind
+    x, y = r * np.cos(a), r * np.sin(a)
+    z = -0.47 + 0.12 * r + rng.normal(0, 0.015, 9000)  # rises with range, not with x; open-floor recordings stay within 0.05 m
+    return np.column_stack([x, y, z]).astype(np.float32)
+
+
+def _box(cx, cy, size=0.2, top=0.30, n=400, seed=1):
+    rng = np.random.default_rng(seed)
+    x = rng.uniform(cx - size / 2, cx + size / 2, n)
+    y = rng.uniform(cy - size / 2, cy + size / 2, n)
+    z = -0.47 + 0.12 * np.hypot(x, y) + rng.uniform(0.0, top, n)
+    return np.column_stack([x, y, z]).astype(np.float32)
+
+
+def test_turn_disc_measures_side_floor_locally_but_keeps_real_objects():
+    floor = _floor_with_side_bias()
+    coef = g.ground_plane(floor)
+    assert coef is not None
+    # The forward plane alone calls the biased side floor an obstacle.
+    radius = np.hypot(floor[:, 0], floor[:, 1])
+    ring = floor[(radius >= g.NEAR_LIMIT_M) & (radius <= g.DISC_RADIUS_M)]
+    h = g.height_above_ground(ring, coef)
+    assert np.sum((h > g.OBSTACLE_MIN_DZ) & (h < g.OBSTACLE_MAX_DZ)) > 50
+    clear = g.turn_disc(floor, coef)
+    assert clear["obstacle_returns"] == 0 and clear["floor_returns"] > 500
+    # A 0.3 m object beside the robot, or one filling its whole sector, still vetoes.
+    for obj in (_box(0.0, 0.5), _box(0.0, -0.55, size=0.5, top=0.3, n=1500)):
+        disc = g.turn_disc(np.vstack([floor, obj]), coef)
+        assert disc["obstacle_returns"] >= g.OBSTACLE_RANK
+    # Two stray returns are rejected like the forward corridor's isolated points.
+    stray = np.float32([[0.0, 0.45, -0.20], [0.05, 0.47, -0.21]])
+    assert g.turn_disc(np.vstack([floor, stray]), coef)["obstacle_returns"] == 0
+
+
+def test_turn_disc_without_side_floor_keeps_the_forward_plane():
+    floor = _floor_with_side_bias()
+    coef = g.ground_plane(floor)
+    front = floor[np.abs(np.degrees(np.arctan2(floor[:, 1], floor[:, 0]))) < 30]
+    obj = _box(0.0, 0.5, n=60)  # no side floor at all: no refit, the object stays visible
+    disc = g.turn_disc(np.vstack([front, obj]), coef)
+    assert disc["obstacle_returns"] >= g.OBSTACLE_RANK

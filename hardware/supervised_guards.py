@@ -46,6 +46,7 @@ OBSTACLE_MIN_DZ = 0.08  # above ground; cloud_base floor bias is +/-4 cm (Phase 
 OBSTACLE_MAX_DZ = 0.70  # above ground; the Go2 stands ~0.4 m
 OBSTACLE_RANK = 3  # nth-nearest obstacle return, rejects single noise points
 NEAR_LIMIT_M = 0.30  # cloud_base has no points within 0.3 m XY
+DISC_SECTOR_DEG = 30  # turn-disc floor refit sectors
 MAX_RANGE_M = 3.0
 GROUND_Z_NOMINAL = -0.325  # base-frame ground measured on this robot (2026-11-15)
 EPOCH_STEP_S = 1.0
@@ -113,6 +114,45 @@ def ground_plane(points):
 
 def height_above_ground(points, coef):
     return points[:, 2] - (coef[0] + coef[1] * points[:, 0] + coef[2] * points[:, 1])
+
+
+def turn_disc(points, coef):
+    """Floor and obstacle returns in the swept disc, measured from the floor beside the robot.
+
+    The forward plane models the LiDAR's range bias only along x. At the sides (range 0.3-0.65 m,
+    x near 0) the bare floor reads +0.05 to +0.07 m above it with +/-0.05 m spread (2026-11-22),
+    so every disc held "obstacles". Each sector refits floor height against range from floor-like
+    returns out to 1 m. The correction is clipped to [-0.05, +0.10] m, so an object filling a
+    sector still shows; a sector without enough floor keeps the forward plane.
+    """
+    radius = np.hypot(points[:, 0], points[:, 1])
+    bearing = np.degrees(np.arctan2(points[:, 1], points[:, 0]))
+    height = height_above_ground(points, coef)
+    local = height.copy()
+    ring = (radius >= NEAR_LIMIT_M) & (radius <= DISC_RADIUS_M)
+    obstacle = np.zeros(len(points), bool)
+    corrected = 0
+    for start in range(-180, 180, DISC_SECTOR_DEG):
+        sector = (bearing >= start) & (bearing < start + DISC_SECTOR_DEG)
+        context = sector & (radius >= NEAR_LIMIT_M) & (radius <= 1.0) & (height > -0.10) & (height < 0.12)
+        keep, fit = context, None
+        for tolerance in (0.06, 0.05, 0.03):
+            if keep.sum() < 30:
+                fit = None
+                break
+            fit = np.linalg.lstsq(np.column_stack([np.ones(keep.sum()), radius[keep]]), height[keep], rcond=None)[0]
+            keep = context & (np.abs(height - fit[0] - fit[1] * radius) < tolerance)
+        cell = sector & ring
+        if fit is not None:
+            local[cell] = height[cell] - np.clip(fit[0] + fit[1] * radius[cell], -0.05, 0.10)
+            corrected += 1
+        above = cell & (local > OBSTACLE_MIN_DZ) & (local < OBSTACLE_MAX_DZ)
+        if above.sum() >= OBSTACLE_RANK:  # Same isolated-return rejection as the forward corridor.
+            obstacle |= above
+    return {"radius_m": DISC_RADIUS_M, "floor_returns": int(np.sum(ring & (np.abs(local) < .06))),
+            "obstacle_returns": int(obstacle.sum()),
+            "unfiltered_obstacle_returns": int(np.sum(ring & (local > OBSTACLE_MIN_DZ) & (local < OBSTACLE_MAX_DZ))),
+            "floor_model": f"sector_local_range_fit/{DISC_SECTOR_DEG}deg", "sectors_refit": corrected}
 
 
 def forward_clearance(points):
@@ -340,12 +380,7 @@ class Guards:
                         "directions": ["forward"] if clear > 0.0 else [],
                         "forward_clear_m": round(clear, 4), "turn_clear_rad": 0.0}
             if self.capability.get("motion_profile") == PROFILE and "ground_coef" in detail:
-                radius = np.hypot(points[:, 0], points[:, 1])
-                part = points[(radius >= NEAR_LIMIT_M) & (radius <= DISC_RADIUS_M)]
-                height = height_above_ground(part, detail["ground_coef"])
-                geometry["observed_turn_disc"] = {
-                    "radius_m": DISC_RADIUS_M, "floor_returns": int(np.sum(np.abs(height) < .06)),
-                    "obstacle_returns": int(np.sum((height > OBSTACLE_MIN_DZ) & (height < OBSTACLE_MAX_DZ)))}
+                geometry["observed_turn_disc"] = turn_disc(points, detail["ground_coef"])
         camera = self.camera.get()
         bound, basis = capture_bound(camera, offset)
         snap = {"pose": pose, "geometry": geometry, "capture_uncertainty_bound_s": bound,

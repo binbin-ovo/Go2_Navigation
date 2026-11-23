@@ -7,7 +7,7 @@ import threading
 from time import monotonic
 
 
-from .episode_grounding import ground, object_reference, reference_matches_target, remember_rejection, request_detail, valid_roi
+from .episode_grounding import chained_reference, ground, object_reference, reference_matches_target, remember_rejection, request_detail, valid_roi
 from .episode_mock import EpisodeMockWorker
 from .episode_page import episode_page
 from .five_move import SCHEMA
@@ -39,6 +39,7 @@ class EpisodeUI(BoundProposalUI):
         )
         self.grant = self.ref = self.uncertain_review = None
         self.rejected = []
+        self.links = []  # Verified views of the identified instance, newest first.
         self.processed_sequence = 0
         self.waiting = False
         self.abort = threading.Event()
@@ -177,7 +178,7 @@ class EpisodeUI(BoundProposalUI):
         if ref["sha256"] != last["image_sha256"]:
             raise Hold("review_image_changed")
         if payload["action"] == "identify":
-            self.ref = ref
+            self.ref, self.links = ref, []
         else:
             self.rejected = remember_rejection(self.rejected, ref)
             self.uncertain_review = binding
@@ -207,12 +208,17 @@ class EpisodeUI(BoundProposalUI):
         if context["history"][-1]["source"]["frame_id"] != pred["source_frame"]["frame_id"]:
             raise Hold("current_image_history_mismatch")
         verification_started = monotonic()
+        detail = (request_detail(pred, self.app.store.root / pred["request_directory"], path, context)
+                  if self.ref or self.rejected else None)
         evidence = ground(
             pred, path, context["history"][-1]["rectification"], self.grant["target"], self.ref, self.rejected,
-            seek_view=True,
-            detail=(request_detail(pred, self.app.store.root / pred["request_directory"], path, context)
-                    if self.ref or self.rejected else None),
+            seek_view=True, detail=detail, links=self.links,
         )
+        link = chained_reference(self.ref, path, evidence, detail=detail) if self.ref else None
+        if link:
+            self.links = [link, *self.links[:1]]
+            evidence["enrolled_view_link"] = {"sha256": link["sha256"], "roi": link["roi"],
+                                              "verified_by": link["verified_by"]}
         evidence["verification_duration_s"] = monotonic() - verification_started
         if (
             not self.live

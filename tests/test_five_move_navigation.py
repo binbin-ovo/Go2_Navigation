@@ -831,3 +831,10 @@ def test_rotated_straight_native_path_supports_one_step_toward_a_verified_aligne
     # The forward LiDAR corridor still decides whether the step may be selected.
     with pytest.raises(Hold, match="required_geometry_unavailable_or_insufficient"):
         choose(-4, rotated(-15), clear=0.2)
+    # November 22 P005: a gentle right curve whose chord (-10 deg) agrees with a target at -11 deg.
+    curve = [[0.15, -0.02, -0.16], [0.29, -0.05, -0.23], [0.44, -0.09, -0.31], [0.59, -0.13, -0.32]]
+    s = choose(-11, curve)
+    assert s["reason"] == "verified_target_and_native_chord_agree" and s["action"]["direction"] == "forward"
+    # A curve must agree within half the band: the same curve with a target at +2 deg holds.
+    with pytest.raises(Hold, match="native_path_does_not_support_forward"):
+        choose(2, curve)
