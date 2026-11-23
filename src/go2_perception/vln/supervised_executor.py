@@ -462,19 +462,26 @@ class HardwareMotion:
             result["status"] = "failed"
             result["reason"] += "; stop_local_sends_failed_or_unknown"
         # Audited evidence includes movement after release. Observe independently for
-        # 3 s; any stale/moving sample makes the post-release result false.
+        # 3 s; any stale sample, or movement after the robot first comes to rest, makes the
+        # post-release result false. It must then stay still for at least 2.5 s to the end
+        # (2026-11-23 Sm23TA: one moving sample right at release, 56 still after it).
         if result["started_monotonic_s"] is not None:
-            settled = True
+            settled, rest_since = True, None
             end = self.clock() + 3.
             while self.clock() < end:
+                now = self.clock()
                 age = self.monitor.state_age()
                 still = self.monitor.is_still()
-                result["events"].append(finite_json({"event": "post_release_sample", "monotonic_s": self.clock(),
+                result["events"].append(finite_json({"event": "post_release_sample", "monotonic_s": now,
                                                     "state_age_s": age, "still": still,
                                                     "robot_state": self.monitor.snapshot()}))
-                settled &= age is not None and 0 <= age <= lim["state_age_s"] and still is True
+                fresh = age is not None and 0 <= age <= lim["state_age_s"]
+                if still is True and rest_since is None:
+                    rest_since = now
+                settled &= fresh and (still is True or rest_since is None)
                 self.sleep(.05)
-            result["post_release_stationary"] = bool(settled)
+            result["post_release_stationary"] = bool(
+                settled and rest_since is not None and self.clock() - rest_since >= 2.5)
             try:
                 enabled = self.route.avoidance_enabled()
                 result["events"].append({"avoidance_enabled_after": enabled})

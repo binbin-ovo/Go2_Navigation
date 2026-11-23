@@ -635,3 +635,68 @@ def test_slow_turn_springback_is_verified_by_post_release_stillness(tmp_path, st
     from go2_perception.vln.supervised import stop_and_release_verified
     assert stop_and_release_verified(result)  # the executor releases the canonical lock
     assert result["status"] == "completed" and result["motion_measurement"]["settled"] == a["magnitude"]
+
+
+@pytest.mark.parametrize("pattern", ["moving_then_still", "still_then_moving"])
+def test_post_release_stillness_allows_settling_but_not_renewed_motion(tmp_path, pattern):
+    # 2026-11-23 Sm23TA: one moving sample right at release, then 56 still samples.
+    sign, still_after_release = -1, True
+    motion, ticket, cancel, calls, clock = hardware_fakes(tmp_path)
+    configure(motion.cap, INSPECTED)
+    attach_camera_evidence(motion, ticket)
+    _, example = proposed(turning(sign), (0.2 if sign > 0 else 0.8, 0.5), INSPECTED)
+    proposal = ticket["proposal"]
+    proposal.update(waypoints=example["waypoints"], point_fraction=example["point_fraction"])
+    auth = ticket["authorization"]
+    snapshot = motion.guards.snapshot
+
+    def observed():
+        newer = snapshot()
+        newer["geometry"].update(
+            directions=["forward"],
+            turn_clear_rad=0.0,
+            observed_turn_disc=deepcopy(example["identity"]["geometry"]["observed_turn_disc"]),
+        )
+        return newer
+
+    motion.guards.snapshot = observed
+    proposal["identity"]["geometry"].update(observed()["geometry"])
+    a = plan(proposal, motion.cap)
+    ticket["action"] = auth["envelope"] = a
+    auth["capability_sha256"] = digest(motion.cap)
+    auth["turn_inspection"] = {
+        "scope": INSPECTED,
+        "session_nonce": ticket["nonce"],
+        "preview_sha256": digest(auth["reviewed_identity"]),
+        "direction": a["direction"],
+        "radius_m": DISC_RADIUS_M,
+        "operator": auth["target"]["confirmed_by"],
+        "pose": dict(auth["reviewed_identity"]["pose"], monotonic_s=auth["created_monotonic_s"] - 0.06),
+        "inspected_s": auth["created_monotonic_s"] - 0.05,
+    }
+    idle_run(motion, clock, 1.2)
+    motion.guards.progress = (
+        lambda _: lambda: a["magnitude"] if "stop" in calls else 0.048 * calls.count("velocity")
+    )
+    real, after = motion.monitor.is_still, []
+
+    def is_still():
+        if "release" not in calls:
+            return real() and "velocity" not in calls
+        after.append(1)
+        moving = len(after) == 1 if pattern == "moving_then_still" else len(after) == 30
+        return real() and not moving
+
+    motion.monitor.is_still = is_still
+    result = motion(ticket, a, result_record(ticket, False, clock()), cancel)
+    assert result["observed_stationary"] is False
+    if pattern == "still_then_moving":
+        assert result["post_release_stationary"] is False and result["status"] == "failed"
+        return
+    assert result["post_release_stationary"] is True
+    assert {"event": "stop_verified_by", "source": "post_release_stationary"} in result["events"]
+    from go2_perception.vln.supervised import validate_record
+    validate_record("execution_result", result, 2)  # extra top-level fields end live episodes
+    from go2_perception.vln.supervised import stop_and_release_verified
+    assert stop_and_release_verified(result)  # the executor releases the canonical lock
+    assert result["status"] == "completed" and result["motion_measurement"]["settled"] == a["magnitude"]
