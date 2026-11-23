@@ -121,7 +121,7 @@ def supervised_operator(argv):
     add_episode_limits(parser)
     options = parser.parse_args(argv)
     if not valid_episode_limits(options):
-        parser.error("limits: 1–5 moves, 5–60 seconds, 1.2–3 m area radius, 8–18 degrees alignment")
+        parser.error("limits: 1–5 moves, 5–120 seconds, 1.2–3 m area radius, 8–18 degrees alignment")
     action = "--prepare-only" if options.prepare_only else "--live-exclusive"
     launcher = ROOT / "hardware/launch_supervised.sh"
     fields = ("move_budget", "episode_seconds", "area_radius_m", "alignment_deg")

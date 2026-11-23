@@ -3,7 +3,7 @@
 from copy import deepcopy
 import math
 
-from go2_perception.navigation import area_check, bounded_number, select_action, supported_ground
+from go2_perception.navigation import MAX_EPISODE_SECONDS, area_check, bounded_number, select_action, supported_ground
 from .motion_profile import INSPECTED, PROFILE, Hold
 from .supervised import (
     FRESHNESS_S,
@@ -172,7 +172,7 @@ class EpisodeExecutor(Executor):
         bounded_number(grant["alignment_deg"], 8, 18, "alignment_band")
         bounded_number(grant["area_radius_m"], 1.2, 3.0, "area_radius")
         age_check(grant["issued"], now, 1.0, "episode_grant")
-        bounded_number(grant["deadline"] - grant["issued"], 5.0, 60.0, "episode_duration")
+        bounded_number(grant["deadline"] - grant["issued"], 5.0, MAX_EPISODE_SECONDS, "episode_duration")
         snap = self.guards.snapshot()
         pose_check(grant["origin"], snap["pose"], self.cap["limits"])
         age_check(grant["origin"]["monotonic_s"], now, self.cap["limits"]["state_age_s"], "area_origin")

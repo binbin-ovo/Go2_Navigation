@@ -62,6 +62,9 @@ def as_instruction(text):
 # Bounds enforced independently by the executor. The public defaults match the episode CLI.
 DEFAULT_MOVES = 5
 DEFAULT_SECONDS = 60.0
+# Five decisions, each ~2.5 s of inference plus ~6 s of motion and stillness checks, and an
+# operator re-identification on a plain target do not fit in 60 s (2026-11-22, trial yFm26n).
+MAX_EPISODE_SECONDS = 120.0
 DEFAULT_RADIUS_M = 2.0
 DEFAULT_ALIGNMENT_DEG = 15.0
 

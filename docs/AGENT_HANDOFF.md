@@ -42,6 +42,24 @@ New robot boot (offset −1766613707.17 s). Screen-flash re-measurement: 39 swit
 - *Policy (`navigation.py`).* A gentle forward curve whose 0.30 m chord heading agrees with the verified target within half the band (7.5°) also supports one 0.30 m step (`verified_target_and_native_chord_agree`); straight paths keep the full band. Replayed P005 (chord −9.7°, target −11.0°) now selects forward 0.30 m.
 - Checks: core 579 passed, 13 skipped; model environment 12/12; the ten-case matrix and six-trial audit decisions unchanged; five-move mock unchanged.
 
+**Later the same evening (all pushed; physical runs listed separately below).**
+- `1388f2c`: the disc diagnostics moved to `geometry_detail`; extra fields in `observed_turn_disc` made the executor reject every live proposal (`QZwmkd`). A test ties the disc to the schema.
+- `9980eec`: the camera started a new clock epoch whenever cumulative NTP slew passed 20 ms (+20.1 ms in `4CQ8ei`). A jump of more than 20 ms between frames, or 100 ms of slew in one epoch, still does.
+- `1b75031`: `DISC_RADIUS_M` = body sweep 0.45 m (head 0.40 m ahead, legs ±0.20 m) + 0.10 m drift = 0.55 m (was 0.55 + 0.10). Codex's wall test now expects 0.59 m to pass and 0.50 m to veto. The area check uses the same footprint, so the November 19 `center-closer` case now selects one more forward step inside its 2 m area.
+- `def7b08`: sparse rear disc sectors fit from 15 floor returns, or borrow a fit pooled over the sides with 8–14; open recordings 231Apz 20/20, cdyo3G 17/17, bYheuc 8/8, THKUcr 22/23 windows clear.
+- `454a3bf`: a stop is verified by 3 s of fresh still samples after release when the controller's settle window lapsed and nothing else failed (`stop_verified_by`); SIFT uses contrast 0.02, ROI-centred keypoints when fewer than 12 fit inside, ratio 0.75, and states its consensus tolerance and residual in model-image pixels. Recorded negatives unchanged; `TFJ3xn` P004 and `ug28EL` P005 now re-identify.
+- This commit: episodes may last up to 120 s (`MAX_EPISODE_SECONDS`); the trial timer follows the requested length.
+
+| Run (code) | Result |
+|---|---|
+| `QZwmkd` (`f76efe4`) | Schema rejection of the first proposal, 0 moves. |
+| `4CQ8ei` (`1388f2c`) | Clock epoch from NTP slew, 0 moves. |
+| `Rjo66i` (`9980eec`) | 20° right alignment turn refused: object 0.40–0.65 m at the rear-left, 0 moves. |
+| `TFJ3xn` (`def7b08`) | Forward 0.43 m (overshoot); first physical turn, SEARCH right 30°, peak 32°, settled ~27°, but slow springback outlasted the controller settle window → control failure. Its executor left `.command.lock` behind (pid 18511), removed with the operator's approval before the next run. |
+| `yFm26n` (`454a3bf`) | Forward 0.361 m and SEARCH left 0.460 rad, both within tolerance with verified stops; dishwasher lost again (14 SIFT keypoints from that angle); 60 s deadline expired during manual re-identification. |
+
+Open for Codex: the executor exit path that leaves the controller lock; plain targets (dishwasher) remain weak for instance matching; arrival is still unverified.
+
 ## Development handoff — physical evidence and the five-move policy
 
 Review `codex/physical-evidence-navigation` in `$GO2_WORKSPACE/code/worktrees/codex-motion-diagnostics`. Its history starts at Claude’s integrated `d62d936c67fed4ce10d0f364188bbaa596fee970` and includes the earlier offline study `ba8a7b692d45afe6bb7a7a2228826e34ca14571f`. Claude’s six closed trials remain the physical evidence for the previous implementation. This branch has offline verification.

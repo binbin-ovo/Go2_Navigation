@@ -16,7 +16,8 @@ from go2_perception.vln.supervised import Hold, capability_check, contract_versi
 from go2_perception.vln.supervised_app import StationaryMockSource, SupervisedApp
 from go2_perception.vln.supervised_executor import ExecutorClient
 from go2_perception.vln import session_runner as interactive
-from go2_perception.navigation import DEFAULT_ALIGNMENT_DEG, DEFAULT_MOVES, DEFAULT_RADIUS_M, DEFAULT_SECONDS
+from go2_perception.navigation import (DEFAULT_ALIGNMENT_DEG, DEFAULT_MOVES, DEFAULT_RADIUS_M, DEFAULT_SECONDS,
+                                       MAX_EPISODE_SECONDS)
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -31,7 +32,7 @@ def add_episode_limits(p):
 def valid_episode_limits(a):
     return (
         1 <= a.move_budget <= 5
-        and 5 <= a.episode_seconds <= 60
+        and 5 <= a.episode_seconds <= MAX_EPISODE_SECONDS
         and 1.2 <= a.area_radius_m <= 3
         and 8 <= a.alignment_deg <= 18
     )
@@ -62,7 +63,7 @@ def main(argv=None, *, website=None):
         reference = [a.target_reference, a.reference_target, a.reference_roi]
         if any(reference) and (not all(reference) or not a.target_reference.is_file()):
             p.error("Supply an existing reference image with its target name and normalized ROI")
-        remaining = [*remaining, "--max-trials", "1", "--max-requests-per-trial", "64", "--trial-max-s", "70",
+        remaining = [*remaining, "--max-trials", "1", "--max-requests-per-trial", "64", "--trial-max-s", str(a.episode_seconds + 10),
                      "--history-seconds", "60", "--history-frames", "1024"]
     args = interactive.parser().parse_args(remaining)
     if args.review_run:
