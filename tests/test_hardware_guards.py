@@ -176,6 +176,10 @@ def test_recorded_stationary_scans_give_plausible_clearance():
     assert 1.5 < clear < 2.5
 
 
+def _published(disc):
+    return disc[0]
+
+
 def _floor_with_side_bias(seed=0):
     """Floor as cloud_base reports it on 2026-11-22: range-dependent rise, +0.05..0.07 m at the sides."""
     rng = np.random.default_rng(seed)
@@ -203,15 +207,15 @@ def test_turn_disc_measures_side_floor_locally_but_keeps_real_objects():
     ring = floor[(radius >= g.NEAR_LIMIT_M) & (radius <= g.DISC_RADIUS_M)]
     h = g.height_above_ground(ring, coef)
     assert np.sum((h > g.OBSTACLE_MIN_DZ) & (h < g.OBSTACLE_MAX_DZ)) > 50
-    clear = g.turn_disc(floor, coef)
+    clear = _published(g.turn_disc(floor, coef))
     assert clear["obstacle_returns"] == 0 and clear["floor_returns"] > 500
     # A 0.3 m object beside the robot, or one filling its whole sector, still vetoes.
     for obj in (_box(0.0, 0.5), _box(0.0, -0.55, size=0.5, top=0.3, n=1500)):
-        disc = g.turn_disc(np.vstack([floor, obj]), coef)
+        disc = _published(g.turn_disc(np.vstack([floor, obj]), coef))
         assert disc["obstacle_returns"] >= g.OBSTACLE_RANK
     # Two stray returns are rejected like the forward corridor's isolated points.
     stray = np.float32([[0.0, 0.45, -0.20], [0.05, 0.47, -0.21]])
-    assert g.turn_disc(np.vstack([floor, stray]), coef)["obstacle_returns"] == 0
+    assert _published(g.turn_disc(np.vstack([floor, stray]), coef))["obstacle_returns"] == 0
 
 
 def test_turn_disc_without_side_floor_keeps_the_forward_plane():
@@ -219,5 +223,51 @@ def test_turn_disc_without_side_floor_keeps_the_forward_plane():
     coef = g.ground_plane(floor)
     front = floor[np.abs(np.degrees(np.arctan2(floor[:, 1], floor[:, 0]))) < 30]
     obj = _box(0.0, 0.5, n=60)  # no side floor at all: no refit, the object stays visible
-    disc = g.turn_disc(np.vstack([front, obj]), coef)
+    disc = _published(g.turn_disc(np.vstack([front, obj]), coef))
     assert disc["obstacle_returns"] >= g.OBSTACLE_RANK
+
+
+def test_turn_disc_publishes_only_the_schema_fields():
+    # An extra field made the executor reject every live proposal (2026-11-22, trial QZwmkd).
+    schema = json.loads((ROOT / "src/go2_perception/vln/schemas/supervised-navigation-v2.schema.json").read_text())
+
+    def find(node):
+        if isinstance(node, dict):
+            if "observed_turn_disc" in node.get("properties", {}):
+                return node["properties"]["observed_turn_disc"]
+            for value in node.values():
+                hit = find(value)
+                if hit:
+                    return hit
+        elif isinstance(node, list):
+            for value in node:
+                hit = find(value)
+                if hit:
+                    return hit
+
+    floor = _floor_with_side_bias()
+    disc, diagnostics = g.turn_disc(floor, g.ground_plane(floor))
+    assert set(disc) == set(find(schema)["properties"]) and "floor_model" in diagnostics
+
+
+def test_turn_disc_publishes_only_the_schema_fields():
+    # An extra field made the executor reject every live proposal (2026-11-22, trial QZwmkd).
+    schema = json.loads((ROOT / "src/go2_perception/vln/schemas/supervised-navigation-v2.schema.json").read_text())
+
+    def find(node):
+        if isinstance(node, dict):
+            if "observed_turn_disc" in node.get("properties", {}):
+                return node["properties"]["observed_turn_disc"]
+            for value in node.values():
+                hit = find(value)
+                if hit:
+                    return hit
+        elif isinstance(node, list):
+            for value in node:
+                hit = find(value)
+                if hit:
+                    return hit
+
+    floor = _floor_with_side_bias()
+    disc, diagnostics = g.turn_disc(floor, g.ground_plane(floor))
+    assert set(disc) == set(find(schema)["properties"]) and "floor_model" in diagnostics

@@ -117,7 +117,7 @@ def height_above_ground(points, coef):
 
 
 def turn_disc(points, coef):
-    """Floor and obstacle returns in the swept disc, measured from the floor beside the robot.
+    """(published disc fields, diagnostics): returns in the swept disc, measured from the floor beside the robot.
 
     The forward plane models the LiDAR's range bias only along x. At the sides (range 0.3-0.65 m,
     x near 0) the bare floor reads +0.05 to +0.07 m above it with +/-0.05 m spread (2026-11-22),
@@ -149,10 +149,11 @@ def turn_disc(points, coef):
         above = cell & (local > OBSTACLE_MIN_DZ) & (local < OBSTACLE_MAX_DZ)
         if above.sum() >= OBSTACLE_RANK:  # Same isolated-return rejection as the forward corridor.
             obstacle |= above
-    return {"radius_m": DISC_RADIUS_M, "floor_returns": int(np.sum(ring & (np.abs(local) < .06))),
-            "obstacle_returns": int(obstacle.sum()),
-            "unfiltered_obstacle_returns": int(np.sum(ring & (local > OBSTACLE_MIN_DZ) & (local < OBSTACLE_MAX_DZ))),
-            "floor_model": f"sector_local_range_fit/{DISC_SECTOR_DEG}deg", "sectors_refit": corrected}
+    disc = {"radius_m": DISC_RADIUS_M, "floor_returns": int(np.sum(ring & (np.abs(local) < .06))),
+            "obstacle_returns": int(obstacle.sum())}  # the published proposal fields only
+    diagnostics = {"unfiltered_obstacle_returns": int(np.sum(ring & (local > OBSTACLE_MIN_DZ) & (local < OBSTACLE_MAX_DZ))),
+                   "floor_model": f"sector_local_range_fit/{DISC_SECTOR_DEG}deg", "sectors_refit": corrected}
+    return disc, diagnostics
 
 
 def forward_clearance(points):
@@ -380,7 +381,7 @@ class Guards:
                         "directions": ["forward"] if clear > 0.0 else [],
                         "forward_clear_m": round(clear, 4), "turn_clear_rad": 0.0}
             if self.capability.get("motion_profile") == PROFILE and "ground_coef" in detail:
-                geometry["observed_turn_disc"] = turn_disc(points, detail["ground_coef"])
+                geometry["observed_turn_disc"], detail["turn_disc"] = turn_disc(points, detail["ground_coef"])
         camera = self.camera.get()
         bound, basis = capture_bound(camera, offset)
         snap = {"pose": pose, "geometry": geometry, "capture_uncertainty_bound_s": bound,
