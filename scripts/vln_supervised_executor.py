@@ -10,7 +10,7 @@ import sys
 import threading
 import time
 
-from go2_perception.vln.supervised import Hold, capability_check
+from go2_perception.vln.supervised import Hold, capability_check, stop_and_release_verified
 from go2_perception.vln.supervised_executor import (Executor, FakeGuards, HardwareMotion,
                                                    finite_json, live_preflight, load_module)
 
@@ -176,8 +176,8 @@ def main(argv=None):
                         executor.finish("SENSOR_OR_CONTROL_FAILURE", str(error))
                 continue
             result = executor.execute(message["ticket"])
-            retain_lock = live and (result["observed_stationary"] is not True or result["ownership_released"] is not True or
-                                   result["post_release_stationary"] is not True) and result["started_monotonic_s"] is not None
+            retain_lock = (live and not stop_and_release_verified(result)
+                           and result["started_monotonic_s"] is not None)
             if retain_lock:
                 # Retain canonical lock after unverified cleanup; no automatic unlock/rearm.
                 lock = None

@@ -13,6 +13,7 @@ from .supervised import (
     current_checks,
     digest,
     pose_check,
+    stop_and_release_verified,
     validate_record,
 )
 from .supervised_executor import Executor, FakeGuards, result_record
@@ -393,10 +394,7 @@ class EpisodeExecutor(Executor):
         self.retain_lock = (
             self.live
             and result["started_monotonic_s"] is not None
-            and not all(
-                result[k] is True
-                for k in ("observed_stationary", "ownership_released", "post_release_stationary")
-            )
+            and not stop_and_release_verified(result)
         )
         self.emit({"type": "result", "nonce": self.nonce, "result": result})
         self.after = result["ended_monotonic_s"]

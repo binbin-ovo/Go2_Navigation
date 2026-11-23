@@ -81,18 +81,23 @@ def validate_record(kind, value, version=1):
     if version == 2 and kind == "execution_result" and value["status"] in ("completed", "ended"):
         measured = value.get("motion_measurement")
         zeros = value["stop_send_statuses"]
-        # A slow springback can outlast the controller's settle window; the executor then records that
-        # three seconds of fresh still samples after release verified the stop instead.
-        released_still = value["observed_stationary"] is False and {
-            "event": "stop_verified_by", "source": "post_release_stationary"} in value.get("events", [])
         if (not measured or not measured["stop_verified"] or value["started_monotonic_s"] is None or
                 value["release_rpc_code"] != 0 or len(zeros) < 3 or any(code != 0 for code in zeros) or
-                not (value["observed_stationary"] is True or released_still) or
-                not all(value[key] is True for key in ("ownership_released", "post_release_stationary"))):
+                not stop_and_release_verified(value)):
             raise Hold("settled_measurement_and_verified_release_required")
         if value["status"] == "completed" and (measured["outcome"] != "target_within_tolerance" or
                                                measured["interrupted_or_blocked"]):
             raise Hold("completion_inconsistent_with_settled_motion")
+
+
+def stop_and_release_verified(result):
+    """Ownership released and the robot still after release, with the stop confirmed before release
+    or, when a slow springback outlasted the controller's settle window, by the recorded three
+    seconds of fresh still samples after it."""
+    released_still = result["observed_stationary"] is False and {
+        "event": "stop_verified_by", "source": "post_release_stationary"} in result.get("events", [])
+    return (result["ownership_released"] is True and result["post_release_stationary"] is True
+            and (result["observed_stationary"] is True or released_still))
 
 
 def age_check(stamp, now, limit, label):
