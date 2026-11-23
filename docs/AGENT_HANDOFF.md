@@ -87,6 +87,15 @@ Open for Codex: plain targets (dishwasher) remain weak for instance matching clo
 | `2Ot1PU` (`ec12871`) | Robot not repositioned (facing the shoe rack); one search turn, then turns correctly refused. |
 | `6t7lPf` (`ec12871`) | Five verified moves, `MOVE_BUDGET_EXHAUSTED`; search spun away from a dishwasher whose mark never left it (fixed here). |
 
+- `1d89e9a`: policy approach steps toward a verified, aligned target use up to 0.60 m, bounded by the forward corridor minus the 0.25 m reserve and a 0.30 m overshoot margin, never below 0.30 m (the mock reference's third step changed from 0.3 to 0.6 m).
+
+| Run (code) | Result |
+|---|---|
+| `J5TUDA` (`66df77e`) | Five verified moves; heading tracking held the dishwasher on three views; 0.73 m travelled, about 2 m short. |
+| **`iXR27G` (`1d89e9a`)** | **First successful navigation.** Dishwasher identified and confirmed by features; forward 0.669 m (native 0.60 m); tracked by heading; forward 0.437 m (0.30 m clearance-bounded); tracked by heading with LightNav's own STOP → `MODEL_STOPPED_ARRIVAL_UNVERIFIED`; the operator confirmed arrival ("Yes, it arrived") → `GOAL_CONFIRMED`. 0.95 m in 2 moves, forward clearance 0.37 m at the stop. |
+
+Open for Codex: heading tracking and the 0.60 m policy step are new and validated on one success; recognition of plain targets close up still needs operator re-identification at times; arrival remains an operator judgement.
+
 ## Development handoff — physical evidence and the five-move policy
 
 Review `codex/physical-evidence-navigation` in `$GO2_WORKSPACE/code/worktrees/codex-motion-diagnostics`. Its history starts at Claude’s integrated `d62d936c67fed4ce10d0f364188bbaa596fee970` and includes the earlier offline study `ba8a7b692d45afe6bb7a7a2228826e34ca14571f`. Claude’s six closed trials remain the physical evidence for the previous implementation. This branch has offline verification.
