@@ -274,3 +274,14 @@ def test_turn_disc_publishes_only_the_schema_fields():
     floor = _floor_with_side_bias()
     disc, diagnostics = g.turn_disc(floor, g.ground_plane(floor))
     assert set(disc) == set(find(schema)["properties"]) and "floor_model" in diagnostics
+
+
+def test_turn_disc_is_fast_enough_for_the_guard_loop():
+    # Evaluating the swept reach per point took ~70 ms and staled the pose (2026-11-23 N7NzcG).
+    import time
+    floor = np.vstack([_floor_with_side_bias(seed) for seed in range(2)])
+    coef = g.ground_plane(floor)
+    start = time.perf_counter()
+    for _ in range(10):
+        g.turn_disc(floor, coef)
+    assert (time.perf_counter() - start) / 10 < 0.02

@@ -134,6 +134,11 @@ def turn_reach(bearing_deg):
     return body_radius(bearings).max(axis=-1) + TURN_DRIFT_M
 
 
+# Reach depends only on bearing; a 1-degree table keeps the guard update near 1 ms instead of ~70 ms
+# (per-point evaluation over 71 turn angles delayed snapshots: stale_or_future_pose, 2026-11-23 N7NzcG).
+_REACH_BY_DEGREE = turn_reach(np.arange(-180, 181))
+
+
 def turn_disc(points, coef):
     """(published disc fields, diagnostics): returns in the swept disc, measured from the floor beside the robot.
 
@@ -177,7 +182,7 @@ def turn_disc(points, coef):
             local[cell] = height[cell] - np.clip(fit[0] + fit[1] * radius[cell], -0.05, 0.10)
             corrected += 1
         above = cell & (local > OBSTACLE_MIN_DZ) & (local < OBSTACLE_MAX_DZ)
-        above &= radius <= turn_reach(bearing)  # only where the turning body can actually reach
+        above &= radius <= _REACH_BY_DEGREE[np.rint(bearing).astype(int) + 180]  # where the turning body reaches
         if above.sum() >= OBSTACLE_RANK:  # Same isolated-return rejection as the forward corridor.
             obstacle |= above
     disc = {"radius_m": DISC_RADIUS_M, "floor_returns": int(np.sum(ring & (np.abs(local) < .06))),
