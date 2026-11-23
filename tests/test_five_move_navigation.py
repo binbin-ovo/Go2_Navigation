@@ -838,3 +838,6 @@ def test_rotated_straight_native_path_supports_one_step_toward_a_verified_aligne
     # A curve must agree within half the band: the same curve with a target at +2 deg holds.
     with pytest.raises(Hold, match="native_path_does_not_support_forward"):
         choose(2, curve)
+    # November 22 yeuHkQ: a 4 cm first row pointing elsewhere must not hide a straight path.
+    s = choose(-5, [[0.04, -0.002, -0.18], *rotated(-15)])
+    assert s["reason"] == "verified_target_and_straight_native_heading_agree"

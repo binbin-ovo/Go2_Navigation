@@ -468,9 +468,10 @@ def native_forward_heading(rows, mapping):
     for x, y, yaw in rows:
         if not all(math.isfinite(v) for v in (x, y, yaw)) or x - px < 0:
             return None, None
-        if math.hypot(x - px, y - py) > 0.005:
+        # Steps under 5 cm (the model's first row is often 4 cm) carry no usable direction.
+        if math.hypot(x - px, y - py) >= 0.05:
             prefix.append((math.atan2(y - py, x - px), yaw))
-        px, py = x, y
+            px, py = x, y
         if prefix and math.hypot(x, y) >= MIN_FORWARD:
             break
     else:
