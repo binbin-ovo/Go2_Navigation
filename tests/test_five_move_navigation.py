@@ -841,3 +841,18 @@ def test_rotated_straight_native_path_supports_one_step_toward_a_verified_aligne
     # November 22 yeuHkQ: a 4 cm first row pointing elsewhere must not hide a straight path.
     s = choose(-5, [[0.04, -0.002, -0.18], *rotated(-15)])
     assert s["reason"] == "verified_target_and_straight_native_heading_agree"
+
+
+def test_bounded_context_covers_a_120_second_episode():
+    # 2026-11-22 3k486T: the 60 s anchor bound ended a 120 s episode after three verified moves.
+    from go2_perception.vln.bounded_context import MAX_HISTORY_S
+
+    def frames(span):
+        n = int(span / 0.25) + 1
+        return [{"observation_s": 100 + i * 0.25, "available_s": 100 + i * 0.25 + 0.01} for i in range(n)]
+
+    plan = select_context(frames(125.0), 100 + 125.0 + 0.02)
+    assert plan["origin_observation_s"] == 100 and plan["source_indices"][:2] == [0, 1]
+    assert MAX_HISTORY_S >= 120 + 10
+    with pytest.raises(ValueError, match="history-duration"):
+        select_context(frames(131.0), 100 + 131.0 + 0.02)

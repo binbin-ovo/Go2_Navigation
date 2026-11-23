@@ -64,7 +64,7 @@ def main(argv=None, *, website=None):
         if any(reference) and (not all(reference) or not a.target_reference.is_file()):
             p.error("Supply an existing reference image with its target name and normalized ROI")
         remaining = [*remaining, "--max-trials", "1", "--max-requests-per-trial", "64", "--trial-max-s", str(a.episode_seconds + 10),
-                     "--history-seconds", "60", "--history-frames", "1024"]
+                     "--history-seconds", str(a.episode_seconds + 10), "--history-frames", "1024"]
     args = interactive.parser().parse_args(remaining)
     if args.review_run:
         p.error("Use the existing read-only launcher to review saved runs")

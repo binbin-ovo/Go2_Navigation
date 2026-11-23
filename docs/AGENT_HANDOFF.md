@@ -58,7 +58,19 @@ New robot boot (offset −1766613707.17 s). Screen-flash re-measurement: 39 swit
 | `TFJ3xn` (`def7b08`) | Forward 0.43 m (overshoot); first physical turn, SEARCH right 30°, peak 32°, settled ~27°, but slow springback outlasted the controller settle window → control failure. Its executor left `.command.lock` behind (pid 18511), removed with the operator's approval before the next run. |
 | `yFm26n` (`454a3bf`) | Forward 0.361 m and SEARCH left 0.460 rad, both within tolerance with verified stops; dishwasher lost again (14 SIFT keypoints from that angle); 60 s deadline expired during manual re-identification. |
 
-Open for Codex: the executor exit path that leaves the controller lock; plain targets (dishwasher) remain weak for instance matching; arrival is still unverified.
+- `e709559`: a turn is vetoed only by returns inside the body's swept reach (rectangle 0.40 m ahead, 0.30 m behind, ±0.20 m, turned up to 35°, plus 0.10 m drift): 0.545 m toward the front corners, 0.46 m toward the rear, 0.34 m straight beside. `DJDLsk` clear windows 36 → 110 of 120; `Rjo66i` 0 → 73 of 73; kitchen windows with the shoe rack in reach still refuse.
+- `0f29fa9`, `63d3ab4`: the post-release stop verification is an execution-result event (`stop_verified_by`), accepted by the version-2 contract; `stop_and_release_verified` decides the contract, five-move lock retention and the executor's lock release, so a slow springback no longer leaves the canonical lock behind. (The earlier stale locks were this deliberate retention, not a crash.)
+- `bb2c551`: native steps under 5 cm are ignored when reading the path heading (a 4 cm first row hid a straight path in `yeuHkQ`).
+- This commit: the bounded-context anchor bound and the session history follow the episode (130 s; about 4 frames/s keeps that near 520 of 1024 source frames). The real model has not yet seen a history longer than 60 s.
+
+| Run (code) | Result |
+|---|---|
+| `DJDLsk` (`54673d8`) | 21.9° right alignment turn refused by a low object 0.5 m rear-right (disc), 0 moves. |
+| `gsbQ80` (`e709559`) | Right alignment turn 0.382 rad, settled 0.251 rad with stop verified after release; the new result field broke the schema → control failure after 1 move; lock retained. |
+| `yeuHkQ` (`63d3ab4`) | Held on a 4 cm first native row, 0 moves. |
+| `3k486T` (`bb2c551`) | Forward 0.379 m, forward 0.513 m (overshoot), SEARCH left 0.426 rad: three verified moves, robot beside the dishwasher; ended at 60 s with `history_limit_reached` (fixed here). Arrival not confirmed. |
+
+Open for Codex: plain targets (dishwasher) remain weak for instance matching close up; arrival is still unverified; long-history model behaviour (> 60 s) is untested.
 
 ## Development handoff — physical evidence and the five-move policy
 

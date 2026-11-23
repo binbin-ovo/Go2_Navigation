@@ -13,7 +13,9 @@ POLICY = "anchor2_recent6_actual_time_v1"
 MAX_IMAGES = 8
 TIMESTAMP_HZ = 1000
 MAX_SOURCE_FRAMES = 1024
-MAX_HISTORY_S = 60.0
+# Anchor age bound: a 120 s five-move episode plus its 10 s trial margin (2026-11-22, trial 3k486T
+# ended at 60 s with history_limit_reached). About 4 frames/s keeps 130 s near 520 source frames.
+MAX_HISTORY_S = 130.0
 TIERS = [
     {"name": "current", "age_lo": 0, "age_hi": 1, "mode": "dense", "pool_spatial": 1},
     {"name": "fast", "age_lo": 2, "age_hi": 5, "mode": "dense", "pool_spatial": 2},
