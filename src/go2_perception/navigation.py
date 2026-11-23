@@ -336,6 +336,19 @@ def select_action(grant, cap, proposal, evidence, views, attempts, was_aligned, 
             return result
         except Hold as exc:
             reasons.append(str(exc))
+    # With every nearby heading already inspected, an enrolled instance that is merely unconfirmed on a
+    # view reached by a verified move goes back to the operator instead of ending the episode
+    # (2026-11-23 pLXAMg: the dishwasher re-centred by an approach turn, then held as no viewpoint).
+    match = evidence.get("positive_reference", {})
+    if (
+        inspected is not None
+        and evidence["status"] == "uncertain"
+        and match.get("reference_sha256")
+        and views
+        and not same_view(views[-1], pose["x_m"], pose["y_m"], pose["yaw_rad"], pose)
+        and not evidence.get("previous_image_review")
+    ):
+        return dict(selection, reason="reidentify_after_new_view", review=True)
     raise Hold("no_supported_search_viewpoint: " + ", ".join(reasons))
 
 

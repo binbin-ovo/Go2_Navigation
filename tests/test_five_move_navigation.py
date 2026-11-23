@@ -856,3 +856,24 @@ def test_bounded_context_covers_a_120_second_episode():
     assert MAX_HISTORY_S >= 120 + 10
     with pytest.raises(ValueError, match="history-duration"):
         select_context(frames(131.0), 100 + 131.0 + 0.02)
+
+
+def test_exhausted_search_after_a_verified_move_returns_to_the_operator():
+    # 2026-11-23 pLXAMg: an approach turn re-centred the dishwasher, both search headings were
+    # already inspected, and the episode ended although the instance was only unconfirmed.
+    ex, _ = episode()
+    msg = observation(ex, 1, angle=3, status="uncertain")
+    msg["evidence"].update(method="reference_inconclusive_seek_view", positive_reference={"reference_sha256": "f" * 64})
+    pose = msg["proposal"]["identity"]["pose"]
+    turned = [dict(pose, yaw_rad=pose["yaw_rad"] + d) for d in (math.radians(30), -math.radians(30))]
+    moved = [dict(pose, yaw_rad=pose["yaw_rad"] - math.radians(32), attempt={"mode": "APPROACH", "direction": "left"})]
+
+    def choose(views, evidence=msg["evidence"]):
+        return select_action(ex.grant, ex.cap, msg["proposal"], evidence, views, 3, False, inspected=turned)
+
+    s = choose(moved)
+    assert s["review"] and s["reason"] == "reidentify_after_new_view" and s["action"] is None
+    with pytest.raises(Hold, match="no_supported_search_viewpoint"):
+        choose([dict(pose, attempt={"mode": "APPROACH", "direction": "forward"})])  # not a new view
+    with pytest.raises(Hold, match="no_supported_search_viewpoint"):
+        choose(moved, dict(msg["evidence"], previous_image_review={"prediction_id": "P1"}))  # asked already
