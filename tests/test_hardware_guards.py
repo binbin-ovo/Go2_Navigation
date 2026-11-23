@@ -210,9 +210,12 @@ def test_turn_disc_measures_side_floor_locally_but_keeps_real_objects():
     clear = _published(g.turn_disc(floor, coef))
     assert clear["obstacle_returns"] == 0 and clear["floor_returns"] > 500
     # A 0.3 m object beside the robot, or one filling its whole sector, still vetoes.
-    for obj in (_box(0.0, 0.45), _box(0.0, -0.45, size=0.4, top=0.3, n=1500)):
+    for obj in (_box(0.33, 0.25), _box(0.0, -0.45, size=0.4, top=0.3, n=1500)):
         disc = _published(g.turn_disc(np.vstack([floor, obj]), coef))
         assert disc["obstacle_returns"] >= g.OBSTACLE_RANK
+    # Straight beside the robot an in-place turn reaches only ~0.34 m: an object at 0.45 m stays clear.
+    assert _published(g.turn_disc(np.vstack([floor, _box(0.0, 0.47, size=0.1)]), coef))["obstacle_returns"] == 0
+    assert g.turn_reach(0) == pytest.approx(0.547, abs=0.005) and g.turn_reach(90) < 0.36
     # Two stray returns are rejected like the forward corridor's isolated points.
     stray = np.float32([[0.0, 0.45, -0.20], [0.05, 0.47, -0.21]])
     assert _published(g.turn_disc(np.vstack([floor, stray]), coef))["obstacle_returns"] == 0
@@ -222,7 +225,7 @@ def test_turn_disc_without_side_floor_keeps_the_forward_plane():
     floor = _floor_with_side_bias()
     coef = g.ground_plane(floor)
     front = floor[np.abs(np.degrees(np.arctan2(floor[:, 1], floor[:, 0]))) < 30]
-    obj = _box(0.0, 0.5, n=60)  # no side floor at all: no refit, the object stays visible
+    obj = _box(0.35, 0.25, n=60)  # no side floor at all: no refit, the object stays visible
     disc = _published(g.turn_disc(np.vstack([front, obj]), coef))
     assert disc["obstacle_returns"] >= g.OBSTACLE_RANK
 

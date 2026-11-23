@@ -33,7 +33,7 @@ from pathlib import Path
 
 import numpy as np
 
-from go2_perception.vln.motion_profile import DISC_RADIUS_M, PROFILE
+from go2_perception.vln.motion_profile import DISC_RADIUS_M, PROFILE, TURN_DRIFT_M
 
 # Robot footprint (Go2: ~0.70 m long, ~0.31 m wide, base_link near the trunk centre).
 FRONT_M = 0.40  # base_link to the front of the head, rounded up
@@ -47,6 +47,10 @@ OBSTACLE_MAX_DZ = 0.70  # above ground; the Go2 stands ~0.4 m
 OBSTACLE_RANK = 3  # nth-nearest obstacle return, rejects single noise points
 NEAR_LIMIT_M = 0.30  # cloud_base has no points within 0.3 m XY
 DISC_SECTOR_DEG = 30  # turn-disc floor refit sectors
+# Body rectangle about base_link for the swept-turn veto: head 0.40 m ahead (FRONT_M), 0.70 m long,
+# legs about 0.20 m to each side. Turns are at most 30 deg; 35 covers the measured 32 deg peak.
+BODY_FRONT_M, BODY_REAR_M, BODY_HALF_WIDTH_M = 0.40, 0.30, 0.20
+TURN_SWEEP_DEG = 35
 MAX_RANGE_M = 3.0
 GROUND_Z_NOMINAL = -0.325  # base-frame ground measured on this robot (2026-11-15)
 EPOCH_STEP_S = 1.0
@@ -116,6 +120,20 @@ def height_above_ground(points, coef):
     return points[:, 2] - (coef[0] + coef[1] * points[:, 0] + coef[2] * points[:, 1])
 
 
+def body_radius(bearing_rad):
+    """Distance from base_link to the edge of the body rectangle along a bearing."""
+    c, s = np.cos(bearing_rad), np.sin(bearing_rad)
+    along = np.where(c > 0, BODY_FRONT_M / np.maximum(c, 1e-9), BODY_REAR_M / np.maximum(-c, 1e-9))
+    return np.minimum(along, BODY_HALF_WIDTH_M / np.maximum(np.abs(s), 1e-9))
+
+
+def turn_reach(bearing_deg):
+    """Farthest body point on each bearing during an in-place turn of up to TURN_SWEEP_DEG, plus drift."""
+    offsets = np.radians(np.arange(-TURN_SWEEP_DEG, TURN_SWEEP_DEG + 0.5, 1.0))
+    bearings = np.radians(np.asarray(bearing_deg, float))[..., None] - offsets
+    return body_radius(bearings).max(axis=-1) + TURN_DRIFT_M
+
+
 def turn_disc(points, coef):
     """(published disc fields, diagnostics): returns in the swept disc, measured from the floor beside the robot.
 
@@ -124,7 +142,9 @@ def turn_disc(points, coef):
     so every disc held "obstacles". Each sector refits floor height against range from floor-like
     returns out to 1 m. The correction is clipped to [-0.05, +0.10] m, so an object filling a
     sector still shows. A sector needs 15 floor returns for its own fit, uses the fit pooled over
-    the sides with 8-14, and keeps the forward plane with fewer.
+    the sides with 8-14, and keeps the forward plane with fewer. A return vetoes the turn only
+    inside the body's swept reach (turn_reach): an in-place turn reaches 0.55 m only near the
+    corners and about 0.33 m beside the robot.
     """
     radius = np.hypot(points[:, 0], points[:, 1])
     bearing = np.degrees(np.arctan2(points[:, 1], points[:, 0]))
@@ -157,6 +177,7 @@ def turn_disc(points, coef):
             local[cell] = height[cell] - np.clip(fit[0] + fit[1] * radius[cell], -0.05, 0.10)
             corrected += 1
         above = cell & (local > OBSTACLE_MIN_DZ) & (local < OBSTACLE_MAX_DZ)
+        above &= radius <= turn_reach(bearing)  # only where the turning body can actually reach
         if above.sum() >= OBSTACLE_RANK:  # Same isolated-return rejection as the forward corridor.
             obstacle |= above
     disc = {"radius_m": DISC_RADIUS_M, "floor_returns": int(np.sum(ring & (np.abs(local) < .06))),
