@@ -5,7 +5,7 @@ import math
 
 from go2_perception.navigation import (MAX_EPISODE_SECONDS, area_check, bounded_number, image_bearing, select_action,
                                        supported_ground)
-from .motion_profile import INSPECTED, PROFILE, Hold
+from .motion_profile import INSPECTED, PROFILE, Hold, wrap
 from .supervised import (
     FRESHNESS_S,
     MODEL_REVISION,
@@ -20,6 +20,9 @@ from .supervised import (
 from .supervised_executor import Executor, FakeGuards, result_record
 
 SCHEMA = "go2-five-move-episode-v1"
+TRACK_HEADING_RAD = math.radians(6)
+TRACK_TRANSLATION_M = 0.8
+TRACK_MAX = 2
 TERMINAL = {
     "GOAL_CONFIRMED",
     "MODEL_STOPPED_ARRIVAL_UNVERIFIED",
@@ -61,6 +64,7 @@ class EpisodeExecutor(Executor):
         self.mode, self.reason, self.outcome = "SEARCH", "awaiting_area_authorization", None
         self.inspected = []  # At most 64 accepted decisions per episode.
         self.target_heading = None  # odometry yaw of the last verified instance
+        self.target_xy, self.tracked = None, 0
         self.attempts, self.views, self.predictions, self.observations = [], [], set(), set()
         self.found, self.aligned = False, False
         self.after = 0.0
@@ -228,6 +232,29 @@ class EpisodeExecutor(Executor):
         pose_check(i["pose"], snap["pose"], self.cap["limits"])
         area_check(g, snap["pose"], attempts=len(self.attempts))
 
+    def track(self, proposal, evidence):
+        """Keep an appearance-verified instance through views where features fail (a plain front).
+
+        The native mark must point within TRACK_HEADING_RAD of the odometry heading where the
+        instance was last verified, after less than TRACK_TRANSLATION_M of travel, for at most
+        TRACK_MAX consecutive views before features must confirm it again (2026-11-23 6t7lPf).
+        """
+        point = proposal["point_fraction"]
+        if (evidence.get("status") != "uncertain" or evidence.get("method") != "reference_inconclusive_seek_view"
+                or self.target_heading is None or point is None or self.tracked >= TRACK_MAX):
+            return evidence
+        pose = proposal["identity"]["pose"]
+        moved = math.hypot(pose["x_m"] - self.target_xy[0], pose["y_m"] - self.target_xy[1])
+        error = wrap(pose["yaw_rad"] + image_bearing(point, evidence["camera"], self.cap["mapping"])
+                     - self.target_heading)
+        if moved > TRACK_TRANSLATION_M or abs(error) > TRACK_HEADING_RAD:
+            return evidence
+        x, y = point
+        return dict(evidence, status="supported", method="tracked_instance_heading",
+                    roi=[max(0.0, x - 0.05), max(0.0, y - 0.05), min(1.0, x + 0.05), min(1.0, y + 0.05)],
+                    tracking={"from_prediction_id": self.last_target["prediction_id"], "heading_error_rad": error,
+                              "translation_m": moved, "consecutive": self.tracked + 1})
+
     def observe(self, message):
         self.tick()
         if self.state != "OBSERVING" or message["episode_id"] != self.nonce:
@@ -261,6 +288,7 @@ class EpisodeExecutor(Executor):
                 )
                 return self.publish()
             raise
+        evidence = self.track(p, evidence)
         grounded = supported_ground(self.grant, p, evidence)
         self.inspected.append(dict(ident["pose"]))
         self.found |= grounded
@@ -287,6 +315,8 @@ class EpisodeExecutor(Executor):
             # Odometry heading of the verified instance, so a later SEARCH turns back toward it.
             self.target_heading = ident["pose"]["yaw_rad"] + image_bearing(
                 p["point_fraction"], evidence["camera"], self.cap["mapping"])
+            self.target_xy = (ident["pose"]["x_m"], ident["pose"]["y_m"])
+            self.tracked = self.tracked + 1 if evidence["method"] == "tracked_instance_heading" else 0
         self.emit({"type": "episode_observation", "nonce": self.nonce, "proposal": p, "evidence": evidence})
         if p["native_stop"]:
             return self.finish("MODEL_STOPPED_ARRIVAL_UNVERIFIED", "native_stop")

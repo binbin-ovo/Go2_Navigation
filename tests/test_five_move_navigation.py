@@ -891,3 +891,30 @@ def test_search_turns_back_toward_the_last_verified_target(side):
 
     assert choose(yaw + side * 0.5)["action"]["direction"] == ("left" if side > 0 else "right")
     assert choose(None)["action"]["direction"] == "left"  # unchanged default without a sighting
+
+
+def test_heading_tracking_keeps_a_verified_instance_through_featureless_views():
+    # 2026-11-23 6t7lPf: the native mark stayed on the dishwasher (3 and 1 deg from its verified
+    # heading) while features failed, and SEARCH spun the robot away from it.
+    from go2_perception.navigation import image_bearing, supported_ground
+    ex, _ = episode()
+    msg = observation(ex, 1, angle=4, status="uncertain")
+    msg["evidence"].update(method="reference_inconclusive_seek_view", positive_reference={"reference_sha256": "f" * 64})
+    prop, ev = msg["proposal"], msg["evidence"]
+    pose = prop["identity"]["pose"]
+    seen = pose["yaw_rad"] + image_bearing(prop["point_fraction"], ev["camera"], ex.cap["mapping"])
+    ex.last_target = {"prediction_id": "P0"}
+
+    def track(heading=seen, xy=(pose["x_m"], pose["y_m"]), tracked=0):
+        ex.target_heading, ex.target_xy, ex.tracked = heading, xy, tracked
+        return ex.track(prop, ev)
+
+    tracked = track(seen + math.radians(3))
+    assert tracked["status"] == "supported" and tracked["method"] == "tracked_instance_heading"
+    assert supported_ground(ex.grant, prop, tracked) is True
+    for kwargs in ({"heading": seen + math.radians(10)}, {"xy": (pose["x_m"] - 1.0, pose["y_m"])}, {"tracked": 2},
+                   {"heading": None}):
+        assert track(**kwargs)["status"] == "uncertain"
+    forged = dict(tracked, tracking=dict(tracked["tracking"], heading_error_rad=0.5))
+    with pytest.raises(Hold, match="insufficient_tracking_evidence"):
+        supported_ground(ex.grant, prop, forged)

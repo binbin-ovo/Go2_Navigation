@@ -72,6 +72,21 @@ New robot boot (offset −1766613707.17 s). Screen-flash re-measurement: 39 swit
 
 Open for Codex: plain targets (dishwasher) remain weak for instance matching close up; arrival is still unverified; long-history model behaviour (> 60 s) is untested.
 
+**November 23 (new boot; camera bound 0.157 s, `7ee81e0`).**
+- `63ba3b4`: with every search heading inspected, an enrolled-but-unconfirmed instance on a view reached by a verified move returns to the operator for re-identification instead of ending.
+- `af2a943`: after release the robot may come to rest; it must then stay still for at least 2.5 s to the end of the 3 s check (one moving sample at release had failed `Sm23TA`).
+- `3d1b0a8`: the swept-reach test uses a 1° lookup table; the per-point version took ~70 ms per guard update and staled the pose (`N7NzcG`, `stale_or_future_pose`).
+- `ec12871`: SEARCH turns first toward the odometry heading of the last verified sighting.
+- This commit: **heading tracking**. After an appearance-verified sighting, a native mark within 6° of that odometry heading, after less than 0.8 m of travel, supports the same instance for at most two consecutive views (`tracked_instance_heading`; rejected instances still veto). In `6t7lPf` the dishwasher's mark stayed 3.1° and 1.3° from its verified heading while features failed, and SEARCH spun the robot away.
+
+| Run (code) | Result |
+|---|---|
+| `pLXAMg` (`7ee81e0`) | Three verified turns; dishwasher re-centred ~2.5 m ahead; ended with no new search heading (fixed in `63ba3b4`). |
+| `Sm23TA` (`63ba3b4`) | Forward 0.864 m (native 0.60 m, overshoot), dishwasher re-identified automatically, forward 0.349 m; search turn failed post-release stillness on one sample (fixed in `af2a943`). |
+| `N7NzcG` (`af2a943`) | Three verified turns, lock released; `stale_or_future_pose` (fixed in `3d1b0a8`). |
+| `2Ot1PU` (`ec12871`) | Robot not repositioned (facing the shoe rack); one search turn, then turns correctly refused. |
+| `6t7lPf` (`ec12871`) | Five verified moves, `MOVE_BUDGET_EXHAUSTED`; search spun away from a dishwasher whose mark never left it (fixed here). |
+
 ## Development handoff — physical evidence and the five-move policy
 
 Review `codex/physical-evidence-navigation` in `$GO2_WORKSPACE/code/worktrees/codex-motion-diagnostics`. Its history starts at Claude’s integrated `d62d936c67fed4ce10d0f364188bbaa596fee970` and includes the earlier offline study `ba8a7b692d45afe6bb7a7a2228826e34ca14571f`. Claude’s six closed trials remain the physical evidence for the previous implementation. This branch has offline verification.

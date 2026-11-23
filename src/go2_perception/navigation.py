@@ -594,6 +594,16 @@ def supported_ground(grant, proposal, evidence):
         raise Hold("unsupported_target_roi")
     if evidence["method"] == "synthetic_fixture" and proposal["synthetic"]:
         return True
+    if evidence["method"] == "tracked_instance_heading":
+        # The five-move executor's heading tracker after an appearance-verified sighting.
+        t = evidence.get("tracking") or {}
+        if not (isinstance(t.get("from_prediction_id"), str)
+                and all(type(t.get(k)) in (int, float) and math.isfinite(t[k])
+                        for k in ("heading_error_rad", "translation_m"))
+                and abs(t["heading_error_rad"]) <= math.radians(6) and 0 <= t["translation_m"] <= 0.8
+                and type(t.get("consecutive")) is int and 1 <= t["consecutive"] <= 2):
+            raise Hold("insufficient_tracking_evidence")
+        return True
     if evidence["method"] != "identified_instance_features" or not verified_features(evidence, grant):
         raise Hold("insufficient_instance_evidence")
     match = evidence.get("positive_reference")
