@@ -94,6 +94,8 @@ Open for Codex: plain targets (dishwasher) remain weak for instance matching clo
 | `J5TUDA` (`66df77e`) | Five verified moves; heading tracking held the dishwasher on three views; 0.73 m travelled, about 2 m short. |
 | **`iXR27G` (`1d89e9a`)** | **First successful navigation.** Dishwasher identified and confirmed by features; forward 0.669 m (native 0.60 m); tracked by heading; forward 0.437 m (0.30 m clearance-bounded); tracked by heading with LightNav's own STOP → `MODEL_STOPPED_ARRIVAL_UNVERIFIED`; the operator confirmed arrival ("Yes, it arrived") → `GOAL_CONFIRMED`. 0.95 m in 2 moves, forward clearance 0.37 m at the stop. |
 
+- Episodes may last up to 360 s (history 370 s, 2048 source frames). `hardware/update_camera_bound.py` pins a new boot's bound from `capture_latency.py` evidence; `docs/RUN_A_SESSION.md` is the operator's own runbook from power-on to a finished episode.
+
 Open for Codex: heading tracking and the 0.60 m policy step are new and validated on one success; recognition of plain targets close up still needs operator re-identification at times; arrival remains an operator judgement.
 
 ## Development handoff — physical evidence and the five-move policy

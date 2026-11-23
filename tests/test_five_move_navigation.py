@@ -845,7 +845,7 @@ def test_rotated_straight_native_path_supports_one_step_toward_a_verified_aligne
     assert s["reason"] == "verified_target_and_straight_native_heading_agree"
 
 
-def test_bounded_context_covers_a_120_second_episode():
+def test_bounded_context_covers_a_360_second_episode():
     # 2026-11-22 3k486T: the 60 s anchor bound ended a 120 s episode after three verified moves.
     from go2_perception.vln.bounded_context import MAX_HISTORY_S
 
@@ -853,11 +853,11 @@ def test_bounded_context_covers_a_120_second_episode():
         n = int(span / 0.25) + 1
         return [{"observation_s": 100 + i * 0.25, "available_s": 100 + i * 0.25 + 0.01} for i in range(n)]
 
-    plan = select_context(frames(125.0), 100 + 125.0 + 0.02)
+    plan = select_context(frames(365.0), 100 + 365.0 + 0.02)
     assert plan["origin_observation_s"] == 100 and plan["source_indices"][:2] == [0, 1]
-    assert MAX_HISTORY_S >= 120 + 10
+    assert MAX_HISTORY_S >= 360 + 10
     with pytest.raises(ValueError, match="history-duration"):
-        select_context(frames(131.0), 100 + 131.0 + 0.02)
+        select_context(frames(371.0), 100 + 371.0 + 0.02)
 
 
 def test_exhausted_search_after_a_verified_move_returns_to_the_operator():

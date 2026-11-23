@@ -251,6 +251,35 @@ def test_camera_bound_is_scoped_to_the_measured_boot():
 
     meta = {"clock_epoch": "host_receipt_wall:bridge=fake:g0",
             "monotonic_mapping": "configured camera latency 0.048 s"}
-    assert g.capture_bound(meta, -1766552958.008) == (.157, g.CAMERA["basis"])
-    for older_boot in (-1766613707.168, -1766856813.961, -1766897811.159, -1766947283.136, -1766903986.310):
+    assert g.capture_bound(meta, g.CAMERA["boot_offset_s"]) == (g.CAMERA["bound_s"], g.CAMERA["basis"])
+    assert 0 < g.CAMERA["bound_s"] < 0.5 and g.CAMERA["basis"].startswith("evidence/hw_readiness/")
+    assert g.EARLIER_BOOT_OFFSETS_S and g.CAMERA["boot_offset_s"] not in g.EARLIER_BOOT_OFFSETS_S
+    for older_boot in g.EARLIER_BOOT_OFFSETS_S:
         assert g.capture_bound(meta, older_boot) == (None, None)
+
+
+def test_update_camera_bound_pins_a_new_boot_and_archives_the_old(tmp_path, monkeypatch):
+    import importlib.util
+    import json as _json
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    spec = importlib.util.spec_from_file_location("update_camera_bound", root / "hardware/update_camera_bound.py")
+    tool = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(tool)
+    guards = tmp_path / "supervised_guards.py"
+    guards.write_text((root / "hardware/supervised_guards.py").read_text())
+    monkeypatch.setattr(tool, "GUARDS", guards)
+    evidence = tmp_path / "evidence/hw_readiness/capture_latency_20990101_000000.json"
+    evidence.parent.mkdir(parents=True)
+    evidence.write_text(_json.dumps({"created_wall_s": 0, "bound_s": 0.161, "boot_offset_s": -1700000000.5,
+                                     "stats": {"n": 39, "median_s": 0.12, "max_s": 0.189}}))
+    tool.main([str(evidence)])
+    spec = importlib.util.spec_from_file_location("guards_after_update", guards)
+    after = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(after)
+    from test_hardware_guards import g
+    assert after.CAMERA["bound_s"] == 0.161 and after.CAMERA["boot_offset_s"] == -1700000000.5
+    assert after.CAMERA["basis"].startswith("evidence/hw_readiness/capture_latency_20990101_000000.json sha256 ")
+    assert after.EARLIER_BOOT_OFFSETS_S[0] == g.CAMERA["boot_offset_s"]
+    with pytest.raises(SystemExit):
+        tool.main([str(evidence)])  # the same boot is already pinned

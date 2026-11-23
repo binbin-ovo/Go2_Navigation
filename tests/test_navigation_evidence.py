@@ -220,15 +220,15 @@ def test_public_supervised_limits_are_forwarded_and_validated(monkeypatch):
         "--alignment-deg",
         "14.0",
     )
-    for flags in (["--move-budget", "6"], ["--alignment-deg", "nan"], ["--episode-seconds", "121"]):
+    for flags in (["--move-budget", "6"], ["--alignment-deg", "nan"], ["--episode-seconds", "361"]):
         with pytest.raises(SystemExit):
             app.supervised_operator(["--prepare-only", *flags])
     for args in (["--min-free-disk-gb", "0"], ["--run-quota-gb", "nan"]):
         with pytest.raises(SystemExit):
             app.main(args)
     assert len(commands) == 1
-    app.supervised_operator(["--prepare-only", "--episode-seconds", "120"])  # room for re-identification
-    assert commands[1][-5:-4] == ("120.0",)
+    app.supervised_operator(["--prepare-only", "--episode-seconds", "360"])  # room for re-identification
+    assert commands[1][-5:-4] == ("360.0",)
 
 
 @pytest.mark.parametrize("profile,version", [("legacy-first-row", 1), ("go2-effective-v1", 2)])

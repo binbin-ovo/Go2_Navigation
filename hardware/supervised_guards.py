@@ -70,6 +70,8 @@ CAMERA = {
     "basis": ("evidence/hw_readiness/capture_latency_20261123_115758.json sha256 "
               "9de4777357186c01afa9b921bd1e25df7b17a4c952a7d63a61ab88b6a39b34d9"),  # private, git-ignored
 }
+# Boot offsets of earlier bounds; never reused (hardware/update_camera_bound.py appends here).
+EARLIER_BOOT_OFFSETS_S = (-1766613707.168, -1766856813.961, -1766897811.159, -1766947283.136, -1766903986.310)
 
 
 def yaw_from_quaternion(qx, qy, qz, qw):
