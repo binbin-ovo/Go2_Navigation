@@ -790,3 +790,44 @@ def test_missing_target_curved_right_hint_and_no_forward_escape():
     ex.grant["area_inspected"] = False
     with pytest.raises(Hold, match="requires_current_episode_authorization"):
         choose()
+
+
+def test_rotated_straight_native_path_supports_one_step_toward_a_verified_aligned_target():
+    # November 22 hzx6aQ: a straight native line about 15 deg right, verified target a few deg right.
+    ex, _ = episode()
+
+    def rotated(degrees, curve=0.0):
+        a = math.radians(degrees)
+        rows, x, y, heading = [], 0.0, 0.0, a
+        for _ in range(8):
+            x, y = x + 0.145 * math.cos(heading), y + 0.145 * math.sin(heading)
+            rows.append([x, y, heading])
+            heading += curve
+        return rows
+
+    def choose(angle, rows, clear=None):
+        msg = observation(ex, 1, angle=angle)
+        prop = msg["proposal"]
+        prop["waypoints"] = rows
+        if clear is not None:
+            prop["identity"]["geometry"]["forward_clear_m"] = clear
+        return select_action(ex.grant, ex.cap, prop, msg["evidence"], [], 0, False, inspected=[])
+
+    s = choose(-4, rotated(-15))
+    assert s["mode"] == "APPROACH" and s["source"] == "approach_policy"
+    assert s["reason"] == "verified_target_and_straight_native_heading_agree"
+    assert s["action"]["direction"] == "forward" and s["action"]["magnitude"] == pytest.approx(0.30)
+    assert s["action"]["speed"] == 1.0
+    # The heading must agree with the verified target, not merely point forward-ish.
+    with pytest.raises(Hold, match="native_path_does_not_support_forward"):
+        choose(10, rotated(-15))
+    # A curving path, a reversal and a sideways path keep holding.
+    with pytest.raises(Hold, match="native_path_does_not_support_forward"):
+        choose(-4, rotated(-15, curve=math.radians(-6)))
+    with pytest.raises(Hold, match="native_path_does_not_support_forward"):
+        choose(-4, [[-x, y, a] for x, y, a in rotated(-15)])
+    with pytest.raises(Hold, match="native_path_does_not_support_forward"):
+        choose(-4, rotated(-60))
+    # The forward LiDAR corridor still decides whether the step may be selected.
+    with pytest.raises(Hold, match="required_geometry_unavailable_or_insufficient"):
+        choose(-4, rotated(-15), clear=0.2)

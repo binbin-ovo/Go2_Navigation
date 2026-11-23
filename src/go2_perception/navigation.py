@@ -181,6 +181,16 @@ def select_action(grant, cap, proposal, evidence, views, attempts, was_aligned, 
                         "approach_policy",
                         "native_turn_and_offcentre_target_reobserve",
                     )
+                # A straight native path rotated off body-forward still supports one short
+                # step when its heading agrees with the verified target already in the band.
+                heading = straight_native_heading(rows, cap["mapping"])
+                if heading is not None and abs(wrap(heading - bearing)) <= band:
+                    selection.update(native_heading_rad=heading)
+                    return checked(
+                        primitive(cap, "forward", MIN_FORWARD, "short_observed_corridor"),
+                        "approach_policy",
+                        "verified_target_and_straight_native_heading_agree",
+                    )
                 raise Hold("native_path_does_not_support_forward_approach")
             # The proposed translation must support an approach. Geometry independently
             # supports a short straight corridor. Curved/reversing suffixes add no extent.
@@ -436,6 +446,36 @@ def straight_corridor_prefix(rows, mapping, band):
             return True
         px, py = x, y
     return False
+
+
+def straight_native_heading(rows, mapping):
+    """Base-frame heading of a straight forward native prefix, or None.
+
+    Every translation up to the step length must share one tangent, and the body yaw
+    must follow that tangent, both within the heading uncertainty. Curves, reversals
+    and sideways paths return None.
+    """
+    if "forward" not in mapping["verified_actions"]:
+        return None
+    uncertainty = mapping["yaw_uncertainty_rad"]
+    px = py = 0.0
+    tangent = None
+    for x, y, yaw in rows:
+        if not all(math.isfinite(v) for v in (x, y, yaw)):
+            return None
+        dx, dy = x - px, y - py
+        if dx < 0:
+            return None
+        if math.hypot(dx, dy) > 0.005:
+            angle = math.atan2(dy, dx)
+            if tangent is None:
+                tangent = angle
+            if abs(wrap(angle - tangent)) > uncertainty or abs(wrap(yaw - tangent)) > uncertainty:
+                return None
+        if tangent is not None and math.hypot(x, y) >= MIN_FORWARD:
+            return wrap(tangent + mapping["yaw_rad"])
+        px, py = x, y
+    return None
 
 
 def initial_heading_sweep(rows):
