@@ -629,5 +629,7 @@ def test_slow_turn_springback_is_verified_by_post_release_stillness(tmp_path, st
     if not still_after_release:
         assert result["status"] == "failed" and not result["motion_measurement"]["stop_verified"]
         return
-    assert result["stop_verified_by"] == "post_release_stationary"
+    assert {"event": "stop_verified_by", "source": "post_release_stationary"} in result["events"]
+    from go2_perception.vln.supervised import validate_record
+    validate_record("execution_result", result, 2)  # extra top-level fields end live episodes
     assert result["status"] == "completed" and result["motion_measurement"]["settled"] == a["magnitude"]

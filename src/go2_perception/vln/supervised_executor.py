@@ -488,7 +488,7 @@ class HardwareMotion:
             # settle window closes. Three seconds of fresh, still samples after release then confirm
             # the stop; the settled value is read after them. An unknown (None) observation never does.
             if result["observed_stationary"] is False and result["post_release_stationary"] is True:
-                result["stop_verified_by"] = "post_release_stationary"
+                result["events"].append({"event": "stop_verified_by", "source": "post_release_stationary"})  # schema-free log
                 if unconfirmed_only is not None and unconfirmed_only == (result["status"], result["reason"]) \
                         and result["status"] == "failed":
                     result["status"] = "completed"  # nothing else failed after the settle window

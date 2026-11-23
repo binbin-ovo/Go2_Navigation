@@ -81,10 +81,14 @@ def validate_record(kind, value, version=1):
     if version == 2 and kind == "execution_result" and value["status"] in ("completed", "ended"):
         measured = value.get("motion_measurement")
         zeros = value["stop_send_statuses"]
+        # A slow springback can outlast the controller's settle window; the executor then records that
+        # three seconds of fresh still samples after release verified the stop instead.
+        released_still = value["observed_stationary"] is False and {
+            "event": "stop_verified_by", "source": "post_release_stationary"} in value.get("events", [])
         if (not measured or not measured["stop_verified"] or value["started_monotonic_s"] is None or
                 value["release_rpc_code"] != 0 or len(zeros) < 3 or any(code != 0 for code in zeros) or
-                not all(value[key] is True for key in ("observed_stationary", "ownership_released",
-                                                       "post_release_stationary"))):
+                not (value["observed_stationary"] is True or released_still) or
+                not all(value[key] is True for key in ("ownership_released", "post_release_stationary"))):
             raise Hold("settled_measurement_and_verified_release_required")
         if value["status"] == "completed" and (measured["outcome"] != "target_within_tolerance" or
                                                measured["interrupted_or_blocked"]):
