@@ -59,16 +59,16 @@ POSE_FRAME = "go2_robot_odom"
 # Filled from the measured evidence; None keeps the capture bound unavailable (HOLD).
 CAMERA = {
     "latency_config_s": 0.048,  # what the camera bridge subtracts from receipt (configs/go2_vln_sensors.yaml)
-    # Re-measured for the robot boot seen at 19:01 on 2026-11-22 (earlier records: 0.140 s at boot_offset
-    # -1766856813.961, 0.159 s at -1766897811.159, 0.148 s at -1766947283.136 and 0.172 s at -1766903986.310 belong
-    # to earlier boots and are not reused). Screen-flash test (hardware/capture_latency.py): 39 switches,
-    # switch-to-receipt median 0.155 s, max 0.212 s (includes display lag and up to one 0.07 s frame interval);
-    # bound = max - 0.048 configured + 0.020 margin.
-    "bound_s": 0.184,  # validated extra age on top of the configured latency
-    "boot_offset_s": -1766613707.168,  # host_monotonic - robot_odom_stamp on the measured boot
+    # Re-measured for the robot boot seen at 11:57 on 2026-11-23 (earlier records: 0.184 s at boot_offset
+    # -1766613707.168, 0.140 s at -1766856813.961, 0.159 s at -1766897811.159, 0.148 s at -1766947283.136 and
+    # 0.172 s at -1766903986.310 belong to earlier boots and are not reused). Screen-flash test
+    # (hardware/capture_latency.py): 39 switches, switch-to-receipt median 0.127 s, max 0.185 s (includes display
+    # lag and up to one 0.07 s frame interval); bound = max - 0.048 configured + 0.020 margin.
+    "bound_s": 0.157,  # validated extra age on top of the configured latency
+    "boot_offset_s": -1766552958.008,  # host_monotonic - robot_odom_stamp on the measured boot
     "boot_tolerance_s": 5.0,
-    "basis": ("evidence/hw_readiness/capture_latency_20261122_190126.json sha256 "
-              "4552c774fc576b4abeca7e436c300f5d682c90437c14e5530b44f964270533cd"),  # private, git-ignored
+    "basis": ("evidence/hw_readiness/capture_latency_20261123_115758.json sha256 "
+              "9de4777357186c01afa9b921bd1e25df7b17a4c952a7d63a61ab88b6a39b34d9"),  # private, git-ignored
 }
 
 
