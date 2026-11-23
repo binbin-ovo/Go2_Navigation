@@ -352,3 +352,17 @@ def test_live_paused_history_and_observation_budget_end_the_run(tmp_path, monkey
                          "--max-observations", "5", "--output", str(tmp_path / "budget")])
     summary = json.loads((tmp_path / "budget/summary.json").read_text())
     assert summary["termination"] == "observation_budget" and summary["counts"]["received"] == 5
+
+
+def test_slow_wall_clock_slew_keeps_the_epoch_until_its_limit(tmp_path, intr):
+    # 2026-11-22: NTP slew of +20 ms over minutes ended an episode. Steps between frames still
+    # start a new epoch, and so does cumulative slew beyond SLEW_LIMIT_S.
+    from go2_perception.vln.shadow_live import SLEW_LIMIT_S
+    frames = [{"dt": 0.02, "offset_jump": 0.015 if i else 0.0} for i in range(9)]
+    cam = source(tmp_path, intr, {"frames": frames}, capacity=16)
+    cam.start()
+    assert wait_for(lambda: cam.counts["frames_read"] == 9)
+    # 8 x 15 ms = 120 ms: each step is below the 20 ms tolerance; only the slew limit is crossed.
+    assert 0.015 * 6 <= SLEW_LIMIT_S < 0.015 * 8
+    assert cam.counts["clock_epoch_changes"] == 1 and cam.epoch().endswith(":g1")
+    cam.close()

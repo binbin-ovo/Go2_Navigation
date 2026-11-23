@@ -26,6 +26,8 @@ import numpy as np
 
 from .episodes import file_sha256
 from .observation import HOST_CLOCK, Go2VLNObservation, Stamp, VisualObservation
+
+SLEW_LIMIT_S = 0.10  # cumulative wall-clock slew allowed within one camera clock epoch
 from .shadow_sources import ObservationInbox
 
 LIVE_SOURCE_ID = "go2_front_camera_rtp_live"
@@ -199,7 +201,8 @@ class LiveCameraSource:
             "events_lost": 0,
         }
         self.hello, self.stats, self.bye = None, None, None
-        self.base_offset, self.generation, self.last_seq = None, 0, None
+        self.base_offset = self.epoch_offset = None
+        self.generation, self.last_seq = 0, None
         self.last_frame_monotonic = None
         self.process = self.reader = self.log = None
         self.error = None
@@ -280,9 +283,14 @@ class LiveCameraSource:
         self.last_seq = seq
         offset = header.get("wall_minus_monotonic_s")
         if self.base_offset is None:
-            self.base_offset = offset
-        elif isinstance(offset, (int, float)) and abs(offset - self.base_offset) > self.tolerance:
-            # Host wall clock stepped/slewed: wall-receipt stamps are no longer comparable.
+            self.base_offset = self.epoch_offset = offset
+        elif isinstance(offset, (int, float)) and (
+            abs(offset - self.base_offset) > self.tolerance
+            or abs(offset - self.epoch_offset) > SLEW_LIMIT_S
+        ):
+            # A step between frames, or slew beyond SLEW_LIMIT_S within the epoch: wall-receipt
+            # stamps are no longer comparable. Each frame converts with its own offset, so slow
+            # NTP slew alone (+20 ms over minutes on 2026-11-22) no longer ends an episode.
             self.generation += 1
             self.counts["clock_epoch_changes"] += 1
             self._event(
@@ -291,6 +299,8 @@ class LiveCameraSource:
                 new_offset=offset,
                 epoch=f"g{self.generation}",
             )
+            self.epoch_offset = offset
+        if isinstance(offset, (int, float)):
             self.base_offset = offset
         try:
             obs, offer = frame_observation(
