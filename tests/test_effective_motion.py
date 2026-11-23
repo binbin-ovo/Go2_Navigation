@@ -183,7 +183,7 @@ def test_only_authorized_heading_never_combined_translation(sign, direction, lea
         plan(p, cap)
 
 
-@pytest.mark.parametrize("change", [{"floor_returns": 0}, {"obstacle_returns": 1}, {"radius_m": 0.55}])
+@pytest.mark.parametrize("change", [{"floor_returns": 0}, {"obstacle_returns": 1}, {"radius_m": 0.5}])
 def test_inspection_cannot_replace_missing_or_obstructed_sensor_data(change):
     cap, p = proposed(turning(1), (0.2, 0.5), INSPECTED)
     p["identity"]["geometry"]["observed_turn_disc"].update(change)
@@ -327,7 +327,10 @@ def test_provider_partial_disc_is_a_veto_and_delta_imu_wraps(tmp_path):
     geo = g.snapshot()["geometry"]
     assert geo["turn_clear_rad"] == 0 and geo["observed_turn_disc"]["floor_returns"] > 2
     assert geo["observed_turn_disc"]["obstacle_returns"] == 0
-    g.scans.add(np.concatenate([floor(), wall(0.59)]))
+    g.scans.add(np.concatenate([floor(), wall(0.59)]))  # beyond the body's reach plus drift
+    g.compute()
+    assert g.snapshot()["geometry"]["observed_turn_disc"]["obstacle_returns"] == 0
+    g.scans.add(np.concatenate([floor(), wall(0.50)]))
     g.compute()
     assert g.snapshot()["geometry"]["observed_turn_disc"]["obstacle_returns"] > 0
     imu = [math.pi - 0.1]

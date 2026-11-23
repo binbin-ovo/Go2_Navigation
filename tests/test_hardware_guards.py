@@ -206,11 +206,11 @@ def test_turn_disc_measures_side_floor_locally_but_keeps_real_objects():
     radius = np.hypot(floor[:, 0], floor[:, 1])
     ring = floor[(radius >= g.NEAR_LIMIT_M) & (radius <= g.DISC_RADIUS_M)]
     h = g.height_above_ground(ring, coef)
-    assert np.sum((h > g.OBSTACLE_MIN_DZ) & (h < g.OBSTACLE_MAX_DZ)) > 50
+    assert np.sum((h > g.OBSTACLE_MIN_DZ) & (h < g.OBSTACLE_MAX_DZ)) > 20
     clear = _published(g.turn_disc(floor, coef))
     assert clear["obstacle_returns"] == 0 and clear["floor_returns"] > 500
     # A 0.3 m object beside the robot, or one filling its whole sector, still vetoes.
-    for obj in (_box(0.0, 0.5), _box(0.0, -0.55, size=0.5, top=0.3, n=1500)):
+    for obj in (_box(0.0, 0.45), _box(0.0, -0.45, size=0.4, top=0.3, n=1500)):
         disc = _published(g.turn_disc(np.vstack([floor, obj]), coef))
         assert disc["obstacle_returns"] >= g.OBSTACLE_RANK
     # Two stray returns are rejected like the forward corridor's isolated points.

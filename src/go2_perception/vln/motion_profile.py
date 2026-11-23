@@ -27,7 +27,10 @@ RESPONSE = {
 MIN_FORWARD = 0.30
 MIN_TURN = math.radians(20)
 TURN_DRIFT_M = 0.10  # observed up to .07 m in the cited control tests
-DISC_RADIUS_M = 0.55 + TURN_DRIFT_M
+# Farthest body point while spinning in place: head 0.40 m ahead of base_link (guard FRONT_M),
+# legs about 0.20 m to each side, hypot = 0.447 m. The disc adds the drift allowance once.
+BODY_SWEEP_M = 0.45
+DISC_RADIUS_M = BODY_SWEEP_M + TURN_DRIFT_M
 INSPECTION_TTL_S = 30.0
 EPS_M = 0.005
 EPS_YAW = 0.005
