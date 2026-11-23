@@ -123,25 +123,35 @@ def turn_disc(points, coef):
     x near 0) the bare floor reads +0.05 to +0.07 m above it with +/-0.05 m spread (2026-11-22),
     so every disc held "obstacles". Each sector refits floor height against range from floor-like
     returns out to 1 m. The correction is clipped to [-0.05, +0.10] m, so an object filling a
-    sector still shows; a sector without enough floor keeps the forward plane.
+    sector still shows. A sector needs 15 floor returns for its own fit, uses the fit pooled over
+    the sides with 8-14, and keeps the forward plane with fewer.
     """
     radius = np.hypot(points[:, 0], points[:, 1])
     bearing = np.degrees(np.arctan2(points[:, 1], points[:, 0]))
     height = height_above_ground(points, coef)
     local = height.copy()
     ring = (radius >= NEAR_LIMIT_M) & (radius <= DISC_RADIUS_M)
-    obstacle = np.zeros(len(points), bool)
-    corrected = 0
-    for start in range(-180, 180, DISC_SECTOR_DEG):
-        sector = (bearing >= start) & (bearing < start + DISC_SECTOR_DEG)
-        context = sector & (radius >= NEAR_LIMIT_M) & (radius <= 1.0) & (height > -0.10) & (height < 0.12)
+    floorlike = (radius >= NEAR_LIMIT_M) & (radius <= 1.0) & (height > -0.10) & (height < 0.12)
+
+    def range_fit(context, minimum):
         keep, fit = context, None
         for tolerance in (0.06, 0.05, 0.03):
-            if keep.sum() < 30:
-                fit = None
-                break
+            if keep.sum() < minimum:
+                return None
             fit = np.linalg.lstsq(np.column_stack([np.ones(keep.sum()), radius[keep]]), height[keep], rcond=None)[0]
             keep = context & (np.abs(height - fit[0] - fit[1] * radius) < tolerance)
+        return fit
+
+    # Sparse sectors fit from 15 floor returns; below that they borrow the fit pooled over the sides.
+    pooled = range_fit(floorlike & (np.abs(bearing) >= 30), 30)
+    obstacle = np.zeros(len(points), bool)
+    corrected = pooled_used = 0
+    for start in range(-180, 180, DISC_SECTOR_DEG):
+        sector = (bearing >= start) & (bearing < start + DISC_SECTOR_DEG)
+        context = sector & floorlike
+        fit = range_fit(context, 15)
+        if fit is None and pooled is not None and context.sum() >= 8:
+            fit, pooled_used = pooled, pooled_used + 1
         cell = sector & ring
         if fit is not None:
             local[cell] = height[cell] - np.clip(fit[0] + fit[1] * radius[cell], -0.05, 0.10)
@@ -152,7 +162,7 @@ def turn_disc(points, coef):
     disc = {"radius_m": DISC_RADIUS_M, "floor_returns": int(np.sum(ring & (np.abs(local) < .06))),
             "obstacle_returns": int(obstacle.sum())}  # the published proposal fields only
     diagnostics = {"unfiltered_obstacle_returns": int(np.sum(ring & (local > OBSTACLE_MIN_DZ) & (local < OBSTACLE_MAX_DZ))),
-                   "floor_model": f"sector_local_range_fit/{DISC_SECTOR_DEG}deg", "sectors_refit": corrected}
+                   "floor_model": f"sector_local_range_fit/{DISC_SECTOR_DEG}deg", "sectors_refit": corrected, "sectors_pooled": pooled_used}
     return disc, diagnostics
 
 
