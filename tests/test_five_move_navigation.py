@@ -816,8 +816,10 @@ def test_rotated_straight_native_path_supports_one_step_toward_a_verified_aligne
     s = choose(-4, rotated(-15))
     assert s["mode"] == "APPROACH" and s["source"] == "approach_policy"
     assert s["reason"] == "verified_target_and_straight_native_heading_agree"
-    assert s["action"]["direction"] == "forward" and s["action"]["magnitude"] == pytest.approx(0.30)
-    assert s["action"]["speed"] == 1.0
+    assert s["action"]["direction"] == "forward" and s["action"]["speed"] == 1.0
+    # The step grows with the clear corridor (fixture: 0.60 m) and shrinks to 0.30 m near obstacles.
+    assert s["action"]["magnitude"] == pytest.approx(0.60)
+    assert choose(-4, rotated(-15), clear=0.9)["action"]["magnitude"] == pytest.approx(0.35)
     # The heading must agree with the verified target, not merely point forward-ish.
     with pytest.raises(Hold, match="native_path_does_not_support_forward"):
         choose(10, rotated(-15))

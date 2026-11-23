@@ -160,7 +160,7 @@ def select_action(grant, cap, proposal, evidence, views, attempts, was_aligned, 
             if inspected is not None:
                 if straight_corridor_prefix(rows, cap["mapping"], band):
                     return checked(
-                        primitive(cap, "forward", MIN_FORWARD, "short_observed_corridor"),
+                        primitive(cap, "forward", approach_step(cap, geo), "short_observed_corridor"),
                         "approach_policy",
                         "grounded_within_alignment_band",
                     )
@@ -191,7 +191,7 @@ def select_action(grant, cap, proposal, evidence, views, attempts, was_aligned, 
                 if heading is not None and abs(wrap(heading - bearing)) <= (band if straight else band / 2):
                     selection.update(native_heading_rad=heading, native_path_straight=straight)
                     return checked(
-                        primitive(cap, "forward", MIN_FORWARD, "short_observed_corridor"),
+                        primitive(cap, "forward", approach_step(cap, geo), "short_observed_corridor"),
                         "approach_policy",
                         "verified_target_and_straight_native_heading_agree"
                         if straight else "verified_target_and_native_chord_agree",
@@ -202,7 +202,7 @@ def select_action(grant, cap, proposal, evidence, views, attempts, was_aligned, 
             if extent < MIN_FORWARD or abs(native_yaw) > MIN_TURN:
                 raise Hold("native_path_does_not_support_forward_approach")
             return checked(
-                primitive(cap, "forward", MIN_FORWARD, "short_observed_corridor"),
+                primitive(cap, "forward", approach_step(cap, geo), "short_observed_corridor"),
                 "approach_policy",
                 "grounded_within_alignment_band",
             )
@@ -406,6 +406,19 @@ def image_bearing(point, camera, mapping):
     x = bounded_number(point[0], 0, 1, "target_x") * w - 0.5
     centre = (w - 1.0) / 2.0
     return mapping["yaw_rad"] + math.atan2(cx - x, fx) - math.atan2(cx - centre, fx)
+
+
+# Measured travel past a 0.30 m request at 1 m/s reached 0.56 m (2026-11-23 J5TUDA); a longer
+# step keeps this much clear corridor beyond its own stopping reserve.
+OVERSHOOT_MARGIN_M = 0.30
+
+
+def approach_step(cap, geo):
+    """Forward step toward a verified, aligned target: up to FORWARD_CAP, bounded by clear corridor."""
+    reserve = RESPONSE["forward"][1]
+    room = geo.get("forward_clear_m", 0.0) - reserve - OVERSHOOT_MARGIN_M
+    step = math.floor(min(FORWARD_CAP, cap["limits"]["forward_m"], room) * 20) / 20  # 5 cm steps
+    return max(MIN_FORWARD, step)
 
 
 def primitive(cap, direction, magnitude, basis):

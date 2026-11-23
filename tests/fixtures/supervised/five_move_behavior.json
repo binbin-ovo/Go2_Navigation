@@ -56,7 +56,7 @@
           "APPROACH",
           "approach_policy",
           "forward",
-          0.3,
+          0.6,
           "m"
         ],
         "cleanup": {
