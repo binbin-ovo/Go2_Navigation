@@ -877,3 +877,17 @@ def test_exhausted_search_after_a_verified_move_returns_to_the_operator():
         choose([dict(pose, attempt={"mode": "APPROACH", "direction": "forward"})])  # not a new view
     with pytest.raises(Hold, match="no_supported_search_viewpoint"):
         choose(moved, dict(msg["evidence"], previous_image_review={"prediction_id": "P1"}))  # asked already
+
+
+@pytest.mark.parametrize("side", [-1, 1])
+def test_search_turns_back_toward_the_last_verified_target(side):
+    ex, _ = episode()
+    msg = observation(ex, 1, extent=0.48)  # target absent, straight native path: no turn hint
+    yaw = msg["proposal"]["identity"]["pose"]["yaw_rad"]
+
+    def choose(heading):
+        return select_action(ex.grant, ex.cap, msg["proposal"], msg["evidence"], [], 1, False,
+                             inspected=[], target_heading=heading)
+
+    assert choose(yaw + side * 0.5)["action"]["direction"] == ("left" if side > 0 else "right")
+    assert choose(None)["action"]["direction"] == "left"  # unchanged default without a sighting

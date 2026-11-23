@@ -3,7 +3,8 @@
 from copy import deepcopy
 import math
 
-from go2_perception.navigation import MAX_EPISODE_SECONDS, area_check, bounded_number, select_action, supported_ground
+from go2_perception.navigation import (MAX_EPISODE_SECONDS, area_check, bounded_number, image_bearing, select_action,
+                                       supported_ground)
 from .motion_profile import INSPECTED, PROFILE, Hold
 from .supervised import (
     FRESHNESS_S,
@@ -59,6 +60,7 @@ class EpisodeExecutor(Executor):
         self.state = "IDLE"
         self.mode, self.reason, self.outcome = "SEARCH", "awaiting_area_authorization", None
         self.inspected = []  # At most 64 accepted decisions per episode.
+        self.target_heading = None  # odometry yaw of the last verified instance
         self.attempts, self.views, self.predictions, self.observations = [], [], set(), set()
         self.found, self.aligned = False, False
         self.after = 0.0
@@ -282,6 +284,9 @@ class EpisodeExecutor(Executor):
                 k: self.last[k]
                 for k in ("prediction_id", "observation_id", "grounding", "observed_monotonic_s")
             }
+            # Odometry heading of the verified instance, so a later SEARCH turns back toward it.
+            self.target_heading = ident["pose"]["yaw_rad"] + image_bearing(
+                p["point_fraction"], evidence["camera"], self.cap["mapping"])
         self.emit({"type": "episode_observation", "nonce": self.nonce, "proposal": p, "evidence": evidence})
         if p["native_stop"]:
             return self.finish("MODEL_STOPPED_ARRIVAL_UNVERIFIED", "native_stop")
@@ -290,7 +295,7 @@ class EpisodeExecutor(Executor):
         try:
             selected = select_action(
                 self.grant, self.cap, p, evidence, self.views, len(self.attempts), self.aligned,
-                inspected=self.inspected,
+                inspected=self.inspected, target_heading=self.target_heading,
             )
         except Hold as exc:
             return self.finish("BLOCKED_OR_NO_USEFUL_ACTION", str(exc))

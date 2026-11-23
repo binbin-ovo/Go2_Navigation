@@ -93,7 +93,7 @@ def same_view(old, x, y, yaw, pose):
     )
 
 
-def select_action(grant, cap, proposal, evidence, views, attempts, was_aligned, *, inspected=None):
+def select_action(grant, cap, proposal, evidence, views, attempts, was_aligned, *, inspected=None, target_heading=None):
     """Choose HOLD/review, SEARCH or APPROACH from a bound image, native path and fresh geometry.
 
     The result is a selection. The separate executor grants or rejects each dispatch.
@@ -233,6 +233,12 @@ def select_action(grant, cap, proposal, evidence, views, attempts, was_aligned, 
     # Inspect new headings at the current location. Measured poses, including stalls,
     # determine where we actually looked. A forward viewpoint is also a distinct move.
     search_yaw = initial_heading_sweep(rows) if inspected is not None else native_yaw
+    if inspected is not None and target_heading is not None:
+        # A verified instance was last seen at this odometry heading: look back toward it first
+        # (2026-11-23 N7NzcG searched left twice while the dishwasher lay behind-right).
+        toward = wrap(target_heading - pose["yaw_rad"])
+        if abs(toward) > 0.10:
+            search_yaw = toward
     preferred = "right" if search_yaw < -0.10 else "left"
     recent_search = [v["attempt"] for v in views if v["attempt"]["mode"] == "SEARCH"]
     if (
