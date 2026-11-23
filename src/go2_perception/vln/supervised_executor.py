@@ -232,6 +232,7 @@ class HardwareMotion:
         outer = self
         lim = self.cap["limits"]
         reason = []
+        unconfirmed_only = None  # (status, reason) when only the controller's settle window lapsed
         lease_deadline = [None]
         segment = action.get("segment")
         at_zero = peak = None
@@ -438,6 +439,7 @@ class HardwareMotion:
                            "; ".join(reason) or out.end_reason)
             result.update(reason="; ".join(reason) or out.end_reason, observed_stationary=out.stop_confirmed,
                           status="cancelled" if cancelled.is_set() else "completed" if out.stop_confirmed else "failed")
+            unconfirmed_only = (result["status"], result["reason"]) if out.stop_confirmed is False else None
         except BaseException as error:
             result.update(status="failed", reason=f"executor_exception: {error}")
             # The audited loop cleans up once its try block is entered. A claim RPC
@@ -482,7 +484,15 @@ class HardwareMotion:
                 result["events"].append({"avoidance_after_error": str(error)})
                 result["status"] = "failed"
         if segment and result["started_monotonic_s"] is not None:
-            verified = (result["observed_stationary"] is True and result["ownership_released"] is True and
+            # A turn can still spring back slowly (about 0.03 rad/s, 2026-11-22) when the controller's
+            # settle window closes. Three seconds of fresh, still samples after release then confirm
+            # the stop; the settled value is read after them. An unknown (None) observation never does.
+            if result["observed_stationary"] is False and result["post_release_stationary"] is True:
+                result["stop_verified_by"] = "post_release_stationary"
+                if unconfirmed_only is not None and unconfirmed_only == (result["status"], result["reason"]) \
+                        and result["status"] == "failed":
+                    result["status"] = "completed"  # nothing else failed after the settle window
+            verified = (result["observed_stationary"] is not None and result["ownership_released"] is True and
                         result["post_release_stationary"] is True and len(result["stop_send_statuses"]) >= 3 and
                         all(code == 0 for code in result["stop_send_statuses"]))
             settled_value = None

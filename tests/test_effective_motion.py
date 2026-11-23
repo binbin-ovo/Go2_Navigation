@@ -579,3 +579,55 @@ def test_freshness_gate_waits_for_a_wholly_post_authorization_capture(tmp_path):
     frame["clock_epoch"] = "camera-epoch"
     ui.process(100.21)
     assert len(starts) == 1 and starts[0][-1] == "refresh" and ui.pending_refresh is None
+
+
+@pytest.mark.parametrize("still_after_release", [True, False])
+def test_slow_turn_springback_is_verified_by_post_release_stillness(tmp_path, still_after_release):
+    # 2026-11-22 TFJ3xn: the turn kept easing back at ~0.03 rad/s past the controller settle window.
+    sign = -1
+    motion, ticket, cancel, calls, clock = hardware_fakes(tmp_path)
+    configure(motion.cap, INSPECTED)
+    attach_camera_evidence(motion, ticket)
+    _, example = proposed(turning(sign), (0.2 if sign > 0 else 0.8, 0.5), INSPECTED)
+    proposal = ticket["proposal"]
+    proposal.update(waypoints=example["waypoints"], point_fraction=example["point_fraction"])
+    auth = ticket["authorization"]
+    snapshot = motion.guards.snapshot
+
+    def observed():
+        newer = snapshot()
+        newer["geometry"].update(
+            directions=["forward"],
+            turn_clear_rad=0.0,
+            observed_turn_disc=deepcopy(example["identity"]["geometry"]["observed_turn_disc"]),
+        )
+        return newer
+
+    motion.guards.snapshot = observed
+    proposal["identity"]["geometry"].update(observed()["geometry"])
+    a = plan(proposal, motion.cap)
+    ticket["action"] = auth["envelope"] = a
+    auth["capability_sha256"] = digest(motion.cap)
+    auth["turn_inspection"] = {
+        "scope": INSPECTED,
+        "session_nonce": ticket["nonce"],
+        "preview_sha256": digest(auth["reviewed_identity"]),
+        "direction": a["direction"],
+        "radius_m": DISC_RADIUS_M,
+        "operator": auth["target"]["confirmed_by"],
+        "pose": dict(auth["reviewed_identity"]["pose"], monotonic_s=auth["created_monotonic_s"] - 0.06),
+        "inspected_s": auth["created_monotonic_s"] - 0.05,
+    }
+    idle_run(motion, clock, 1.2)
+    motion.guards.progress = (
+        lambda _: lambda: a["magnitude"] if "stop" in calls else 0.048 * calls.count("velocity")
+    )
+    real = motion.monitor.is_still
+    motion.monitor.is_still = lambda: real() and ("velocity" not in calls or still_after_release and "release" in calls)
+    result = motion(ticket, a, result_record(ticket, False, clock()), cancel)
+    assert result["observed_stationary"] is False
+    if not still_after_release:
+        assert result["status"] == "failed" and not result["motion_measurement"]["stop_verified"]
+        return
+    assert result["stop_verified_by"] == "post_release_stationary"
+    assert result["status"] == "completed" and result["motion_measurement"]["settled"] == a["magnitude"]

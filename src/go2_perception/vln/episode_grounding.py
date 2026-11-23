@@ -50,6 +50,8 @@ def read_gray(path, unavailable, expected_sha=None):
 # 2.3-3.7 px perspective error under a similarity model (November 22, dishwasher). The
 # accepted match still needs a median residual of at most 2 px.
 CONSENSUS_PX = 4.0
+NATIVE_WIDTH = 448  # pixel tolerances are stated in the model image; prepared detail is rescaled
+SIFT_CONTRAST = 0.02  # OpenCV default 0.04 leaves too few keypoints on plain appliance fronts
 
 
 def remember_rejection(previous, new):
@@ -141,7 +143,7 @@ def detail_features(detail, native_sha, roi=None):
     h, w = image.shape
     if [w, h] != list(detail["size"]):
         raise Hold("prepared_detail_dimensions_changed")
-    pts, desc = cv2.SIFT_create().detectAndCompute(image, None)
+    pts, desc = cv2.SIFT_create(contrastThreshold=SIFT_CONTRAST).detectAndCompute(image, None)
     if roi is not None and desc is not None:
         x0, y0, x1, y1 = np.asarray(roi) * [w, h, w, h]
         # Nominal radius of the rotated 4x4 OpenCV SIFT sampling grid, in keypoint diameters.
@@ -151,6 +153,10 @@ def detail_features(detail, native_sha, roi=None):
             for i, p in enumerate(pts)
             if min(p.pt[0] - x0, x1 - p.pt[0], p.pt[1] - y0, y1 - p.pt[1]) > support_radius * p.size
         ]
+        if len(keep) < 12:
+            # A small, plain target (a dishwasher front at 2 m: 5 interior keypoints) keeps every
+            # keypoint centred in the ROI instead; matching still needs >= 12 consistent inliers.
+            keep = [i for i, p in enumerate(pts) if x0 <= p.pt[0] <= x1 and y0 <= p.pt[1] <= y1]
         pts, desc = [pts[i] for i in keep], desc[keep]
     return np.float32([p.pt for p in pts]).reshape(-1, 2), desc, (w, h)
 
@@ -211,19 +217,21 @@ def localize(ref, current, point, *, interior=False):
     if desc is None or len(q) < 12:
         return dict(evidence, reason="too_few_current_features")
     matcher = cv2.BFMatcher(cv2.NORM_L2 if interior else cv2.NORM_HAMMING)
+    ratio = 0.75 if interior else 0.7  # Lowe's SIFT ratio; ORB keeps the stricter test
     pairs = matcher.knnMatch(ref["descriptors"], desc, k=2)
     reverse = {
         (a.trainIdx, a.queryIdx)
         for a, b in matcher.knnMatch(desc, ref["descriptors"], k=2)
-        if a.distance < 0.7 * b.distance
+        if a.distance < ratio * b.distance
     }
-    good = [a for a, b in pairs if a.distance < 0.7 * b.distance and (a.queryIdx, a.trainIdx) in reverse]
+    good = [a for a, b in pairs if a.distance < ratio * b.distance and (a.queryIdx, a.trainIdx) in reverse]
     evidence["mutual_matches"] = len(good)
     if len(good) < 12:
         return dict(evidence, reason="too_few_mutual_matches")
     a = np.float32([ref["points"][m.queryIdx] for m in good])
     b = np.float32([q[m.trainIdx] for m in good])
-    mat, inliers = cv2.estimateAffinePartial2D(a, b, method=cv2.RANSAC, ransacReprojThreshold=CONSENSUS_PX)
+    unit = w / NATIVE_WIDTH if interior else 1.0  # prepared-detail pixels per model-image pixel
+    mat, inliers = cv2.estimateAffinePartial2D(a, b, method=cv2.RANSAC, ransacReprojThreshold=CONSENSUS_PX * unit)
     if mat is None or inliers is None:
         return dict(evidence, reason="no_consistent_transform")
     keep = inliers.ravel().astype(bool)
@@ -232,7 +240,7 @@ def localize(ref, current, point, *, interior=False):
     evidence.update(inliers=int(keep.sum()), inlier_fraction=float(keep.mean()), feature_spread=float(spread))
     if keep.sum() < 12 or keep.mean() < 0.8 or spread < 0.12:
         return dict(evidence, reason="insufficient_distributed_inliers")
-    residual = float(np.median(np.linalg.norm(cv2.transform(a[None], mat)[0][keep] - b[keep], axis=1)))
+    residual = float(np.median(np.linalg.norm(cv2.transform(a[None], mat)[0][keep] - b[keep], axis=1))) / unit
     evidence["median_residual_px"] = residual
     if residual > 2:
         return dict(evidence, reason="large_reprojection_residual")
